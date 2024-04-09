@@ -130,8 +130,9 @@ dmypy.json
 
 
 #### Customised
-./data/
-Data_TB/
-Experiments/
-model_outputs
-src/wandb
+data/
+experiments/
+cache/
+.vscode/
+wandb/
+artifacts/

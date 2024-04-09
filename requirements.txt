@@ -1,0 +1,10 @@
+torch
+torchvision
+torchaudio
+faiss-cpu==1.7.4
+ujson
+gitpython
+easydict
+ninja
+datasets
+transformers

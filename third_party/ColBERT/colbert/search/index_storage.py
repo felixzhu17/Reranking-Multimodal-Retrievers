@@ -65,15 +65,6 @@ class IndexScorer(IndexLoader, CandidateGeneration):
         return self.embeddings_strided.lookup_pids(passage_ids, out_device)
 
     def retrieve(self, config, Q):
-        # Note from Weizhe Lin (FLMR author):
-        # if the following line is applied, only the first config.query_maxlen token embeddings (which are basically question tokens) are used in retrieving centroids.
-        # This can be seen as a first "coarse" retrieval step, which is then followed by a second "fine" ranking process that uses all query tokens. This reduction makes sense if:
-        #       1. the query embeddings are very long (e.g. in FLMR there are 512 text tokens + 320 visual tokens) such that the retrieval gets slow if all query tokens are used in this first step;
-        #       2. the first several tokens contain sufficient information for retrieving centroids - the question always contains much useful information that is sufficient for retrieving useful centroids;
-        #      3. the performance of using question tokens retrieval is not much worse (or even better) than using all query tokens in retrieval.
-        # If you decide to cancel this line, remember to set batch size smaller (e.g. 2**8 for FLMR's 512+320 tokens) to avoid OOM. The relevant code is under `def score_pids` of this file. But note that this increases the retrieval latency significantly.
-        # Thus, whether to keep this line or not depends on the specific task and dataset you want to solve. Feel free to try out different settings and compare performance.
-        # TODO: You may want to cancel this line to use all tokens in Q to retrieve centroids
         Q = Q[:, :config.query_maxlen]   # NOTE: Candidate generation uses only the query tokens
         embedding_ids, centroid_scores = self.generate_candidates(config, Q)
 
@@ -83,21 +74,21 @@ class IndexScorer(IndexLoader, CandidateGeneration):
         all_pids = torch.unique(self.emb2pid[embedding_ids.long()].cuda(), sorted=False)
         return all_pids
 
-    def rank(self, config, Q, filter_fn=None, batch_size=None):
+    def rank(self, config, Q, filter_fn=None):
         with torch.inference_mode():
             pids, centroid_scores = self.retrieve(config, Q)
 
             if filter_fn is not None:
                 pids = filter_fn(pids)
 
-            scores, pids = self.score_pids(config, Q, pids, centroid_scores, batch_size=batch_size)
+            scores, pids = self.score_pids(config, Q, pids, centroid_scores)
 
             scores_sorter = scores.sort(descending=True)
             pids, scores = pids[scores_sorter.indices].tolist(), scores_sorter.values.tolist()
 
             return pids, scores
 
-    def score_pids(self, config, Q, pids, centroid_scores, batch_size=None):
+    def score_pids(self, config, Q, pids, centroid_scores):
         """
             Always supply a flat list or tensor for `pids`.
 
@@ -107,7 +98,7 @@ class IndexScorer(IndexLoader, CandidateGeneration):
         """
 
         # TODO: Remove batching?
-        batch_size = 2 ** 20 if batch_size is None else batch_size
+        batch_size = 2 ** 20
 
         if self.use_gpu:
             centroid_scores = centroid_scores.cuda()
@@ -128,10 +119,7 @@ class IndexScorer(IndexLoader, CandidateGeneration):
                 codes_packed_ = codes_packed[idx_]
                 approx_scores_ = centroid_scores[codes_packed_.long()]
                 if approx_scores_.shape[0] == 0:
-                    temp = torch.zeros((len(pids_),), dtype=approx_scores_.dtype)
-                    if self.use_gpu:
-                        temp = temp.cuda()
-                    approx_scores.append(temp)
+                    approx_scores.append(torch.zeros((len(pids_),), dtype=approx_scores_.dtype))
                     continue
                 approx_scores_strided = StridedTensor(approx_scores_, pruned_codes_lengths, use_gpu=self.use_gpu)
                 approx_scores_padded, approx_scores_mask = approx_scores_strided.as_padded_tensor()

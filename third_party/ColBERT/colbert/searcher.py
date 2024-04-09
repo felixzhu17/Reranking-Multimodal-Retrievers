@@ -16,8 +16,6 @@ from colbert.infra.launcher import print_memory_stats
 
 import time
 
-# from flmr.models.flmr import FLMRModelForIndexing, FLMRQueryEncoderTokenizer, FLMRContextEncoderTokenizer
-
 TextQueries = Union[str, 'list[str]', 'dict[int, str]', Queries]
 
 
@@ -39,16 +37,11 @@ class Searcher:
         self.collection = Collection.cast(collection or self.config.collection)
         self.configure(checkpoint=self.checkpoint, collection=self.collection)
 
-        # query_tokenizer = FLMRQueryEncoderTokenizer.from_pretrained(self.config.checkpoint, subfolder="query_tokenizer")
-        # context_tokenizer = FLMRContextEncoderTokenizer.from_pretrained(self.config.checkpoint, subfolder="context_tokenizer")
-        # self.checkpoint = FLMRModelForIndexing.from_pretrained(self.config.checkpoint, 
-        #                                                         query_tokenizer=query_tokenizer, 
-        #                                                         context_tokenizer=context_tokenizer)
-        
+        self.checkpoint = Checkpoint(self.checkpoint, colbert_config=self.config)
         self.configure()
         use_gpu = self.config.total_visible_gpus > 0
-        # if use_gpu:
-        #     self.checkpoint = self.checkpoint.cuda()
+        if use_gpu:
+            self.checkpoint = self.checkpoint.cuda()
         self.ranker = IndexScorer(self.index, use_gpu)
 
         print_memory_stats()
@@ -77,10 +70,13 @@ class Searcher:
 
         return self._search_all_Q(queries, Q, k, filter_fn=filter_fn)
 
-    def _search_all_Q(self, queries, Q, k, filter_fn=None, progress=True, remove_zero_tensors=False, batch_size=None):
-        all_scored_pids = [list(zip(*self.dense_search(Q[query_idx:query_idx+1], k, filter_fn=filter_fn, remove_zero_tensors=remove_zero_tensors, batch_size=batch_size)))
-                        for query_idx in tqdm(range(Q.size(0)), disable=not progress)]
-        
+    def _search_all_Q(self, queries, Q, k, filter_fn=None, progress=True, remove_zero_tensors=False):
+        if progress:
+            all_scored_pids = [list(zip(*self.dense_search(Q[query_idx:query_idx+1], k, filter_fn=filter_fn, remove_zero_tensors=remove_zero_tensors)))
+                            for query_idx in tqdm(range(Q.size(0)))]
+        else:
+            all_scored_pids = [list(zip(*self.dense_search(Q[query_idx:query_idx+1], k, filter_fn=filter_fn, remove_zero_tensors=remove_zero_tensors)))
+                            for query_idx in range(Q.size(0))]
 
         data = {qid: val for qid, val in zip(queries.keys(), all_scored_pids)}
 
@@ -92,7 +88,7 @@ class Searcher:
 
         return Ranking(data=data, provenance=provenance)
 
-    def dense_search(self, Q: torch.Tensor, k=10, filter_fn=None, remove_zero_tensors=False, batch_size=None):
+    def dense_search(self, Q: torch.Tensor, k=10, filter_fn=None, remove_zero_tensors=False):
         if k <= 10:
             # if self.config.ncells is None:
             #     self.configure(ncells=1)
@@ -131,6 +127,6 @@ class Searcher:
             # print("Q after clean up", Q.shape) # 1 x seq_len x dim
             # print(Q[:, :, :2])
         
-        pids, scores = self.ranker.rank(self.config, Q, filter_fn=filter_fn, batch_size=batch_size)
+        pids, scores = self.ranker.rank(self.config, Q, filter_fn=filter_fn)
 
         return pids[:k], list(range(1, k+1)), scores[:k]
