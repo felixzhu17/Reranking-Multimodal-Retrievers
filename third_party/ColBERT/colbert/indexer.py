@@ -25,6 +25,7 @@ class Indexer:
         self.config = ColBERTConfig.from_existing(self.checkpoint_config, config, Run().config)
         self.configure(checkpoint=checkpoint)
 
+
     def configure(self, **kw_args):
         self.config.configure(**kw_args)
 
@@ -55,11 +56,11 @@ class Indexer:
 
         return deleted
 
-    def index(self, name, collection, overwrite=False):
+    def index(self, name, collection, batch_size=64, overwrite=False):
         assert overwrite in [True, False, 'reuse', 'resume']
 
         self.configure(collection=collection, index_name=name, resume=overwrite=='resume')
-        self.configure(bsize=64, partitions=None)
+        self.configure(bsize=batch_size, partitions=None)
 
         self.index_path = self.config.index_path_
         index_does_not_exist = (not os.path.exists(self.config.index_path_))

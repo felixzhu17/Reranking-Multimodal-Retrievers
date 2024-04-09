@@ -37,26 +37,31 @@ def tensorize_triples(query_tokenizer, doc_tokenizer, queries, passages, scores,
     return batches
 
 
-def _sort_by_length(ids, mask, bsize, image_features=None):
+def _sort_by_length(ids, mask, bsize, *args):
     if ids.size(0) <= bsize:
         return ids, mask, torch.arange(ids.size(0))
 
     indices = mask.sum(-1).sort().indices
     reverse_indices = indices.sort().indices
+    
+    return_array = [ids[indices], mask[indices]]
+    for arg in args:
+        if isinstance(arg, torch.Tensor):
+            return_array.append(arg[indices])
+        else:
+            # arg is a list, and we want to sort the list according to indices
+            return_array.append([arg[i] for i in indices])
 
-    if image_features is not None:
-        return ids[indices], mask[indices], image_features[indices], reverse_indices
-    return ids[indices], mask[indices], reverse_indices
+    return *return_array, reverse_indices
 
 
-def _split_into_batches(ids, mask, bsize, image_features=None):
+def _split_into_batches(ids, mask, bsize, *args):
     batches = []
     for offset in range(0, ids.size(0), bsize):
-        if image_features is not None:
-            batches.append((ids[offset:offset+bsize], mask[offset:offset+bsize],  image_features[offset:offset+bsize]))
-        else:
-            batches.append((ids[offset:offset+bsize], mask[offset:offset+bsize]))
-
+        batch = [ids[offset:offset+bsize], mask[offset:offset+bsize]]
+        for arg in args:
+            batch.append(arg[offset:offset+bsize])
+        batches.append(batch)
     return batches
 
 

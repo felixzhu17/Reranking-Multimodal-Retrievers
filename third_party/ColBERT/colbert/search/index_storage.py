@@ -83,21 +83,21 @@ class IndexScorer(IndexLoader, CandidateGeneration):
         all_pids = torch.unique(self.emb2pid[embedding_ids.long()].cuda(), sorted=False)
         return all_pids
 
-    def rank(self, config, Q, filter_fn=None):
+    def rank(self, config, Q, filter_fn=None, batch_size=None):
         with torch.inference_mode():
             pids, centroid_scores = self.retrieve(config, Q)
 
             if filter_fn is not None:
                 pids = filter_fn(pids)
 
-            scores, pids = self.score_pids(config, Q, pids, centroid_scores)
+            scores, pids = self.score_pids(config, Q, pids, centroid_scores, batch_size=batch_size)
 
             scores_sorter = scores.sort(descending=True)
             pids, scores = pids[scores_sorter.indices].tolist(), scores_sorter.values.tolist()
 
             return pids, scores
 
-    def score_pids(self, config, Q, pids, centroid_scores):
+    def score_pids(self, config, Q, pids, centroid_scores, batch_size=None):
         """
             Always supply a flat list or tensor for `pids`.
 
@@ -106,9 +106,8 @@ class IndexScorer(IndexLoader, CandidateGeneration):
             Otherwise, each query matrix will be compared against the *aligned* passage.
         """
 
-        # TODO: Remove batching? - No we should not remove batching. - Weizhe Lin
-        # TODO: Control this batch size with config - Weizhe Lin
-        batch_size = 2 ** 20
+        # TODO: Remove batching?
+        batch_size = 2 ** 20 if batch_size is None else batch_size
 
         if self.use_gpu:
             centroid_scores = centroid_scores.cuda()
@@ -129,7 +128,10 @@ class IndexScorer(IndexLoader, CandidateGeneration):
                 codes_packed_ = codes_packed[idx_]
                 approx_scores_ = centroid_scores[codes_packed_.long()]
                 if approx_scores_.shape[0] == 0:
-                    approx_scores.append(torch.zeros((len(pids_),), dtype=approx_scores_.dtype))
+                    temp = torch.zeros((len(pids_),), dtype=approx_scores_.dtype)
+                    if self.use_gpu:
+                        temp = temp.cuda()
+                    approx_scores.append(temp)
                     continue
                 approx_scores_strided = StridedTensor(approx_scores_, pruned_codes_lengths, use_gpu=self.use_gpu)
                 approx_scores_padded, approx_scores_mask = approx_scores_strided.as_padded_tensor()
