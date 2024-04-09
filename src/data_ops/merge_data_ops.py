@@ -192,8 +192,8 @@ class LoadPreprocessedData_v2(HFDatasetTransform):
 
     def _call(self, *args, **kwargs):
         res = DatasetDict()
-        from datasets import disable_caching
-        disable_caching()
+        # from datasets import disable_caching
+        # disable_caching()
         
         if "///" in self.data_path:
             # split and assign to each
