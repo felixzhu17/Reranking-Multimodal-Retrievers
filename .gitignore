@@ -130,7 +130,6 @@ dmypy.json
 
 
 #### Customised
-data/
 experiments/
 cache/
 .vscode/
