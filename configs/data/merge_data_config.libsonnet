@@ -10,9 +10,9 @@ local merge_data_pipeline = {
       regenerate: false,
       cache: true,
       setup_kwargs: {
-        data_path: "BByrneLab/multi_task_multi_modal_knowledge_retrieval_benchmark_M2KR///CC_data",
-        passage_path: "BByrneLab/multi_task_multi_modal_knowledge_retrieval_benchmark_M2KR///CC_passages",
-        image_root_folder: "/root/rds/data/CC3M/LLaVA-CC3M-Pretrain-595K/images",
+        data_path: "/home/fz288/rds/rds-cvnlp-hirYTW1FQIw/shared_space/vqa_data/FLMR/CC3M_595K_Data.hf",
+        passage_path: "/home/fz288/rds/rds-cvnlp-hirYTW1FQIw/shared_space/vqa_data/FLMR/CC3M_595K_Passages.hf",
+        image_root_folder: "/home/fz288/rds/rds-bigpicture-iS0FZqj9lmg/shared_space/datasets/CC3M-LLAVA-595K",
       },
     },
     'process:LoadLLaVaData': {
@@ -20,9 +20,9 @@ local merge_data_pipeline = {
       regenerate: false,
       cache: true,
       setup_kwargs: {
-        data_path: "BByrneLab/multi_task_multi_modal_knowledge_retrieval_benchmark_M2KR///LLaVA_data",
-        passage_path: "BByrneLab/multi_task_multi_modal_knowledge_retrieval_benchmark_M2KR///LLaVA_passages",
-        image_root_folder: "/root/rds/data/OKVQA",
+        data_path: "/home/fz288/rds/rds-cvnlp-hirYTW1FQIw/shared_space/vqa_data/FLMR/LLAVA_Data.hf",
+        passage_path: "/home/fz288/rds/rds-cvnlp-hirYTW1FQIw/shared_space/vqa_data/FLMR/LLAVA_Passages.hf",
+        image_root_folder: "/home/fz288/rds/rds-cvnlp-hirYTW1FQIw/shared_space/vqa_data/KBVQA_data/ok-vqa/train2014",
         add_instruction: [
           "Provide a brief description of the image along with the following question:",
           "Provide a concise explanation of the image along with the following question:",
@@ -34,8 +34,8 @@ local merge_data_pipeline = {
       regenerate: false,
       cache: true,
       setup_kwargs: {
-        data_path: "BByrneLab/multi_task_multi_modal_knowledge_retrieval_benchmark_M2KR///MSMARCO_data",
-        passage_path: "BByrneLab/multi_task_multi_modal_knowledge_retrieval_benchmark_M2KR///MSMARCO_passages",
+        data_path: "/home/fz288/rds/rds-cvnlp-hirYTW1FQIw/shared_space/vqa_data/FLMR/MSMARCO_Data.hf",
+        passage_path: "/home/fz288/rds/rds-cvnlp-hirYTW1FQIw/shared_space/vqa_data/FLMR/MSMARCO_Passages.hf",
       },
     },
     'process:LoadOvenData': {
@@ -43,9 +43,9 @@ local merge_data_pipeline = {
       regenerate: false,
       cache: true,
       setup_kwargs: {
-        data_path: "BByrneLab/multi_task_multi_modal_knowledge_retrieval_benchmark_M2KR///OVEN_data",
-        passage_path: "BByrneLab/multi_task_multi_modal_knowledge_retrieval_benchmark_M2KR///OVEN_passages",
-        image_root_folder: "/root/rds/data/OVEN",
+        data_path: "/home/fz288/rds/rds-cvnlp-hirYTW1FQIw/shared_space/vqa_data/FLMR/OVEN_Data.hf",
+        passage_path: "/home/fz288/rds/rds-cvnlp-hirYTW1FQIw/shared_space/vqa_data/FLMR/OVEN_Passages.hf",
+        image_root_folder: "/home/fz288/rds/rds-cvnlp-hirYTW1FQIw/shared_space/vqa_data/KBVQA_data/OVEN/Oven_images",
         add_instruction: [
           "Using the provided image, obtain documents that address the subsequent question: ",
           "Retrieve documents that provide an answer to the question alongside the image: ",
@@ -58,59 +58,14 @@ local merge_data_pipeline = {
         ],
       },
     },
-    // 'process:LoadWITGeneratedQuestionsData': {
-    //   transform_name: 'LoadPreprocessedData_v2',
-    //   regenerate: false,
-    //   cache: true,
-    //   setup_kwargs: {
-    //     data_path: "/home/ubuntu/data/wit/PrepareWIT_Generated_Questions_38K.hf",
-    //     passage_path: "/home/ubuntu/data/wit/SplitWIT_Generated_Questions_38K.hf",
-    //     // shuffle_splits: ['train', 'valid'],
-    //     // num_data: {'train': -1, 'valid': 10000},
-    //     use_generated_questions: true,
-    //     add_question_id_prefix: "WITQ",
-    //     add_instruction: [
-    //       "Using the provided image, obtain documents that address the subsequent question: ",
-    //       "Retrieve documents that provide an answer to the question alongside the image: ",
-    //       "Extract documents linked to the question provided in conjunction with the image: ",
-    //       "Utilizing the given image, obtain documents that respond to the following question: ",
-    //       "Using the given image, access documents that provide insights into the following question: ",
-    //       "Obtain documents that correspond to the inquiry alongside the provided image: ",
-    //       "With the provided image, gather documents that offer a solution to the question: ",
-    //       "Utilizing the given image, obtain documents that respond to the following question: ",
-    //     ],
-    //   },
-    // },
-    // 'process:LoadInfoSeekData': {
-    //   transform_name: 'LoadPreprocessedData_v2',
-    //   regenerate: false,
-    //   cache: true,
-    //   setup_kwargs: {
-    //     data_path: "/home/ubuntu/additional_data/projects/KBVQA/cache/InfoSeekDataPipeline/process:MergeDataColumns-16198829ca9181f8d8443592a1d2c77f.hf",
-    //     passage_path: "/home/ubuntu/additional_data/projects/KBVQA/cache/InfoSeekDataPipeline/process:ReduceWikipediaPassagesSizeForInfoSeek-45fd077e40519f6556958a1004ed7b0a.hf",
-    //     use_filtered_passages: true,
-    //     shuffle_splits: ['train'],
-    //     num_data: {'train': 100000, 'valid': -1},
-    //     add_instruction: [
-    //       "Using the provided image, obtain documents that address the subsequent question: ",
-    //       "Retrieve documents that provide an answer to the question alongside the image: ",
-    //       "Extract documents linked to the question provided in conjunction with the image: ",
-    //       "Utilizing the given image, obtain documents that respond to the following question: ",
-    //       "Using the given image, access documents that provide insights into the following question: ",
-    //       "Obtain documents that correspond to the inquiry alongside the provided image: ",
-    //       "With the provided image, gather documents that offer a solution to the question: ",
-    //       "Utilizing the given image, obtain documents that respond to the following question: ",
-    //     ],
-    //   },
-    // },
     'process:LoadKVQAData': {
       transform_name: 'LoadPreprocessedData_v2',
       regenerate: false,
       cache: true,
       setup_kwargs: {
-        data_path: "BByrneLab/multi_task_multi_modal_knowledge_retrieval_benchmark_M2KR///KVQA_data",
-        passage_path: "BByrneLab/multi_task_multi_modal_knowledge_retrieval_benchmark_M2KR///KVQA_passages",
-        image_root_folder: "/root/rds/data/KVQA/KVQAimgs",
+        data_path: "/home/fz288/rds/rds-cvnlp-hirYTW1FQIw/shared_space/vqa_data/FLMR/KVQA_Data.hf",
+        passage_path: "/home/fz288/rds/rds-cvnlp-hirYTW1FQIw/shared_space/vqa_data/FLMR/KVQA_Passages.hf",
+        image_root_folder: "/home/fz288/rds/rds-cvnlp-hirYTW1FQIw/shared_space/vqa_data/KBVQA_data/KVQA/KVQAimgs",
         add_instruction: [
           "Using the provided image, obtain documents that address the subsequent question: ",
           "Retrieve documents that provide an answer to the question alongside the image: ",
@@ -128,9 +83,9 @@ local merge_data_pipeline = {
       regenerate: false,
       cache: true,
       setup_kwargs: {
-        data_path: "BByrneLab/multi_task_multi_modal_knowledge_retrieval_benchmark_M2KR///EVQA_data",
-        passage_path: "BByrneLab/multi_task_multi_modal_knowledge_retrieval_benchmark_M2KR///EVQA_passages",
-        image_root_folder: "/root/rds/data/EVQA/images",
+        data_path: "/home/fz288/rds/rds-cvnlp-hirYTW1FQIw/shared_space/vqa_data/FLMR/EVQA_Data.hf",
+        passage_path: "/home/fz288/rds/rds-cvnlp-hirYTW1FQIw/shared_space/vqa_data/FLMR/EVQA_Passages.hf",
+        image_root_folder: "/home/fz288/rds/rds-cvnlp-hirYTW1FQIw/shared_space/vqa_data/KBVQA_data/EVQA/images",
         add_instruction: [
           "Using the provided image, obtain documents that address the subsequent question: ",
           "Retrieve documents that provide an answer to the question alongside the image: ",
@@ -148,9 +103,9 @@ local merge_data_pipeline = {
       regenerate: false,
       cache: true,
       setup_kwargs: {
-        data_path: "BByrneLab/multi_task_multi_modal_knowledge_retrieval_benchmark_M2KR///OKVQA_data",
-        passage_path: "BByrneLab/multi_task_multi_modal_knowledge_retrieval_benchmark_M2KR///OKVQA_passages",
-        image_root_folder: "/root/rds/data/OKVQA",
+        data_path: "/home/fz288/rds/rds-cvnlp-hirYTW1FQIw/shared_space/vqa_data/FLMR/OKVQA_Data.hf",
+        passage_path: "/home/fz288/rds/rds-cvnlp-hirYTW1FQIw/shared_space/vqa_data/FLMR/OKVQA_Passages.hf",
+        image_root_folder: "/home/fz288/rds/rds-cvnlp-hirYTW1FQIw/shared_space/vqa_data/KBVQA_data/ok-vqa",
         add_instruction: [
           "Using the provided image, obtain documents that address the subsequent question: ",
           "Retrieve documents that provide an answer to the question alongside the image: ",
@@ -168,9 +123,9 @@ local merge_data_pipeline = {
       regenerate: false,
       cache: true,
       setup_kwargs: {
-        data_path: "BByrneLab/multi_task_multi_modal_knowledge_retrieval_benchmark_M2KR///WIT_data",
-        passage_path: "BByrneLab/multi_task_multi_modal_knowledge_retrieval_benchmark_M2KR///WIT_passages",
-        image_root_folder: "/root/rds/data/WIT/images",
+        data_path: "/home/fz288/rds/rds-cvnlp-hirYTW1FQIw/shared_space/vqa_data/FLMR/WIT_Data.hf",
+        passage_path: "/home/fz288/rds/rds-cvnlp-hirYTW1FQIw/shared_space/vqa_data/FLMR/WIT_Passages.hf",
+        image_root_folder: "/home/fz288/rds/rds-cvnlp-hirYTW1FQIw/shared_space/vqa_data/KBVQA_data/wit/images",
         add_instruction: [
           "Identify the document that is connected to this image.:",
           "Provide information about the document linked to this image.:",

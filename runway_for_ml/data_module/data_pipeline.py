@@ -23,7 +23,6 @@ class DataPipeline(DummyBase):
         global_config=None,
         ):
         self.config = config
-
         self.name = self.config.get('name', 'default_pipeline')
         self.cache_dir = Path(global_config.meta.get('default_cache_dir', 'cache/'))
 

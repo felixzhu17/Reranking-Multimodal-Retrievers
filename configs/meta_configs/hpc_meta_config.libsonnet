@@ -13,8 +13,8 @@ local default_cache_dir = "cache/"; # find out;
 
 local default_meta = {
   "DATA_FOLDER": "data", # find out
-  "EXPERIMENT_FOLDER": "/hy-tmp/experiments", # find out
-  "TENSORBOARD_FOLDER": "./tensorboards/", 
+  "EXPERIMENT_FOLDER": "experiments", # find out
+  "TENSORBOARD_FOLDER": "tensorboards", 
   "WANDB": {
       "CACHE_DIR":  wandb_cache_dir,
       "entity": "weizhelin",

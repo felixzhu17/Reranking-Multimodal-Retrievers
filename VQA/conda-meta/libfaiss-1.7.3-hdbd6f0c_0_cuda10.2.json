@@ -1,0 +1,1543 @@
+{
+  "build": "hdbd6f0c_0_cuda10.2",
+  "build_number": 0,
+  "channel": "https://conda.anaconda.org/pytorch/linux-64",
+  "constrains": [],
+  "depends": [
+    "cudatoolkit >=10.2.89,<10.3.0a0",
+    "libgcc-ng >=8.4.0",
+    "libstdcxx-ng >=8.4.0",
+    "mkl >=2018"
+  ],
+  "extracted_package_dir": "/home/fz288/.conda/pkgs/libfaiss-1.7.3-hdbd6f0c_0_cuda10.2",
+  "features": "",
+  "files": [
+    "include/faiss/AutoTune.h",
+    "include/faiss/Clustering.h",
+    "include/faiss/IVFlib.h",
+    "include/faiss/Index.h",
+    "include/faiss/Index2Layer.h",
+    "include/faiss/IndexAdditiveQuantizer.h",
+    "include/faiss/IndexAdditiveQuantizerFastScan.h",
+    "include/faiss/IndexBinary.h",
+    "include/faiss/IndexBinaryFlat.h",
+    "include/faiss/IndexBinaryFromFloat.h",
+    "include/faiss/IndexBinaryHNSW.h",
+    "include/faiss/IndexBinaryHash.h",
+    "include/faiss/IndexBinaryIVF.h",
+    "include/faiss/IndexFastScan.h",
+    "include/faiss/IndexFlat.h",
+    "include/faiss/IndexFlatCodes.h",
+    "include/faiss/IndexHNSW.h",
+    "include/faiss/IndexIDMap.h",
+    "include/faiss/IndexIVF.h",
+    "include/faiss/IndexIVFAdditiveQuantizer.h",
+    "include/faiss/IndexIVFAdditiveQuantizerFastScan.h",
+    "include/faiss/IndexIVFFastScan.h",
+    "include/faiss/IndexIVFFlat.h",
+    "include/faiss/IndexIVFPQ.h",
+    "include/faiss/IndexIVFPQFastScan.h",
+    "include/faiss/IndexIVFPQR.h",
+    "include/faiss/IndexIVFSpectralHash.h",
+    "include/faiss/IndexLSH.h",
+    "include/faiss/IndexLattice.h",
+    "include/faiss/IndexNNDescent.h",
+    "include/faiss/IndexNSG.h",
+    "include/faiss/IndexPQ.h",
+    "include/faiss/IndexPQFastScan.h",
+    "include/faiss/IndexPreTransform.h",
+    "include/faiss/IndexRefine.h",
+    "include/faiss/IndexReplicas.h",
+    "include/faiss/IndexRowwiseMinMax.h",
+    "include/faiss/IndexScalarQuantizer.h",
+    "include/faiss/IndexShards.h",
+    "include/faiss/MatrixStats.h",
+    "include/faiss/MetaIndexes.h",
+    "include/faiss/MetricType.h",
+    "include/faiss/VectorTransform.h",
+    "include/faiss/clone_index.h",
+    "include/faiss/gpu/GpuAutoTune.h",
+    "include/faiss/gpu/GpuCloner.h",
+    "include/faiss/gpu/GpuClonerOptions.h",
+    "include/faiss/gpu/GpuDistance.h",
+    "include/faiss/gpu/GpuFaissAssert.h",
+    "include/faiss/gpu/GpuIcmEncoder.h",
+    "include/faiss/gpu/GpuIndex.h",
+    "include/faiss/gpu/GpuIndexBinaryFlat.h",
+    "include/faiss/gpu/GpuIndexFlat.h",
+    "include/faiss/gpu/GpuIndexIVF.h",
+    "include/faiss/gpu/GpuIndexIVFFlat.h",
+    "include/faiss/gpu/GpuIndexIVFPQ.h",
+    "include/faiss/gpu/GpuIndexIVFScalarQuantizer.h",
+    "include/faiss/gpu/GpuIndicesOptions.h",
+    "include/faiss/gpu/GpuResources.h",
+    "include/faiss/gpu/StandardGpuResources.h",
+    "include/faiss/gpu/impl/BinaryDistance.cuh",
+    "include/faiss/gpu/impl/BinaryFlatIndex.cuh",
+    "include/faiss/gpu/impl/BroadcastSum.cuh",
+    "include/faiss/gpu/impl/Distance.cuh",
+    "include/faiss/gpu/impl/DistanceUtils.cuh",
+    "include/faiss/gpu/impl/FlatIndex.cuh",
+    "include/faiss/gpu/impl/GeneralDistance.cuh",
+    "include/faiss/gpu/impl/GpuScalarQuantizer.cuh",
+    "include/faiss/gpu/impl/IVFAppend.cuh",
+    "include/faiss/gpu/impl/IVFBase.cuh",
+    "include/faiss/gpu/impl/IVFFlat.cuh",
+    "include/faiss/gpu/impl/IVFFlatScan.cuh",
+    "include/faiss/gpu/impl/IVFInterleaved.cuh",
+    "include/faiss/gpu/impl/IVFPQ.cuh",
+    "include/faiss/gpu/impl/IVFUtils.cuh",
+    "include/faiss/gpu/impl/IcmEncoder.cuh",
+    "include/faiss/gpu/impl/IndexUtils.h",
+    "include/faiss/gpu/impl/InterleavedCodes.h",
+    "include/faiss/gpu/impl/L2Norm.cuh",
+    "include/faiss/gpu/impl/L2Select.cuh",
+    "include/faiss/gpu/impl/PQCodeDistances-inl.cuh",
+    "include/faiss/gpu/impl/PQCodeDistances.cuh",
+    "include/faiss/gpu/impl/PQCodeLoad.cuh",
+    "include/faiss/gpu/impl/PQScanMultiPassNoPrecomputed-inl.cuh",
+    "include/faiss/gpu/impl/PQScanMultiPassNoPrecomputed.cuh",
+    "include/faiss/gpu/impl/PQScanMultiPassPrecomputed.cuh",
+    "include/faiss/gpu/impl/RemapIndices.h",
+    "include/faiss/gpu/impl/VectorResidual.cuh",
+    "include/faiss/gpu/impl/scan/IVFInterleavedImpl.cuh",
+    "include/faiss/gpu/utils/BlockSelectKernel.cuh",
+    "include/faiss/gpu/utils/Comparators.cuh",
+    "include/faiss/gpu/utils/ConversionOperators.cuh",
+    "include/faiss/gpu/utils/CopyUtils.cuh",
+    "include/faiss/gpu/utils/DeviceDefs.cuh",
+    "include/faiss/gpu/utils/DeviceTensor-inl.cuh",
+    "include/faiss/gpu/utils/DeviceTensor.cuh",
+    "include/faiss/gpu/utils/DeviceUtils.h",
+    "include/faiss/gpu/utils/DeviceVector.cuh",
+    "include/faiss/gpu/utils/Float16.cuh",
+    "include/faiss/gpu/utils/HostTensor-inl.cuh",
+    "include/faiss/gpu/utils/HostTensor.cuh",
+    "include/faiss/gpu/utils/Limits.cuh",
+    "include/faiss/gpu/utils/LoadStoreOperators.cuh",
+    "include/faiss/gpu/utils/MathOperators.cuh",
+    "include/faiss/gpu/utils/MatrixMult-inl.cuh",
+    "include/faiss/gpu/utils/MatrixMult.cuh",
+    "include/faiss/gpu/utils/MergeNetworkBlock.cuh",
+    "include/faiss/gpu/utils/MergeNetworkUtils.cuh",
+    "include/faiss/gpu/utils/MergeNetworkWarp.cuh",
+    "include/faiss/gpu/utils/NoTypeTensor.cuh",
+    "include/faiss/gpu/utils/Pair.cuh",
+    "include/faiss/gpu/utils/PtxUtils.cuh",
+    "include/faiss/gpu/utils/ReductionOperators.cuh",
+    "include/faiss/gpu/utils/Reductions.cuh",
+    "include/faiss/gpu/utils/Select.cuh",
+    "include/faiss/gpu/utils/StackDeviceMemory.h",
+    "include/faiss/gpu/utils/StaticUtils.h",
+    "include/faiss/gpu/utils/Tensor-inl.cuh",
+    "include/faiss/gpu/utils/Tensor.cuh",
+    "include/faiss/gpu/utils/ThrustUtils.cuh",
+    "include/faiss/gpu/utils/Timer.h",
+    "include/faiss/gpu/utils/Transpose.cuh",
+    "include/faiss/gpu/utils/WarpPackedBits.cuh",
+    "include/faiss/gpu/utils/WarpSelectKernel.cuh",
+    "include/faiss/gpu/utils/WarpShuffles.cuh",
+    "include/faiss/gpu/utils/blockselect/BlockSelectImpl.cuh",
+    "include/faiss/gpu/utils/warpselect/WarpSelectImpl.cuh",
+    "include/faiss/impl/AdditiveQuantizer.h",
+    "include/faiss/impl/AuxIndexStructures.h",
+    "include/faiss/impl/DistanceComputer.h",
+    "include/faiss/impl/FaissAssert.h",
+    "include/faiss/impl/FaissException.h",
+    "include/faiss/impl/HNSW.h",
+    "include/faiss/impl/IDSelector.h",
+    "include/faiss/impl/LocalSearchQuantizer.h",
+    "include/faiss/impl/LookupTableScaler.h",
+    "include/faiss/impl/NNDescent.h",
+    "include/faiss/impl/NSG.h",
+    "include/faiss/impl/PolysemousTraining.h",
+    "include/faiss/impl/ProductAdditiveQuantizer.h",
+    "include/faiss/impl/ProductQuantizer-inl.h",
+    "include/faiss/impl/ProductQuantizer.h",
+    "include/faiss/impl/Quantizer.h",
+    "include/faiss/impl/ResidualQuantizer.h",
+    "include/faiss/impl/ResultHandler.h",
+    "include/faiss/impl/ScalarQuantizer.h",
+    "include/faiss/impl/ThreadedIndex-inl.h",
+    "include/faiss/impl/ThreadedIndex.h",
+    "include/faiss/impl/io.h",
+    "include/faiss/impl/io_macros.h",
+    "include/faiss/impl/kmeans1d.h",
+    "include/faiss/impl/lattice_Zn.h",
+    "include/faiss/impl/platform_macros.h",
+    "include/faiss/impl/pq4_fast_scan.h",
+    "include/faiss/impl/simd_result_handlers.h",
+    "include/faiss/index_factory.h",
+    "include/faiss/index_io.h",
+    "include/faiss/invlists/BlockInvertedLists.h",
+    "include/faiss/invlists/DirectMap.h",
+    "include/faiss/invlists/InvertedLists.h",
+    "include/faiss/invlists/InvertedListsIOHook.h",
+    "include/faiss/invlists/OnDiskInvertedLists.h",
+    "include/faiss/utils/AlignedTable.h",
+    "include/faiss/utils/Heap.h",
+    "include/faiss/utils/WorkerThread.h",
+    "include/faiss/utils/distances.h",
+    "include/faiss/utils/extra_distances-inl.h",
+    "include/faiss/utils/extra_distances.h",
+    "include/faiss/utils/fp16-fp16c.h",
+    "include/faiss/utils/fp16-inl.h",
+    "include/faiss/utils/fp16.h",
+    "include/faiss/utils/hamming-inl.h",
+    "include/faiss/utils/hamming.h",
+    "include/faiss/utils/ordered_key_value.h",
+    "include/faiss/utils/partitioning.h",
+    "include/faiss/utils/quantize_lut.h",
+    "include/faiss/utils/random.h",
+    "include/faiss/utils/simdlib.h",
+    "include/faiss/utils/simdlib_avx2.h",
+    "include/faiss/utils/simdlib_emulated.h",
+    "include/faiss/utils/simdlib_neon.h",
+    "include/faiss/utils/utils.h",
+    "lib/libfaiss.so",
+    "lib/libfaiss_avx2.so",
+    "share/faiss/faiss-config-version.cmake",
+    "share/faiss/faiss-config.cmake",
+    "share/faiss/faiss-targets-release.cmake",
+    "share/faiss/faiss-targets.cmake"
+  ],
+  "fn": "libfaiss-1.7.3-hdbd6f0c_0_cuda10.2.tar.bz2",
+  "license": "MIT",
+  "license_family": "MIT",
+  "link": {
+    "source": "/home/fz288/.conda/pkgs/libfaiss-1.7.3-hdbd6f0c_0_cuda10.2",
+    "type": 1
+  },
+  "md5": "e334c7f781468670ec7332d5aecaf996",
+  "name": "libfaiss",
+  "package_tarball_full_path": "/home/fz288/.conda/pkgs/libfaiss-1.7.3-hdbd6f0c_0_cuda10.2.tar.bz2",
+  "paths_data": {
+    "paths": [
+      {
+        "_path": "include/faiss/AutoTune.h",
+        "path_type": "hardlink",
+        "sha256": "3e9aaa35c186905f839621e4fd48d7ea1e48635aa452fe3ee8aea37baf493f16",
+        "sha256_in_prefix": "3e9aaa35c186905f839621e4fd48d7ea1e48635aa452fe3ee8aea37baf493f16",
+        "size_in_bytes": 6279
+      },
+      {
+        "_path": "include/faiss/Clustering.h",
+        "path_type": "hardlink",
+        "sha256": "e1b0e0570b0888fe9e22bf93b6f719c9d981a39908af5625f444115766195603",
+        "sha256_in_prefix": "e1b0e0570b0888fe9e22bf93b6f719c9d981a39908af5625f444115766195603",
+        "size_in_bytes": 5938
+      },
+      {
+        "_path": "include/faiss/IVFlib.h",
+        "path_type": "hardlink",
+        "sha256": "9662060dc0410e46cfe61930d4621d78a43860828c5f61b2e25e0bf7b442c22c",
+        "sha256_in_prefix": "9662060dc0410e46cfe61930d4621d78a43860828c5f61b2e25e0bf7b442c22c",
+        "size_in_bytes": 5690
+      },
+      {
+        "_path": "include/faiss/Index.h",
+        "path_type": "hardlink",
+        "sha256": "5b7402acd6a9c4a827740b8a9d12c31e318c5c01ed2d3f455400c82647a7d585",
+        "sha256_in_prefix": "5b7402acd6a9c4a827740b8a9d12c31e318c5c01ed2d3f455400c82647a7d585",
+        "size_in_bytes": 9812
+      },
+      {
+        "_path": "include/faiss/Index2Layer.h",
+        "path_type": "hardlink",
+        "sha256": "bc25b165e5da8f6bed764031f94fa37e752381c12cdd5e6cfb16a737bdc7c0f3",
+        "sha256_in_prefix": "bc25b165e5da8f6bed764031f94fa37e752381c12cdd5e6cfb16a737bdc7c0f3",
+        "size_in_bytes": 1932
+      },
+      {
+        "_path": "include/faiss/IndexAdditiveQuantizer.h",
+        "path_type": "hardlink",
+        "sha256": "6032be8e8bfec835addd49b0852ec45f6887da82942b1e391676abe0fa65ffff",
+        "sha256_in_prefix": "6032be8e8bfec835addd49b0852ec45f6887da82942b1e391676abe0fa65ffff",
+        "size_in_bytes": 8319
+      },
+      {
+        "_path": "include/faiss/IndexAdditiveQuantizerFastScan.h",
+        "path_type": "hardlink",
+        "sha256": "e6bb67dc6cc7313efb289becaf1b35bfe9b95f753e6f2baa9ef076cf5e198d83",
+        "sha256_in_prefix": "e6bb67dc6cc7313efb289becaf1b35bfe9b95f753e6f2baa9ef076cf5e198d83",
+        "size_in_bytes": 6909
+      },
+      {
+        "_path": "include/faiss/IndexBinary.h",
+        "path_type": "hardlink",
+        "sha256": "edefe5ae832c61dab326e2c357acc0942027a0ea11974f7d8e34ae49252e8045",
+        "sha256_in_prefix": "edefe5ae832c61dab326e2c357acc0942027a0ea11974f7d8e34ae49252e8045",
+        "size_in_bytes": 6241
+      },
+      {
+        "_path": "include/faiss/IndexBinaryFlat.h",
+        "path_type": "hardlink",
+        "sha256": "b342c9d46c1b66917a17a381fb12872433f6f0c50f05cc14d25de45e53f9367d",
+        "sha256_in_prefix": "b342c9d46c1b66917a17a381fb12872433f6f0c50f05cc14d25de45e53f9367d",
+        "size_in_bytes": 1637
+      },
+      {
+        "_path": "include/faiss/IndexBinaryFromFloat.h",
+        "path_type": "hardlink",
+        "sha256": "49d39ec22446bb10605f0de9441d85cfe6d0e3538d61c8bd9cfd4ba2c0fea61a",
+        "sha256_in_prefix": "49d39ec22446bb10605f0de9441d85cfe6d0e3538d61c8bd9cfd4ba2c0fea61a",
+        "size_in_bytes": 1217
+      },
+      {
+        "_path": "include/faiss/IndexBinaryHNSW.h",
+        "path_type": "hardlink",
+        "sha256": "f654ae6c91b440f6959d2922a19b38f364c5184e45daab12fc98e8052e44a38b",
+        "sha256_in_prefix": "f654ae6c91b440f6959d2922a19b38f364c5184e45daab12fc98e8052e44a38b",
+        "size_in_bytes": 1383
+      },
+      {
+        "_path": "include/faiss/IndexBinaryHash.h",
+        "path_type": "hardlink",
+        "sha256": "715b81440b4e0171df88e97741ae4962ab4d6884774b7ea1a305b3f73d2f8a84",
+        "sha256_in_prefix": "715b81440b4e0171df88e97741ae4962ab4d6884774b7ea1a305b3f73d2f8a84",
+        "size_in_bytes": 3121
+      },
+      {
+        "_path": "include/faiss/IndexBinaryIVF.h",
+        "path_type": "hardlink",
+        "sha256": "25c6513d67a890c4e6472e9c7b8a405964df867a7b568e6618cc4ee157bc6596",
+        "sha256_in_prefix": "25c6513d67a890c4e6472e9c7b8a405964df867a7b568e6618cc4ee157bc6596",
+        "size_in_bytes": 8309
+      },
+      {
+        "_path": "include/faiss/IndexFastScan.h",
+        "path_type": "hardlink",
+        "sha256": "0d24fc12d46379e73fc0e16bf06f4bc6ad7619896cd3dc99c3b4b20cbd8418af",
+        "sha256_in_prefix": "0d24fc12d46379e73fc0e16bf06f4bc6ad7619896cd3dc99c3b4b20cbd8418af",
+        "size_in_bytes": 3770
+      },
+      {
+        "_path": "include/faiss/IndexFlat.h",
+        "path_type": "hardlink",
+        "sha256": "5a8fdcecd13139e972d7a005f1c8fa204265dbf027cd72e44d7c4b795738fd5a",
+        "sha256_in_prefix": "5a8fdcecd13139e972d7a005f1c8fa204265dbf027cd72e44d7c4b795738fd5a",
+        "size_in_bytes": 3029
+      },
+      {
+        "_path": "include/faiss/IndexFlatCodes.h",
+        "path_type": "hardlink",
+        "sha256": "4c07e18b7096eff112bae080098aea23982efeb9e7b018ed414719b667df5f5a",
+        "sha256_in_prefix": "4c07e18b7096eff112bae080098aea23982efeb9e7b018ed414719b667df5f5a",
+        "size_in_bytes": 1712
+      },
+      {
+        "_path": "include/faiss/IndexHNSW.h",
+        "path_type": "hardlink",
+        "sha256": "7fcd70f250c009545e9ceafbd00295beafd34a4adc86d2f0bd15a126fd7aeb4b",
+        "sha256_in_prefix": "7fcd70f250c009545e9ceafbd00295beafd34a4adc86d2f0bd15a126fd7aeb4b",
+        "size_in_bytes": 4994
+      },
+      {
+        "_path": "include/faiss/IndexIDMap.h",
+        "path_type": "hardlink",
+        "sha256": "5462543a299e9a2cfe913ad71c86f1050d7e96166c145250a33c4eed6728ed1d",
+        "sha256_in_prefix": "5462543a299e9a2cfe913ad71c86f1050d7e96166c145250a33c4eed6728ed1d",
+        "size_in_bytes": 3139
+      },
+      {
+        "_path": "include/faiss/IndexIVF.h",
+        "path_type": "hardlink",
+        "sha256": "fb690b8169f62f29908a47667360de18929f9ee04132ebc588a30b458314c3a3",
+        "sha256_in_prefix": "fb690b8169f62f29908a47667360de18929f9ee04132ebc588a30b458314c3a3",
+        "size_in_bytes": 15509
+      },
+      {
+        "_path": "include/faiss/IndexIVFAdditiveQuantizer.h",
+        "path_type": "hardlink",
+        "sha256": "2b7ddde3eda2f3c1956ced37822db1463c86918a2cef6858602ce816057018c6",
+        "sha256_in_prefix": "2b7ddde3eda2f3c1956ced37822db1463c86918a2cef6858602ce816057018c6",
+        "size_in_bytes": 5722
+      },
+      {
+        "_path": "include/faiss/IndexIVFAdditiveQuantizerFastScan.h",
+        "path_type": "hardlink",
+        "sha256": "647864944c7b3a5849d5d72cb48312aa901951d4494e36dab6c4c39919657381",
+        "sha256_in_prefix": "647864944c7b3a5849d5d72cb48312aa901951d4494e36dab6c4c39919657381",
+        "size_in_bytes": 4980
+      },
+      {
+        "_path": "include/faiss/IndexIVFFastScan.h",
+        "path_type": "hardlink",
+        "sha256": "e948c2375e3d7ab2dd8936c2011763d9082ed6f5c2b3cbbc9fb096d0a27bc3d6",
+        "sha256_in_prefix": "e948c2375e3d7ab2dd8936c2011763d9082ed6f5c2b3cbbc9fb096d0a27bc3d6",
+        "size_in_bytes": 5641
+      },
+      {
+        "_path": "include/faiss/IndexIVFFlat.h",
+        "path_type": "hardlink",
+        "sha256": "1af9892ae10f5bb1040fc4bbe194ba8388a81db07f32434f25b3621a0bdba582",
+        "sha256_in_prefix": "1af9892ae10f5bb1040fc4bbe194ba8388a81db07f32434f25b3621a0bdba582",
+        "size_in_bytes": 2992
+      },
+      {
+        "_path": "include/faiss/IndexIVFPQ.h",
+        "path_type": "hardlink",
+        "sha256": "d3a34cbc96b64145f3ced24f331a0fcb906644024aefc5e1d85fec933a3452f3",
+        "sha256_in_prefix": "d3a34cbc96b64145f3ced24f331a0fcb906644024aefc5e1d85fec933a3452f3",
+        "size_in_bytes": 5931
+      },
+      {
+        "_path": "include/faiss/IndexIVFPQFastScan.h",
+        "path_type": "hardlink",
+        "sha256": "728f8bbb7fceb8768e4f7208ab83606310f89c9986c836059843a36d1df9c245",
+        "sha256_in_prefix": "728f8bbb7fceb8768e4f7208ab83606310f89c9986c836059843a36d1df9c245",
+        "size_in_bytes": 2523
+      },
+      {
+        "_path": "include/faiss/IndexIVFPQR.h",
+        "path_type": "hardlink",
+        "sha256": "1926e28e24da71a53c45880d2142340e141d66380a89e251072d2789834f6247",
+        "sha256_in_prefix": "1926e28e24da71a53c45880d2142340e141d66380a89e251072d2789834f6247",
+        "size_in_bytes": 1914
+      },
+      {
+        "_path": "include/faiss/IndexIVFSpectralHash.h",
+        "path_type": "hardlink",
+        "sha256": "e4ce18caf8d7652b48c0504b23e6e981e83bea1a4792032a962451f407637501",
+        "sha256_in_prefix": "e4ce18caf8d7652b48c0504b23e6e981e83bea1a4792032a962451f407637501",
+        "size_in_bytes": 2419
+      },
+      {
+        "_path": "include/faiss/IndexLSH.h",
+        "path_type": "hardlink",
+        "sha256": "cfddfbb7d70a375294d5195d072d5bd34289fe92fb2b036a02f080bc0939fe4e",
+        "sha256_in_prefix": "cfddfbb7d70a375294d5195d072d5bd34289fe92fb2b036a02f080bc0939fe4e",
+        "size_in_bytes": 2023
+      },
+      {
+        "_path": "include/faiss/IndexLattice.h",
+        "path_type": "hardlink",
+        "sha256": "de14abd60790c97d8ecbca0b7e2c4a5daccfedd59ad9a7055392774440537d1d",
+        "sha256_in_prefix": "de14abd60790c97d8ecbca0b7e2c4a5daccfedd59ad9a7055392774440537d1d",
+        "size_in_bytes": 1564
+      },
+      {
+        "_path": "include/faiss/IndexNNDescent.h",
+        "path_type": "hardlink",
+        "sha256": "64afc6076d7ac577211ee7616bc5b712978cdbbda80c727e4685a3340930a103",
+        "sha256_in_prefix": "64afc6076d7ac577211ee7616bc5b712978cdbbda80c727e4685a3340930a103",
+        "size_in_bytes": 1736
+      },
+      {
+        "_path": "include/faiss/IndexNSG.h",
+        "path_type": "hardlink",
+        "sha256": "6fb92fc4a9f317e820415ba9fbb62933079e03b99b63d74422617bf5d1b0f47e",
+        "sha256_in_prefix": "6fb92fc4a9f317e820415ba9fbb62933079e03b99b63d74422617bf5d1b0f47e",
+        "size_in_bytes": 2593
+      },
+      {
+        "_path": "include/faiss/IndexPQ.h",
+        "path_type": "hardlink",
+        "sha256": "b7e2f1fee1aa9b54689e1b5c868cbaade7f97904ccc37fd92db9cac6f819329b",
+        "sha256_in_prefix": "b7e2f1fee1aa9b54689e1b5c868cbaade7f97904ccc37fd92db9cac6f819329b",
+        "size_in_bytes": 5962
+      },
+      {
+        "_path": "include/faiss/IndexPQFastScan.h",
+        "path_type": "hardlink",
+        "sha256": "a4161fd10ba73c17ab060f87d25e000111a711eacb6e64db60e51249f565c85c",
+        "sha256_in_prefix": "a4161fd10ba73c17ab060f87d25e000111a711eacb6e64db60e51249f565c85c",
+        "size_in_bytes": 1826
+      },
+      {
+        "_path": "include/faiss/IndexPreTransform.h",
+        "path_type": "hardlink",
+        "sha256": "4c2c2cb587146897758819f4b316206e37914c79ac5dc05f63a19b714c9f6a8d",
+        "sha256_in_prefix": "4c2c2cb587146897758819f4b316206e37914c79ac5dc05f63a19b714c9f6a8d",
+        "size_in_bytes": 3208
+      },
+      {
+        "_path": "include/faiss/IndexRefine.h",
+        "path_type": "hardlink",
+        "sha256": "775538497ff0a2999aac2fa23aa85e438126219d72de16424903bb7cd72e979b",
+        "sha256_in_prefix": "775538497ff0a2999aac2fa23aa85e438126219d72de16424903bb7cd72e979b",
+        "size_in_bytes": 2414
+      },
+      {
+        "_path": "include/faiss/IndexReplicas.h",
+        "path_type": "hardlink",
+        "sha256": "3710f27e9c7308eac97d44f8a24d30e963a47e47455ae20fe8a495a4650b1601",
+        "sha256_in_prefix": "3710f27e9c7308eac97d44f8a24d30e963a47e47455ae20fe8a495a4650b1601",
+        "size_in_bytes": 2830
+      },
+      {
+        "_path": "include/faiss/IndexRowwiseMinMax.h",
+        "path_type": "hardlink",
+        "sha256": "edce2de3e012ffe34492330660777329946781e45dd888c045ae0bc3c48a53ca",
+        "sha256_in_prefix": "edce2de3e012ffe34492330660777329946781e45dd888c045ae0bc3c48a53ca",
+        "size_in_bytes": 3164
+      },
+      {
+        "_path": "include/faiss/IndexScalarQuantizer.h",
+        "path_type": "hardlink",
+        "sha256": "e2c031fd5cbed310730fba8994b593522180eb4634cfe40b75aa410f8546935f",
+        "sha256_in_prefix": "e2c031fd5cbed310730fba8994b593522180eb4634cfe40b75aa410f8546935f",
+        "size_in_bytes": 2900
+      },
+      {
+        "_path": "include/faiss/IndexShards.h",
+        "path_type": "hardlink",
+        "sha256": "a1822983b8c2b8e6f03a18b9763310d4aa89c46261a2294ae107b44ababb01ad",
+        "sha256_in_prefix": "a1822983b8c2b8e6f03a18b9763310d4aa89c46261a2294ae107b44ababb01ad",
+        "size_in_bytes": 3603
+      },
+      {
+        "_path": "include/faiss/MatrixStats.h",
+        "path_type": "hardlink",
+        "sha256": "aeb92c3284335d4cfeb9ad803428c5ad00719d37898c8ddaa01e5c110f4d47ca",
+        "sha256_in_prefix": "aeb92c3284335d4cfeb9ad803428c5ad00719d37898c8ddaa01e5c110f4d47ca",
+        "size_in_bytes": 1230
+      },
+      {
+        "_path": "include/faiss/MetaIndexes.h",
+        "path_type": "hardlink",
+        "sha256": "3723d879450b155ca0689b2d2ee5a2c55d26d2033c2eb19092d18001389f0369",
+        "sha256_in_prefix": "3723d879450b155ca0689b2d2ee5a2c55d26d2033c2eb19092d18001389f0369",
+        "size_in_bytes": 1242
+      },
+      {
+        "_path": "include/faiss/MetricType.h",
+        "path_type": "hardlink",
+        "sha256": "6db26a00c170a38db3dde917406c4e7c7a1c10f98f52e330052291d028c262f0",
+        "sha256_in_prefix": "6db26a00c170a38db3dde917406c4e7c7a1c10f98f52e330052291d028c262f0",
+        "size_in_bytes": 1060
+      },
+      {
+        "_path": "include/faiss/VectorTransform.h",
+        "path_type": "hardlink",
+        "sha256": "794a5e2e2f1426310213550aea64c996f214c50de7af786aea4820c0b27b1ee3",
+        "sha256_in_prefix": "794a5e2e2f1426310213550aea64c996f214c50de7af786aea4820c0b27b1ee3",
+        "size_in_bytes": 9622
+      },
+      {
+        "_path": "include/faiss/clone_index.h",
+        "path_type": "hardlink",
+        "sha256": "0353764193b873ee596746fbadc2f3fa212eccf7bfcad60e81f7dc6992a65ea7",
+        "sha256_in_prefix": "0353764193b873ee596746fbadc2f3fa212eccf7bfcad60e81f7dc6992a65ea7",
+        "size_in_bytes": 836
+      },
+      {
+        "_path": "include/faiss/gpu/GpuAutoTune.h",
+        "path_type": "hardlink",
+        "sha256": "d615a713db3f931d4c099094a01bd68b7287a521bb4644fe107d9903fc3724bc",
+        "sha256_in_prefix": "d615a713db3f931d4c099094a01bd68b7287a521bb4644fe107d9903fc3724bc",
+        "size_in_bytes": 746
+      },
+      {
+        "_path": "include/faiss/gpu/GpuCloner.h",
+        "path_type": "hardlink",
+        "sha256": "45de469e98494c362602941b7b524c59b0db0c2094ee9c95838cc7234add4ea2",
+        "sha256_in_prefix": "45de469e98494c362602941b7b524c59b0db0c2094ee9c95838cc7234add4ea2",
+        "size_in_bytes": 2799
+      },
+      {
+        "_path": "include/faiss/gpu/GpuClonerOptions.h",
+        "path_type": "hardlink",
+        "sha256": "93526c49f7d08464cbd9a1b1b0a69b6a6560270b2103e98d2519846a6ad3373b",
+        "sha256_in_prefix": "93526c49f7d08464cbd9a1b1b0a69b6a6560270b2103e98d2519846a6ad3373b",
+        "size_in_bytes": 1323
+      },
+      {
+        "_path": "include/faiss/gpu/GpuDistance.h",
+        "path_type": "hardlink",
+        "sha256": "ed346bea586471ae30204100f91af4d1b9b31756353f551d81f867145838c643",
+        "sha256_in_prefix": "ed346bea586471ae30204100f91af4d1b9b31756353f551d81f867145838c643",
+        "size_in_bytes": 4846
+      },
+      {
+        "_path": "include/faiss/gpu/GpuFaissAssert.h",
+        "path_type": "hardlink",
+        "sha256": "47131b609fd659af41c18e02f4cb502a6b855c044bc600dfdc2f8d29838466ea",
+        "sha256_in_prefix": "47131b609fd659af41c18e02f4cb502a6b855c044bc600dfdc2f8d29838466ea",
+        "size_in_bytes": 718
+      },
+      {
+        "_path": "include/faiss/gpu/GpuIcmEncoder.h",
+        "path_type": "hardlink",
+        "sha256": "1b8359d2d406c2a40fe4b96e4b9c450815b40a9e7919a460dfe2f09ec44c1662",
+        "sha256_in_prefix": "1b8359d2d406c2a40fe4b96e4b9c450815b40a9e7919a460dfe2f09ec44c1662",
+        "size_in_bytes": 1432
+      },
+      {
+        "_path": "include/faiss/gpu/GpuIndex.h",
+        "path_type": "hardlink",
+        "sha256": "aa1c4e0cfa045d27bad0477fda9549a0cf3bd75d42e9c32bc3becc55a58b1669",
+        "sha256_in_prefix": "aa1c4e0cfa045d27bad0477fda9549a0cf3bd75d42e9c32bc3becc55a58b1669",
+        "size_in_bytes": 5960
+      },
+      {
+        "_path": "include/faiss/gpu/GpuIndexBinaryFlat.h",
+        "path_type": "hardlink",
+        "sha256": "cf826f10ddaa505115f8f3805dd84cb174952f5e319b870f114778ae27b9c418",
+        "sha256_in_prefix": "cf826f10ddaa505115f8f3805dd84cb174952f5e319b870f114778ae27b9c418",
+        "size_in_bytes": 3076
+      },
+      {
+        "_path": "include/faiss/gpu/GpuIndexFlat.h",
+        "path_type": "hardlink",
+        "sha256": "8b3fa9bfd56dd036ef6bcbbb40084e2a34d746d8cc3ffd81301a916e490d649b",
+        "sha256_in_prefix": "8b3fa9bfd56dd036ef6bcbbb40084e2a34d746d8cc3ffd81301a916e490d649b",
+        "size_in_bytes": 6780
+      },
+      {
+        "_path": "include/faiss/gpu/GpuIndexIVF.h",
+        "path_type": "hardlink",
+        "sha256": "fccf9a2ff332853dd982e66a4911fb31b32710dfeeb85305ec8d3c6aa941e42e",
+        "sha256_in_prefix": "fccf9a2ff332853dd982e66a4911fb31b32710dfeeb85305ec8d3c6aa941e42e",
+        "size_in_bytes": 5745
+      },
+      {
+        "_path": "include/faiss/gpu/GpuIndexIVFFlat.h",
+        "path_type": "hardlink",
+        "sha256": "d7c593b9daa505a82572b7ebf09259fff44d4e583605d9468aa16b1dcc05e666",
+        "sha256_in_prefix": "d7c593b9daa505a82572b7ebf09259fff44d4e583605d9468aa16b1dcc05e666",
+        "size_in_bytes": 3302
+      },
+      {
+        "_path": "include/faiss/gpu/GpuIndexIVFPQ.h",
+        "path_type": "hardlink",
+        "sha256": "0f18905761c66c88b77692056620045ebd7d65eb31dde93e3bbfe7cd83197dff",
+        "sha256_in_prefix": "0f18905761c66c88b77692056620045ebd7d65eb31dde93e3bbfe7cd83197dff",
+        "size_in_bytes": 5670
+      },
+      {
+        "_path": "include/faiss/gpu/GpuIndexIVFScalarQuantizer.h",
+        "path_type": "hardlink",
+        "sha256": "791ad140eedd61a2497e21f245fdbdfd8d81b674fff7e79f508bef0fd0e760ef",
+        "sha256_in_prefix": "791ad140eedd61a2497e21f245fdbdfd8d81b674fff7e79f508bef0fd0e760ef",
+        "size_in_bytes": 4138
+      },
+      {
+        "_path": "include/faiss/gpu/GpuIndicesOptions.h",
+        "path_type": "hardlink",
+        "sha256": "366423774f006139434cb3bd9593246db852d9d50a76c674afd4a485f99e83e8",
+        "sha256_in_prefix": "366423774f006139434cb3bd9593246db852d9d50a76c674afd4a485f99e83e8",
+        "size_in_bytes": 923
+      },
+      {
+        "_path": "include/faiss/gpu/GpuResources.h",
+        "path_type": "hardlink",
+        "sha256": "8b02d4897becd32cac54cb5b2d6b43858b7c26a4a5c33bfd525496d25909de94",
+        "sha256_in_prefix": "8b02d4897becd32cac54cb5b2d6b43858b7c26a4a5c33bfd525496d25909de94",
+        "size_in_bytes": 9250
+      },
+      {
+        "_path": "include/faiss/gpu/StandardGpuResources.h",
+        "path_type": "hardlink",
+        "sha256": "8fd29556a9e8068fe95fb65e45b3d7180ac9bd6d5e618a65ef82f192aa28848d",
+        "sha256_in_prefix": "8fd29556a9e8068fe95fb65e45b3d7180ac9bd6d5e618a65ef82f192aa28848d",
+        "size_in_bytes": 7618
+      },
+      {
+        "_path": "include/faiss/gpu/impl/BinaryDistance.cuh",
+        "path_type": "hardlink",
+        "sha256": "e9af6f17c656d535dc96870741c551f6843fbe057abb43ab46831b5c7d7cd0c8",
+        "sha256_in_prefix": "e9af6f17c656d535dc96870741c551f6843fbe057abb43ab46831b5c7d7cd0c8",
+        "size_in_bytes": 657
+      },
+      {
+        "_path": "include/faiss/gpu/impl/BinaryFlatIndex.cuh",
+        "path_type": "hardlink",
+        "sha256": "d078a643d0290d1edbe9df2ee96894a099362268d1daae319d36a7caaadc3466",
+        "sha256_in_prefix": "d078a643d0290d1edbe9df2ee96894a099362268d1daae319d36a7caaadc3466",
+        "size_in_bytes": 1649
+      },
+      {
+        "_path": "include/faiss/gpu/impl/BroadcastSum.cuh",
+        "path_type": "hardlink",
+        "sha256": "1c6c60527923c3d475e3a4288852d1b8c684a22bbd03720476887f661294ce08",
+        "sha256_in_prefix": "1c6c60527923c3d475e3a4288852d1b8c684a22bbd03720476887f661294ce08",
+        "size_in_bytes": 1357
+      },
+      {
+        "_path": "include/faiss/gpu/impl/Distance.cuh",
+        "path_type": "hardlink",
+        "sha256": "37d405c184f41f5096e3d36514db570f88b89811825591f1c871cef787513d8f",
+        "sha256_in_prefix": "37d405c184f41f5096e3d36514db570f88b89811825591f1c871cef787513d8f",
+        "size_in_bytes": 13624
+      },
+      {
+        "_path": "include/faiss/gpu/impl/DistanceUtils.cuh",
+        "path_type": "hardlink",
+        "sha256": "d7af9d7250cb98be1dc3ec2a9a0b374b25df08e45f02ddbf327acbf6c196732e",
+        "sha256_in_prefix": "d7af9d7250cb98be1dc3ec2a9a0b374b25df08e45f02ddbf327acbf6c196732e",
+        "size_in_bytes": 9178
+      },
+      {
+        "_path": "include/faiss/gpu/impl/FlatIndex.cuh",
+        "path_type": "hardlink",
+        "sha256": "bf0010911ddf0cd4e183b9dbe8f959a51a4464c44bea7d54f80b80168a91c296",
+        "sha256_in_prefix": "bf0010911ddf0cd4e183b9dbe8f959a51a4464c44bea7d54f80b80168a91c296",
+        "size_in_bytes": 3547
+      },
+      {
+        "_path": "include/faiss/gpu/impl/GeneralDistance.cuh",
+        "path_type": "hardlink",
+        "sha256": "fde3622148d7dfeab1b834c878bd1b8a4ab59134973b73cdcd57d05d5b847d26",
+        "sha256_in_prefix": "fde3622148d7dfeab1b834c878bd1b8a4ab59134973b73cdcd57d05d5b847d26",
+        "size_in_bytes": 15105
+      },
+      {
+        "_path": "include/faiss/gpu/impl/GpuScalarQuantizer.cuh",
+        "path_type": "hardlink",
+        "sha256": "dfe440da8df8cec11143b4276dd72988327de0d46db5d700a33a91e59c6c9b4f",
+        "sha256_in_prefix": "dfe440da8df8cec11143b4276dd72988327de0d46db5d700a33a91e59c6c9b4f",
+        "size_in_bytes": 22750
+      },
+      {
+        "_path": "include/faiss/gpu/impl/IVFAppend.cuh",
+        "path_type": "hardlink",
+        "sha256": "f713c0f913751d8030ac2fe5b7f1c6b962d3f86fb7bb9ec32ab6b14354f22150",
+        "sha256_in_prefix": "f713c0f913751d8030ac2fe5b7f1c6b962d3f86fb7bb9ec32ab6b14354f22150",
+        "size_in_bytes": 2884
+      },
+      {
+        "_path": "include/faiss/gpu/impl/IVFBase.cuh",
+        "path_type": "hardlink",
+        "sha256": "d504a7ea1f9679502ec6ede5c5d7f91e599c1b1fd7c924409f8c64ec85f82a9e",
+        "sha256_in_prefix": "d504a7ea1f9679502ec6ede5c5d7f91e599c1b1fd7c924409f8c64ec85f82a9e",
+        "size_in_bytes": 9808
+      },
+      {
+        "_path": "include/faiss/gpu/impl/IVFFlat.cuh",
+        "path_type": "hardlink",
+        "sha256": "34a69d5a8c82cd3f510e6dccba8c6c12b6805c48e21c3266f2330bc326b607fb",
+        "sha256_in_prefix": "34a69d5a8c82cd3f510e6dccba8c6c12b6805c48e21c3266f2330bc326b607fb",
+        "size_in_bytes": 3679
+      },
+      {
+        "_path": "include/faiss/gpu/impl/IVFFlatScan.cuh",
+        "path_type": "hardlink",
+        "sha256": "97f2f60e5222a0cfa497a3877a97cfbd1ac3d623a3491b7ecdbad2898ec529ba",
+        "sha256_in_prefix": "97f2f60e5222a0cfa497a3877a97cfbd1ac3d623a3491b7ecdbad2898ec529ba",
+        "size_in_bytes": 1145
+      },
+      {
+        "_path": "include/faiss/gpu/impl/IVFInterleaved.cuh",
+        "path_type": "hardlink",
+        "sha256": "bb02dc618ed8581c3b52247e5c7c9f8b737388694d67bb634dd9431f59226a30",
+        "sha256_in_prefix": "bb02dc618ed8581c3b52247e5c7c9f8b737388694d67bb634dd9431f59226a30",
+        "size_in_bytes": 23175
+      },
+      {
+        "_path": "include/faiss/gpu/impl/IVFPQ.cuh",
+        "path_type": "hardlink",
+        "sha256": "18bbc5d307ab14330e043ac6b8da83f1e7dce6e00dfe1ef960fc9e3d46955355",
+        "sha256_in_prefix": "18bbc5d307ab14330e043ac6b8da83f1e7dce6e00dfe1ef960fc9e3d46955355",
+        "size_in_bytes": 6423
+      },
+      {
+        "_path": "include/faiss/gpu/impl/IVFUtils.cuh",
+        "path_type": "hardlink",
+        "sha256": "0570b49caf85ee67fa19c0f72df86c997a3357178b3eaed163717224b8d0acc4",
+        "sha256_in_prefix": "0570b49caf85ee67fa19c0f72df86c997a3357178b3eaed163717224b8d0acc4",
+        "size_in_bytes": 1854
+      },
+      {
+        "_path": "include/faiss/gpu/impl/IcmEncoder.cuh",
+        "path_type": "hardlink",
+        "sha256": "de665c367eb253117f43a1eb8913be18a5a4ee681dce680e0b8577dca59bb4b9",
+        "sha256_in_prefix": "de665c367eb253117f43a1eb8913be18a5a4ee681dce680e0b8577dca59bb4b9",
+        "size_in_bytes": 2115
+      },
+      {
+        "_path": "include/faiss/gpu/impl/IndexUtils.h",
+        "path_type": "hardlink",
+        "sha256": "7198185007b9b56ec4c8021bd389c38f393cfc847f0a0a5eff3fca3a4b2c574c",
+        "sha256_in_prefix": "7198185007b9b56ec4c8021bd389c38f393cfc847f0a0a5eff3fca3a4b2c574c",
+        "size_in_bytes": 862
+      },
+      {
+        "_path": "include/faiss/gpu/impl/InterleavedCodes.h",
+        "path_type": "hardlink",
+        "sha256": "a46982f1c3aa435d01c1000dcb52e96f7380351c5310d908cdc502709e5d85d1",
+        "sha256_in_prefix": "a46982f1c3aa435d01c1000dcb52e96f7380351c5310d908cdc502709e5d85d1",
+        "size_in_bytes": 1665
+      },
+      {
+        "_path": "include/faiss/gpu/impl/L2Norm.cuh",
+        "path_type": "hardlink",
+        "sha256": "eb011f1bd9aa89e0630dafa3f746c2d9fbffdb1e52a09a9f99db8443d7cb0947",
+        "sha256_in_prefix": "eb011f1bd9aa89e0630dafa3f746c2d9fbffdb1e52a09a9f99db8443d7cb0947",
+        "size_in_bytes": 677
+      },
+      {
+        "_path": "include/faiss/gpu/impl/L2Select.cuh",
+        "path_type": "hardlink",
+        "sha256": "94f2789f21eadbc3d8d1edd253d5f29621efc31e93be79b76e5b56eb7d9e11c1",
+        "sha256_in_prefix": "94f2789f21eadbc3d8d1edd253d5f29621efc31e93be79b76e5b56eb7d9e11c1",
+        "size_in_bytes": 557
+      },
+      {
+        "_path": "include/faiss/gpu/impl/PQCodeDistances-inl.cuh",
+        "path_type": "hardlink",
+        "sha256": "5e88dd0a83195ed0c23e4a66f2bb2f33cc3af878131fd02f3af97e4da66b09ca",
+        "sha256_in_prefix": "5e88dd0a83195ed0c23e4a66f2bb2f33cc3af878131fd02f3af97e4da66b09ca",
+        "size_in_bytes": 27019
+      },
+      {
+        "_path": "include/faiss/gpu/impl/PQCodeDistances.cuh",
+        "path_type": "hardlink",
+        "sha256": "059c48a71b4cd656dacece7d71cc2d615e2ca23854466301fb8cfe6af8c8a6d5",
+        "sha256_in_prefix": "059c48a71b4cd656dacece7d71cc2d615e2ca23854466301fb8cfe6af8c8a6d5",
+        "size_in_bytes": 1155
+      },
+      {
+        "_path": "include/faiss/gpu/impl/PQCodeLoad.cuh",
+        "path_type": "hardlink",
+        "sha256": "c0f8feee229e7e588df77302375c54d097315de6e54f357ec3fe33beb8d9a5f9",
+        "sha256_in_prefix": "c0f8feee229e7e588df77302375c54d097315de6e54f357ec3fe33beb8d9a5f9",
+        "size_in_bytes": 12306
+      },
+      {
+        "_path": "include/faiss/gpu/impl/PQScanMultiPassNoPrecomputed-inl.cuh",
+        "path_type": "hardlink",
+        "sha256": "8713e7552437fa5e564c87a829dcd70011e9c3b92ec8c873e5f55c24ba0247d9",
+        "sha256_in_prefix": "8713e7552437fa5e564c87a829dcd70011e9c3b92ec8c873e5f55c24ba0247d9",
+        "size_in_bytes": 26761
+      },
+      {
+        "_path": "include/faiss/gpu/impl/PQScanMultiPassNoPrecomputed.cuh",
+        "path_type": "hardlink",
+        "sha256": "1b6c2275185d3cd792bf533a7fa0d48f39b29199210656b8517c73fb02a265db",
+        "sha256_in_prefix": "1b6c2275185d3cd792bf533a7fa0d48f39b29199210656b8517c73fb02a265db",
+        "size_in_bytes": 1455
+      },
+      {
+        "_path": "include/faiss/gpu/impl/PQScanMultiPassPrecomputed.cuh",
+        "path_type": "hardlink",
+        "sha256": "4c4198eab656ed6f2a04a62e4da3677d2659224265dba762007f441df4402290",
+        "sha256_in_prefix": "4c4198eab656ed6f2a04a62e4da3677d2659224265dba762007f441df4402290",
+        "size_in_bytes": 1286
+      },
+      {
+        "_path": "include/faiss/gpu/impl/RemapIndices.h",
+        "path_type": "hardlink",
+        "sha256": "faf0e8de39099c6557683da9f0232f40f2a0bb3d9120c69fe6c94da210bfd1ee",
+        "sha256_in_prefix": "faf0e8de39099c6557683da9f0232f40f2a0bb3d9120c69fe6c94da210bfd1ee",
+        "size_in_bytes": 635
+      },
+      {
+        "_path": "include/faiss/gpu/impl/VectorResidual.cuh",
+        "path_type": "hardlink",
+        "sha256": "7fd0b44307905663471c261b5ad10680a2488e6eaee8928833e2e266b6ed6bef",
+        "sha256_in_prefix": "7fd0b44307905663471c261b5ad10680a2488e6eaee8928833e2e266b6ed6bef",
+        "size_in_bytes": 1612
+      },
+      {
+        "_path": "include/faiss/gpu/impl/scan/IVFInterleavedImpl.cuh",
+        "path_type": "hardlink",
+        "sha256": "d20a5cf1c6e0fd8eb2c7e09a1868d04f1fda4f20157e93826dc7b2f4f7e9e2c7",
+        "sha256_in_prefix": "d20a5cf1c6e0fd8eb2c7e09a1868d04f1fda4f20157e93826dc7b2f4f7e9e2c7",
+        "size_in_bytes": 3541
+      },
+      {
+        "_path": "include/faiss/gpu/utils/BlockSelectKernel.cuh",
+        "path_type": "hardlink",
+        "sha256": "5b7902421d6cb4ac5ef2af689426d946d7fabfe2d277902a7240b640076ed0ae",
+        "sha256_in_prefix": "5b7902421d6cb4ac5ef2af689426d946d7fabfe2d277902a7240b640076ed0ae",
+        "size_in_bytes": 4181
+      },
+      {
+        "_path": "include/faiss/gpu/utils/Comparators.cuh",
+        "path_type": "hardlink",
+        "sha256": "8141dfbb344acfdf21a9f0aa89fb4685f9078ad3c1a391f272abf316d5bd9917",
+        "sha256_in_prefix": "8141dfbb344acfdf21a9f0aa89fb4685f9078ad3c1a391f272abf316d5bd9917",
+        "size_in_bytes": 991
+      },
+      {
+        "_path": "include/faiss/gpu/utils/ConversionOperators.cuh",
+        "path_type": "hardlink",
+        "sha256": "1d7ef00a2be0939699ee75b045082a3935a6922c616d421b71299c60ad410dee",
+        "sha256_in_prefix": "1d7ef00a2be0939699ee75b045082a3935a6922c616d421b71299c60ad410dee",
+        "size_in_bytes": 3560
+      },
+      {
+        "_path": "include/faiss/gpu/utils/CopyUtils.cuh",
+        "path_type": "hardlink",
+        "sha256": "1190217ffefa25327869807c0eeea525793e7c0447ef20901afb286d56fc5354",
+        "sha256_in_prefix": "1190217ffefa25327869807c0eeea525793e7c0447ef20901afb286d56fc5354",
+        "size_in_bytes": 3873
+      },
+      {
+        "_path": "include/faiss/gpu/utils/DeviceDefs.cuh",
+        "path_type": "hardlink",
+        "sha256": "610d171e751c47d4074dc28082aa9756c60eac487744aa5dc0628cfd4994f45f",
+        "sha256_in_prefix": "610d171e751c47d4074dc28082aa9756c60eac487744aa5dc0628cfd4994f45f",
+        "size_in_bytes": 1103
+      },
+      {
+        "_path": "include/faiss/gpu/utils/DeviceTensor-inl.cuh",
+        "path_type": "hardlink",
+        "sha256": "aef42db9152321b6206aa5061c37ca5829cc18ec45d9050e23d4fc232c6acf3a",
+        "sha256_in_prefix": "aef42db9152321b6206aa5061c37ca5829cc18ec45d9050e23d4fc232c6acf3a",
+        "size_in_bytes": 5524
+      },
+      {
+        "_path": "include/faiss/gpu/utils/DeviceTensor.cuh",
+        "path_type": "hardlink",
+        "sha256": "2afce11b43422aea39bb9d359b9a61b9a5a4f536c86d50acd66a2f0691dc8ea3",
+        "sha256_in_prefix": "2afce11b43422aea39bb9d359b9a61b9a5a4f536c86d50acd66a2f0691dc8ea3",
+        "size_in_bytes": 3148
+      },
+      {
+        "_path": "include/faiss/gpu/utils/DeviceUtils.h",
+        "path_type": "hardlink",
+        "sha256": "3ccc5a3780c004b4ac8de1a89d75d1fc881cdb0a2fa1e7a01739d0b2c38920c0",
+        "sha256_in_prefix": "3ccc5a3780c004b4ac8de1a89d75d1fc881cdb0a2fa1e7a01739d0b2c38920c0",
+        "size_in_bytes": 5654
+      },
+      {
+        "_path": "include/faiss/gpu/utils/DeviceVector.cuh",
+        "path_type": "hardlink",
+        "sha256": "d0dab32123a0b0c721559fbc8014032d2f61d5b358bf390c117fc81b72e7cbbf",
+        "sha256_in_prefix": "d0dab32123a0b0c721559fbc8014032d2f61d5b358bf390c117fc81b72e7cbbf",
+        "size_in_bytes": 7392
+      },
+      {
+        "_path": "include/faiss/gpu/utils/Float16.cuh",
+        "path_type": "hardlink",
+        "sha256": "34ccb98152872b724c0220c1102d16d2585b7070238e92772c43ed222bc4a412",
+        "sha256_in_prefix": "34ccb98152872b724c0220c1102d16d2585b7070238e92772c43ed222bc4a412",
+        "size_in_bytes": 1443
+      },
+      {
+        "_path": "include/faiss/gpu/utils/HostTensor-inl.cuh",
+        "path_type": "hardlink",
+        "sha256": "d018c174a9cec3e20a043be8e0afb2851cad73dbcae54aaac456f1cecce8ed0c",
+        "sha256_in_prefix": "d018c174a9cec3e20a043be8e0afb2851cad73dbcae54aaac456f1cecce8ed0c",
+        "size_in_bytes": 6556
+      },
+      {
+        "_path": "include/faiss/gpu/utils/HostTensor.cuh",
+        "path_type": "hardlink",
+        "sha256": "27edcf52baa765339f2fdf46dcda7842d60be53493e70f984c7179f5289ee608",
+        "sha256_in_prefix": "27edcf52baa765339f2fdf46dcda7842d60be53493e70f984c7179f5289ee608",
+        "size_in_bytes": 2863
+      },
+      {
+        "_path": "include/faiss/gpu/utils/Limits.cuh",
+        "path_type": "hardlink",
+        "sha256": "18e610e5b770d840bcc815391d341418061fc63a47461587d76a49d46bb148f7",
+        "sha256_in_prefix": "18e610e5b770d840bcc815391d341418061fc63a47461587d76a49d46bb148f7",
+        "size_in_bytes": 1949
+      },
+      {
+        "_path": "include/faiss/gpu/utils/LoadStoreOperators.cuh",
+        "path_type": "hardlink",
+        "sha256": "1f6a34893a1d61b4852a0156e370b3724ca5e45d0b3a370f8e3cf05fdf57399d",
+        "sha256_in_prefix": "1f6a34893a1d61b4852a0156e370b3724ca5e45d0b3a370f8e3cf05fdf57399d",
+        "size_in_bytes": 2702
+      },
+      {
+        "_path": "include/faiss/gpu/utils/MathOperators.cuh",
+        "path_type": "hardlink",
+        "sha256": "37ba0c9b0c4accd13652d55786414d5534b94d6f64e81adf2f28d29380236dd6",
+        "sha256_in_prefix": "37ba0c9b0c4accd13652d55786414d5534b94d6f64e81adf2f28d29380236dd6",
+        "size_in_bytes": 13091
+      },
+      {
+        "_path": "include/faiss/gpu/utils/MatrixMult-inl.cuh",
+        "path_type": "hardlink",
+        "sha256": "3b4d94df5bb72b521b7284d01675622790305cf46f6189bba8eb5c659c5a4e08",
+        "sha256_in_prefix": "3b4d94df5bb72b521b7284d01675622790305cf46f6189bba8eb5c659c5a4e08",
+        "size_in_bytes": 9348
+      },
+      {
+        "_path": "include/faiss/gpu/utils/MatrixMult.cuh",
+        "path_type": "hardlink",
+        "sha256": "1a41befd9e945202b082a573df4a4b200477f251614c683f32910eecc85ba43a",
+        "sha256_in_prefix": "1a41befd9e945202b082a573df4a4b200477f251614c683f32910eecc85ba43a",
+        "size_in_bytes": 1440
+      },
+      {
+        "_path": "include/faiss/gpu/utils/MergeNetworkBlock.cuh",
+        "path_type": "hardlink",
+        "sha256": "261df55b7649c249aa056d5dc4db9678e25ad6d4cf2d391857914afa6c1bfd99",
+        "sha256_in_prefix": "261df55b7649c249aa056d5dc4db9678e25ad6d4cf2d391857914afa6c1bfd99",
+        "size_in_bytes": 9308
+      },
+      {
+        "_path": "include/faiss/gpu/utils/MergeNetworkUtils.cuh",
+        "path_type": "hardlink",
+        "sha256": "a17c63580d8f32e47eb98d1ea814cd463710061a1a57acbf17573e673e9e79b3",
+        "sha256_in_prefix": "a17c63580d8f32e47eb98d1ea814cd463710061a1a57acbf17573e673e9e79b3",
+        "size_in_bytes": 523
+      },
+      {
+        "_path": "include/faiss/gpu/utils/MergeNetworkWarp.cuh",
+        "path_type": "hardlink",
+        "sha256": "7e0a98df6fc170615d07150f0ec0c655c3926b2b9eb128d56c745b6a3b6ceaf6",
+        "sha256_in_prefix": "7e0a98df6fc170615d07150f0ec0c655c3926b2b9eb128d56c745b6a3b6ceaf6",
+        "size_in_bytes": 17416
+      },
+      {
+        "_path": "include/faiss/gpu/utils/NoTypeTensor.cuh",
+        "path_type": "hardlink",
+        "sha256": "1ff42fe93b32fcfe9412c5cb4f1fe1861ba7f302b3b14f107117f93610dc7da7",
+        "sha256_in_prefix": "1ff42fe93b32fcfe9412c5cb4f1fe1861ba7f302b3b14f107117f93610dc7da7",
+        "size_in_bytes": 3031
+      },
+      {
+        "_path": "include/faiss/gpu/utils/Pair.cuh",
+        "path_type": "hardlink",
+        "sha256": "18c32833a584f3f1fa346fddadac2bcd199ba95c381a22aa1e69b8072ee57eaa",
+        "sha256_in_prefix": "18c32833a584f3f1fa346fddadac2bcd199ba95c381a22aa1e69b8072ee57eaa",
+        "size_in_bytes": 1778
+      },
+      {
+        "_path": "include/faiss/gpu/utils/PtxUtils.cuh",
+        "path_type": "hardlink",
+        "sha256": "ac7ea2579461a834ce572f888bc5dde7dc7546d8adf594553a4c038d39528f06",
+        "sha256_in_prefix": "ac7ea2579461a834ce572f888bc5dde7dc7546d8adf594553a4c038d39528f06",
+        "size_in_bytes": 2451
+      },
+      {
+        "_path": "include/faiss/gpu/utils/ReductionOperators.cuh",
+        "path_type": "hardlink",
+        "sha256": "ddcc72b4386235de5d5b3f34f315082b60a9d1b78e07144a9c4cb65975d8279d",
+        "sha256_in_prefix": "ddcc72b4386235de5d5b3f34f315082b60a9d1b78e07144a9c4cb65975d8279d",
+        "size_in_bytes": 1678
+      },
+      {
+        "_path": "include/faiss/gpu/utils/Reductions.cuh",
+        "path_type": "hardlink",
+        "sha256": "ddc0e90c897b675ee58141ad1f74b3efcac31b2aa9214eb56525e7d2e177ba67",
+        "sha256_in_prefix": "ddc0e90c897b675ee58141ad1f74b3efcac31b2aa9214eb56525e7d2e177ba67",
+        "size_in_bytes": 3785
+      },
+      {
+        "_path": "include/faiss/gpu/utils/Select.cuh",
+        "path_type": "hardlink",
+        "sha256": "549d7a25b37652f4bdb75fd9b740ba52187baf01204caaab713aa6726dfd9ccc",
+        "sha256_in_prefix": "549d7a25b37652f4bdb75fd9b740ba52187baf01204caaab713aa6726dfd9ccc",
+        "size_in_bytes": 18232
+      },
+      {
+        "_path": "include/faiss/gpu/utils/StackDeviceMemory.h",
+        "path_type": "hardlink",
+        "sha256": "0b720684ecef02f9094d63ce7961d71c3a1f7110cc14542813fc5fedc386cd95",
+        "sha256_in_prefix": "0b720684ecef02f9094d63ce7961d71c3a1f7110cc14542813fc5fedc386cd95",
+        "size_in_bytes": 3101
+      },
+      {
+        "_path": "include/faiss/gpu/utils/StaticUtils.h",
+        "path_type": "hardlink",
+        "sha256": "dd5f9870795b2a86ce78c5a8c07824b41f04c9e3cd8f13e9ce6c5aefffa86537",
+        "sha256_in_prefix": "dd5f9870795b2a86ce78c5a8c07824b41f04c9e3cd8f13e9ce6c5aefffa86537",
+        "size_in_bytes": 2542
+      },
+      {
+        "_path": "include/faiss/gpu/utils/Tensor-inl.cuh",
+        "path_type": "hardlink",
+        "sha256": "f05af4aee26366200ddac3a4eca380df53983d18b7fa22068c1dfc8b2feb6b1d",
+        "sha256_in_prefix": "f05af4aee26366200ddac3a4eca380df53983d18b7fa22068c1dfc8b2feb6b1d",
+        "size_in_bytes": 28201
+      },
+      {
+        "_path": "include/faiss/gpu/utils/Tensor.cuh",
+        "path_type": "hardlink",
+        "sha256": "71ca0ba425002b336cd0498ee60b04e63c68799c00a55662e32e1ae70a74caf0",
+        "sha256_in_prefix": "71ca0ba425002b336cd0498ee60b04e63c68799c00a55662e32e1ae70a74caf0",
+        "size_in_bytes": 23312
+      },
+      {
+        "_path": "include/faiss/gpu/utils/ThrustUtils.cuh",
+        "path_type": "hardlink",
+        "sha256": "58a0aed304a82ff6e04d3b0a7fd9f11fe9360836746b761720ab7486b650d2b3",
+        "sha256_in_prefix": "58a0aed304a82ff6e04d3b0a7fd9f11fe9360836746b761720ab7486b650d2b3",
+        "size_in_bytes": 2304
+      },
+      {
+        "_path": "include/faiss/gpu/utils/Timer.h",
+        "path_type": "hardlink",
+        "sha256": "a5b3ef14235cdb3ddd5e95598fda376a8d46b22e50ccfd7b04d8826d08630781",
+        "sha256_in_prefix": "a5b3ef14235cdb3ddd5e95598fda376a8d46b22e50ccfd7b04d8826d08630781",
+        "size_in_bytes": 1277
+      },
+      {
+        "_path": "include/faiss/gpu/utils/Transpose.cuh",
+        "path_type": "hardlink",
+        "sha256": "1f36e4a80f8f8e5b7ecb5c758265a91d2a3251811beaf099dc38e5484a3c171f",
+        "sha256_in_prefix": "1f36e4a80f8f8e5b7ecb5c758265a91d2a3251811beaf099dc38e5484a3c171f",
+        "size_in_bytes": 6948
+      },
+      {
+        "_path": "include/faiss/gpu/utils/WarpPackedBits.cuh",
+        "path_type": "hardlink",
+        "sha256": "690b7f7f5fcf3b2ebe169a3e83add30089445cf6fee079f76d726d9b03ae02dd",
+        "sha256_in_prefix": "690b7f7f5fcf3b2ebe169a3e83add30089445cf6fee079f76d726d9b03ae02dd",
+        "size_in_bytes": 8459
+      },
+      {
+        "_path": "include/faiss/gpu/utils/WarpSelectKernel.cuh",
+        "path_type": "hardlink",
+        "sha256": "744ad96ad70fe67f8e4b05f38fff8137505d052b05223b11de2cb4f3e509fb35",
+        "sha256_in_prefix": "744ad96ad70fe67f8e4b05f38fff8137505d052b05223b11de2cb4f3e509fb35",
+        "size_in_bytes": 1982
+      },
+      {
+        "_path": "include/faiss/gpu/utils/WarpShuffles.cuh",
+        "path_type": "hardlink",
+        "sha256": "f3e0e632b2839a0d84101a7ded15cdb375de452fa78bc97bfd31d98dd8969922",
+        "sha256_in_prefix": "f3e0e632b2839a0d84101a7ded15cdb375de452fa78bc97bfd31d98dd8969922",
+        "size_in_bytes": 3390
+      },
+      {
+        "_path": "include/faiss/gpu/utils/blockselect/BlockSelectImpl.cuh",
+        "path_type": "hardlink",
+        "sha256": "2c2e1bf67fd1b7b695e03fc6f4fe951015b14c21a661b59be15365f3ed4430e6",
+        "sha256_in_prefix": "2c2e1bf67fd1b7b695e03fc6f4fe951015b14c21a661b59be15365f3ed4430e6",
+        "size_in_bytes": 6553
+      },
+      {
+        "_path": "include/faiss/gpu/utils/warpselect/WarpSelectImpl.cuh",
+        "path_type": "hardlink",
+        "sha256": "9d395f08c88e9a2fc96935e4f9e566b6362b56ccec39df49ff18bfd898ee5f29",
+        "sha256_in_prefix": "9d395f08c88e9a2fc96935e4f9e566b6362b56ccec39df49ff18bfd898ee5f29",
+        "size_in_bytes": 2659
+      },
+      {
+        "_path": "include/faiss/impl/AdditiveQuantizer.h",
+        "path_type": "hardlink",
+        "sha256": "a1d6a11d170308b2ca8105d3fdeb8cd5b680b66141a34b57056accce935d5a11",
+        "sha256_in_prefix": "a1d6a11d170308b2ca8105d3fdeb8cd5b680b66141a34b57056accce935d5a11",
+        "size_in_bytes": 7175
+      },
+      {
+        "_path": "include/faiss/impl/AuxIndexStructures.h",
+        "path_type": "hardlink",
+        "sha256": "9af151cd128aa7af38155007e9c8873d9478085c7f9c9989067d9b1ce5ccaec8",
+        "sha256_in_prefix": "9af151cd128aa7af38155007e9c8873d9478085c7f9c9989067d9b1ce5ccaec8",
+        "size_in_bytes": 5773
+      },
+      {
+        "_path": "include/faiss/impl/DistanceComputer.h",
+        "path_type": "hardlink",
+        "sha256": "362d52503b8fa7244e2adab0b572c168c4e903c74f40c58f4a5e97fa6b552b61",
+        "sha256_in_prefix": "362d52503b8fa7244e2adab0b572c168c4e903c74f40c58f4a5e97fa6b552b61",
+        "size_in_bytes": 2054
+      },
+      {
+        "_path": "include/faiss/impl/FaissAssert.h",
+        "path_type": "hardlink",
+        "sha256": "492047d93ec50b6657dcf30fbdcf2c1ee24a8438d211c2c5de0359caba265ef1",
+        "sha256_in_prefix": "492047d93ec50b6657dcf30fbdcf2c1ee24a8438d211c2c5de0359caba265ef1",
+        "size_in_bytes": 4652
+      },
+      {
+        "_path": "include/faiss/impl/FaissException.h",
+        "path_type": "hardlink",
+        "sha256": "f0117130f4e3439c271161495e11cc47122d553c234c78af564538f0c6df1b1f",
+        "sha256_in_prefix": "f0117130f4e3439c271161495e11cc47122d553c234c78af564538f0c6df1b1f",
+        "size_in_bytes": 2020
+      },
+      {
+        "_path": "include/faiss/impl/HNSW.h",
+        "path_type": "hardlink",
+        "sha256": "872ab246175e17900074f2470a621e01f6714c8a10d6650dd81f140ce11b65e1",
+        "sha256_in_prefix": "872ab246175e17900074f2470a621e01f6714c8a10d6650dd81f140ce11b65e1",
+        "size_in_bytes": 7091
+      },
+      {
+        "_path": "include/faiss/impl/IDSelector.h",
+        "path_type": "hardlink",
+        "sha256": "fadf3419adcca1fe335c278a0e16de934b5c6f87353e3d4cf1313e653e9f66e5",
+        "sha256_in_prefix": "fadf3419adcca1fe335c278a0e16de934b5c6f87353e3d4cf1313e653e9f66e5",
+        "size_in_bytes": 3740
+      },
+      {
+        "_path": "include/faiss/impl/LocalSearchQuantizer.h",
+        "path_type": "hardlink",
+        "sha256": "0c9d7b272a0cbc3899d5f7670ec861af95f23422154f0ec3bdb0a2c87d0df727",
+        "sha256_in_prefix": "0c9d7b272a0cbc3899d5f7670ec861af95f23422154f0ec3bdb0a2c87d0df727",
+        "size_in_bytes": 6898
+      },
+      {
+        "_path": "include/faiss/impl/LookupTableScaler.h",
+        "path_type": "hardlink",
+        "sha256": "fdfc50c5f672eff3314b6bde94287f7ece3a7e79bbc84aa5881b5f753f40759e",
+        "sha256_in_prefix": "fdfc50c5f672eff3314b6bde94287f7ece3a7e79bbc84aa5881b5f753f40759e",
+        "size_in_bytes": 2192
+      },
+      {
+        "_path": "include/faiss/impl/NNDescent.h",
+        "path_type": "hardlink",
+        "sha256": "fb273f4def498e0a005fd939e4ef98220fcd965095fca84dbb0399868164c1a6",
+        "sha256_in_prefix": "fb273f4def498e0a005fd939e4ef98220fcd965095fca84dbb0399868164c1a6",
+        "size_in_bytes": 3920
+      },
+      {
+        "_path": "include/faiss/impl/NSG.h",
+        "path_type": "hardlink",
+        "sha256": "d604ca7715da479c2539edb7068a9048a1fbc3f27bae0650611f7051a8966ea6",
+        "sha256_in_prefix": "d604ca7715da479c2539edb7068a9048a1fbc3f27bae0650611f7051a8966ea6",
+        "size_in_bytes": 5329
+      },
+      {
+        "_path": "include/faiss/impl/PolysemousTraining.h",
+        "path_type": "hardlink",
+        "sha256": "f1777d653f11f5cb3384ce9e3db8e3c6c4115e2ce10fe34977d7dbad569fcf8b",
+        "sha256_in_prefix": "f1777d653f11f5cb3384ce9e3db8e3c6c4115e2ce10fe34977d7dbad569fcf8b",
+        "size_in_bytes": 5129
+      },
+      {
+        "_path": "include/faiss/impl/ProductAdditiveQuantizer.h",
+        "path_type": "hardlink",
+        "sha256": "2a3045ae80f3e05b49e8f226a835cb5bf59c130ff033801b492c0bb6ae497197",
+        "sha256_in_prefix": "2a3045ae80f3e05b49e8f226a835cb5bf59c130ff033801b492c0bb6ae497197",
+        "size_in_bytes": 4610
+      },
+      {
+        "_path": "include/faiss/impl/ProductQuantizer-inl.h",
+        "path_type": "hardlink",
+        "sha256": "2c9f2af922f6e799ae12edaa08c68ab16c9a438c46ea5f0308fd0d2077a945d3",
+        "sha256_in_prefix": "2c9f2af922f6e799ae12edaa08c68ab16c9a438c46ea5f0308fd0d2077a945d3",
+        "size_in_bytes": 2561
+      },
+      {
+        "_path": "include/faiss/impl/ProductQuantizer.h",
+        "path_type": "hardlink",
+        "sha256": "f8ebc1a99937726dae6ecefee66d05b4af65593bf284bd3eccebd1ce7cd5b20d",
+        "sha256_in_prefix": "f8ebc1a99937726dae6ecefee66d05b4af65593bf284bd3eccebd1ce7cd5b20d",
+        "size_in_bytes": 7601
+      },
+      {
+        "_path": "include/faiss/impl/Quantizer.h",
+        "path_type": "hardlink",
+        "sha256": "dd583e8db11b635f6119dd485f421b925c9f210aa993c1c7513012b13d53649a",
+        "sha256_in_prefix": "dd583e8db11b635f6119dd485f421b925c9f210aa993c1c7513012b13d53649a",
+        "size_in_bytes": 1130
+      },
+      {
+        "_path": "include/faiss/impl/ResidualQuantizer.h",
+        "path_type": "hardlink",
+        "sha256": "afee0c63396b79674b25972311717a3d0142975aece5b236007b1bd35c8d9fed",
+        "sha256_in_prefix": "afee0c63396b79674b25972311717a3d0142975aece5b236007b1bd35c8d9fed",
+        "size_in_bytes": 7176
+      },
+      {
+        "_path": "include/faiss/impl/ResultHandler.h",
+        "path_type": "hardlink",
+        "sha256": "7ecb19b2849876e6eead7a5f3d27f5cee5d30ebbfa714dd648f383075ee46e4e",
+        "sha256_in_prefix": "7ecb19b2849876e6eead7a5f3d27f5cee5d30ebbfa714dd648f383075ee46e4e",
+        "size_in_bytes": 14686
+      },
+      {
+        "_path": "include/faiss/impl/ScalarQuantizer.h",
+        "path_type": "hardlink",
+        "sha256": "064fe1d076a2e8bd4cd2255374ddd20468031cd9d5a2c7f623a6d153a388f27b",
+        "sha256_in_prefix": "064fe1d076a2e8bd4cd2255374ddd20468031cd9d5a2c7f623a6d153a388f27b",
+        "size_in_bytes": 3730
+      },
+      {
+        "_path": "include/faiss/impl/ThreadedIndex-inl.h",
+        "path_type": "hardlink",
+        "sha256": "3dfd8c4c26c3ec626e2157dd7203e782e14c6a17c1a93ce83ba249c01396b203",
+        "sha256_in_prefix": "3dfd8c4c26c3ec626e2157dd7203e782e14c6a17c1a93ce83ba249c01396b203",
+        "size_in_bytes": 5653
+      },
+      {
+        "_path": "include/faiss/impl/ThreadedIndex.h",
+        "path_type": "hardlink",
+        "sha256": "c58c3ed33f589c909186d134745b88d0da11b45a7c8182c4046e231945f8ba4d",
+        "sha256_in_prefix": "c58c3ed33f589c909186d134745b88d0da11b45a7c8182c4046e231945f8ba4d",
+        "size_in_bytes": 2589
+      },
+      {
+        "_path": "include/faiss/impl/io.h",
+        "path_type": "hardlink",
+        "sha256": "b39a2916fa5a56ba0d4024b482e4d5d5084d7585f00b9e03a4323c7e5b49d2ab",
+        "sha256_in_prefix": "b39a2916fa5a56ba0d4024b482e4d5d5084d7585f00b9e03a4323c7e5b49d2ab",
+        "size_in_bytes": 3862
+      },
+      {
+        "_path": "include/faiss/impl/io_macros.h",
+        "path_type": "hardlink",
+        "sha256": "0ce8df02dd47b8a1fbd9141339cd1b7f108a3c4c293e46b10735640b2b4509c3",
+        "sha256_in_prefix": "0ce8df02dd47b8a1fbd9141339cd1b7f108a3c4c293e46b10735640b2b4509c3",
+        "size_in_bytes": 3736
+      },
+      {
+        "_path": "include/faiss/impl/kmeans1d.h",
+        "path_type": "hardlink",
+        "sha256": "6a59b4f96c8a45a0234e5d92c05165bfb77bd2e7f9e88e16b6806fc96d789deb",
+        "sha256_in_prefix": "6a59b4f96c8a45a0234e5d92c05165bfb77bd2e7f9e88e16b6806fc96d789deb",
+        "size_in_bytes": 1295
+      },
+      {
+        "_path": "include/faiss/impl/lattice_Zn.h",
+        "path_type": "hardlink",
+        "sha256": "eb39d3d4b4bb4ca12101cee45933fdc2e2066f8ecf9241dcbf1bfbf50574c165",
+        "sha256_in_prefix": "eb39d3d4b4bb4ca12101cee45933fdc2e2066f8ecf9241dcbf1bfbf50574c165",
+        "size_in_bytes": 5004
+      },
+      {
+        "_path": "include/faiss/impl/platform_macros.h",
+        "path_type": "hardlink",
+        "sha256": "12517914b5f89ec9206ffe2c95406573472681b5939cc59ce7b97082fcaeeb2d",
+        "sha256_in_prefix": "12517914b5f89ec9206ffe2c95406573472681b5939cc59ce7b97082fcaeeb2d",
+        "size_in_bytes": 2289
+      },
+      {
+        "_path": "include/faiss/impl/pq4_fast_scan.h",
+        "path_type": "hardlink",
+        "sha256": "4be0933b33595d0013b07857e1bfc8a4a0c298616b07ab1711766a62355ae1a7",
+        "sha256_in_prefix": "4be0933b33595d0013b07857e1bfc8a4a0c298616b07ab1711766a62355ae1a7",
+        "size_in_bytes": 5563
+      },
+      {
+        "_path": "include/faiss/impl/simd_result_handlers.h",
+        "path_type": "hardlink",
+        "sha256": "2dcfd0bc5f07427381f9e7ffaf48cbec4a4046c459758a748ed0ab87433c9d9d",
+        "sha256_in_prefix": "2dcfd0bc5f07427381f9e7ffaf48cbec4a4046c459758a748ed0ab87433c9d9d",
+        "size_in_bytes": 14932
+      },
+      {
+        "_path": "include/faiss/index_factory.h",
+        "path_type": "hardlink",
+        "sha256": "df5a6b27832828fa4be66c38d5004e94cfed143969b0a644be48330dc3b095cf",
+        "sha256_in_prefix": "df5a6b27832828fa4be66c38d5004e94cfed143969b0a644be48330dc3b095cf",
+        "size_in_bytes": 666
+      },
+      {
+        "_path": "include/faiss/index_io.h",
+        "path_type": "hardlink",
+        "sha256": "45632ec6e62a12c47f1ac36afdafcc44046d7860578ecf8c5bb5b7149a3b69b7",
+        "sha256_in_prefix": "45632ec6e62a12c47f1ac36afdafcc44046d7860578ecf8c5bb5b7149a3b69b7",
+        "size_in_bytes": 2758
+      },
+      {
+        "_path": "include/faiss/invlists/BlockInvertedLists.h",
+        "path_type": "hardlink",
+        "sha256": "9f6610a5afc0d264a381e05a7eafcfb5e696c0ba3c425f93b7846eb2e8505707",
+        "sha256_in_prefix": "9f6610a5afc0d264a381e05a7eafcfb5e696c0ba3c425f93b7846eb2e8505707",
+        "size_in_bytes": 2386
+      },
+      {
+        "_path": "include/faiss/invlists/DirectMap.h",
+        "path_type": "hardlink",
+        "sha256": "50cfd0874a8b818f98cd8753a0e3449826a8952249710c302298767cbd9050d0",
+        "sha256_in_prefix": "50cfd0874a8b818f98cd8753a0e3449826a8952249710c302298767cbd9050d0",
+        "size_in_bytes": 2669
+      },
+      {
+        "_path": "include/faiss/invlists/InvertedLists.h",
+        "path_type": "hardlink",
+        "sha256": "f7eb42b739b483da7f275f7f338d5ac73362de1f96ed21ad241d1dc8979affa0",
+        "sha256_in_prefix": "f7eb42b739b483da7f275f7f338d5ac73362de1f96ed21ad241d1dc8979affa0",
+        "size_in_bytes": 11440
+      },
+      {
+        "_path": "include/faiss/invlists/InvertedListsIOHook.h",
+        "path_type": "hardlink",
+        "sha256": "cdfd42655029e063723441900e469301053a5ae3763f7e31a99cbd5926c57f30",
+        "sha256_in_prefix": "cdfd42655029e063723441900e469301053a5ae3763f7e31a99cbd5926c57f30",
+        "size_in_bytes": 2048
+      },
+      {
+        "_path": "include/faiss/invlists/OnDiskInvertedLists.h",
+        "path_type": "hardlink",
+        "sha256": "95b0627ad7a4d7e40f91a9a69d65a3659a049161d6f4d07c90e1a7fd07a333df",
+        "sha256_in_prefix": "95b0627ad7a4d7e40f91a9a69d65a3659a049161d6f4d07c90e1a7fd07a333df",
+        "size_in_bytes": 4524
+      },
+      {
+        "_path": "include/faiss/utils/AlignedTable.h",
+        "path_type": "hardlink",
+        "sha256": "5c7276121e9b7732a0c97eb8958cbcfdcc84f4b653c2d58da223503a1d3c27d0",
+        "sha256_in_prefix": "5c7276121e9b7732a0c97eb8958cbcfdcc84f4b653c2d58da223503a1d3c27d0",
+        "size_in_bytes": 3704
+      },
+      {
+        "_path": "include/faiss/utils/Heap.h",
+        "path_type": "hardlink",
+        "sha256": "1d2c2f3151c46c07bae1471233787ca60455f48f88fa6a8d9362a25c48ca53ef",
+        "sha256_in_prefix": "1d2c2f3151c46c07bae1471233787ca60455f48f88fa6a8d9362a25c48ca53ef",
+        "size_in_bytes": 13931
+      },
+      {
+        "_path": "include/faiss/utils/WorkerThread.h",
+        "path_type": "hardlink",
+        "sha256": "5be2c3fd2ef0135e5a9bff18328ee89d21fa753529f29e39e397ec25a1ef7f8d",
+        "sha256_in_prefix": "5be2c3fd2ef0135e5a9bff18328ee89d21fa753529f29e39e397ec25a1ef7f8d",
+        "size_in_bytes": 1532
+      },
+      {
+        "_path": "include/faiss/utils/distances.h",
+        "path_type": "hardlink",
+        "sha256": "75e94c242f588d20e56a7e4f8482351abd5073f4af88a6eeb2d6a8a5bc19d8f6",
+        "sha256_in_prefix": "75e94c242f588d20e56a7e4f8482351abd5073f4af88a6eeb2d6a8a5bc19d8f6",
+        "size_in_bytes": 11996
+      },
+      {
+        "_path": "include/faiss/utils/extra_distances-inl.h",
+        "path_type": "hardlink",
+        "sha256": "030d592b65b66e771a071ccda1301305cffe82a82b01fa3848c7f8337dec2eac",
+        "sha256_in_prefix": "030d592b65b66e771a071ccda1301305cffe82a82b01fa3848c7f8337dec2eac",
+        "size_in_bytes": 2907
+      },
+      {
+        "_path": "include/faiss/utils/extra_distances.h",
+        "path_type": "hardlink",
+        "sha256": "feb742674ee74583780d077677442ee363b7176b65f194f630d4082ac2bc2572",
+        "sha256_in_prefix": "feb742674ee74583780d077677442ee363b7176b65f194f630d4082ac2bc2572",
+        "size_in_bytes": 1277
+      },
+      {
+        "_path": "include/faiss/utils/fp16-fp16c.h",
+        "path_type": "hardlink",
+        "sha256": "bf1a95ec5af3d841d054c5740d5b340ad3116cd18ef7d04c2b9cdb66632ba643",
+        "sha256_in_prefix": "bf1a95ec5af3d841d054c5740d5b340ad3116cd18ef7d04c2b9cdb66632ba643",
+        "size_in_bytes": 450
+      },
+      {
+        "_path": "include/faiss/utils/fp16-inl.h",
+        "path_type": "hardlink",
+        "sha256": "dc569ef81089a7a2ade5e38d3074be597297d8db74184a8aa3c76b3f538f6558",
+        "sha256_in_prefix": "dc569ef81089a7a2ade5e38d3074be597297d8db74184a8aa3c76b3f538f6558",
+        "size_in_bytes": 3600
+      },
+      {
+        "_path": "include/faiss/utils/fp16.h",
+        "path_type": "hardlink",
+        "sha256": "6d8725648b27de0eb6ad41241e88e2eb4152937c195b78496dff3f7f15f829ba",
+        "sha256_in_prefix": "6d8725648b27de0eb6ad41241e88e2eb4152937c195b78496dff3f7f15f829ba",
+        "size_in_bytes": 180
+      },
+      {
+        "_path": "include/faiss/utils/hamming-inl.h",
+        "path_type": "hardlink",
+        "sha256": "ee040201c24d568474f8c704fdd280d41f14c3180bc9af0e05fe8a19652ec231",
+        "sha256_in_prefix": "ee040201c24d568474f8c704fdd280d41f14c3180bc9af0e05fe8a19652ec231",
+        "size_in_bytes": 15767
+      },
+      {
+        "_path": "include/faiss/utils/hamming.h",
+        "path_type": "hardlink",
+        "sha256": "e502ad7fa8e530d13d7d7db023c774603d29715852af7f4b16c725840ed18ed9",
+        "sha256_in_prefix": "e502ad7fa8e530d13d7d7db023c774603d29715852af7f4b16c725840ed18ed9",
+        "size_in_bytes": 6314
+      },
+      {
+        "_path": "include/faiss/utils/ordered_key_value.h",
+        "path_type": "hardlink",
+        "sha256": "93e0f9354af85ca3ccecc5620ebb338e58ec5aa47f682aa4aea0c9f470b36846",
+        "sha256_in_prefix": "93e0f9354af85ca3ccecc5620ebb338e58ec5aa47f682aa4aea0c9f470b36846",
+        "size_in_bytes": 2729
+      },
+      {
+        "_path": "include/faiss/utils/partitioning.h",
+        "path_type": "hardlink",
+        "sha256": "40559fdb7c3f06bf4463e9911d7ee9c909421541ecac33f6e377c5cca92b6265",
+        "sha256_in_prefix": "40559fdb7c3f06bf4463e9911d7ee9c909421541ecac33f6e377c5cca92b6265",
+        "size_in_bytes": 1742
+      },
+      {
+        "_path": "include/faiss/utils/quantize_lut.h",
+        "path_type": "hardlink",
+        "sha256": "b6539ec295b41994ab2ebfa9ae853a624f6a0ced1b8e476121deb64a2d184aa7",
+        "sha256_in_prefix": "b6539ec295b41994ab2ebfa9ae853a624f6a0ced1b8e476121deb64a2d184aa7",
+        "size_in_bytes": 2633
+      },
+      {
+        "_path": "include/faiss/utils/random.h",
+        "path_type": "hardlink",
+        "sha256": "de92b8e3a1c29d8ea145de52d29df190735ffd373e5d45070d4d851573be05c0",
+        "sha256_in_prefix": "de92b8e3a1c29d8ea145de52d29df190735ffd373e5d45070d4d851573be05c0",
+        "size_in_bytes": 1670
+      },
+      {
+        "_path": "include/faiss/utils/simdlib.h",
+        "path_type": "hardlink",
+        "sha256": "f9e6f195c364b0e8c1495db994fd50f521fdf654d16a47796210a1e146fde36c",
+        "sha256_in_prefix": "f9e6f195c364b0e8c1495db994fd50f521fdf654d16a47796210a1e146fde36c",
+        "size_in_bytes": 754
+      },
+      {
+        "_path": "include/faiss/utils/simdlib_avx2.h",
+        "path_type": "hardlink",
+        "sha256": "9806b61a652287ed5c7844cb1762e09d182f320575f0e0034631cc5889f15e16",
+        "sha256_in_prefix": "9806b61a652287ed5c7844cb1762e09d182f320575f0e0034631cc5889f15e16",
+        "size_in_bytes": 12875
+      },
+      {
+        "_path": "include/faiss/utils/simdlib_emulated.h",
+        "path_type": "hardlink",
+        "sha256": "570ec0987a4bcf86aba20af6b2b23dc58f165a394f0a5999eb7b0356a4e94dd8",
+        "sha256_in_prefix": "570ec0987a4bcf86aba20af6b2b23dc58f165a394f0a5999eb7b0356a4e94dd8",
+        "size_in_bytes": 15933
+      },
+      {
+        "_path": "include/faiss/utils/simdlib_neon.h",
+        "path_type": "hardlink",
+        "sha256": "4e65fabac5e7620ee7d55d0619bd91d1ddb9338392c42cf0373b03fb2ea92852",
+        "sha256_in_prefix": "4e65fabac5e7620ee7d55d0619bd91d1ddb9338392c42cf0373b03fb2ea92852",
+        "size_in_bytes": 26557
+      },
+      {
+        "_path": "include/faiss/utils/utils.h",
+        "path_type": "hardlink",
+        "sha256": "c83ed19ece9f3f906b1c351f2955eb09bff982f4c717bbc9fc1916ca7480f558",
+        "sha256_in_prefix": "c83ed19ece9f3f906b1c351f2955eb09bff982f4c717bbc9fc1916ca7480f558",
+        "size_in_bytes": 5296
+      },
+      {
+        "_path": "lib/libfaiss.so",
+        "path_type": "hardlink",
+        "sha256": "df27393e11d3dd10517f73d8960675378273e5e3a2791465ee9f3c40943ea09f",
+        "sha256_in_prefix": "df27393e11d3dd10517f73d8960675378273e5e3a2791465ee9f3c40943ea09f",
+        "size_in_bytes": 323248040
+      },
+      {
+        "_path": "lib/libfaiss_avx2.so",
+        "path_type": "hardlink",
+        "sha256": "5a2fe8b8429e84c8d352ae0aca18a7f9bca403350859d3c5ede7e6c8a3917466",
+        "sha256_in_prefix": "5a2fe8b8429e84c8d352ae0aca18a7f9bca403350859d3c5ede7e6c8a3917466",
+        "size_in_bytes": 322854344
+      },
+      {
+        "_path": "share/faiss/faiss-config-version.cmake",
+        "path_type": "hardlink",
+        "sha256": "7d50dd6f893ec4ae5dbaf6f6d8f4885394d8708ddcf21feb7fe11cf62a51f3ea",
+        "sha256_in_prefix": "7d50dd6f893ec4ae5dbaf6f6d8f4885394d8708ddcf21feb7fe11cf62a51f3ea",
+        "size_in_bytes": 1977
+      },
+      {
+        "_path": "share/faiss/faiss-config.cmake",
+        "path_type": "hardlink",
+        "sha256": "b974f6cd20f67d7bcd36fb5b213d83653a97084ed9356e891df4b4b379fd0977",
+        "sha256_in_prefix": "b974f6cd20f67d7bcd36fb5b213d83653a97084ed9356e891df4b4b379fd0977",
+        "size_in_bytes": 264
+      },
+      {
+        "_path": "share/faiss/faiss-targets-release.cmake",
+        "path_type": "hardlink",
+        "sha256": "84d7de89750b4b93a8d258b1ee77614d151133458fef1eb2c5d2da3293c92096",
+        "sha256_in_prefix": "84d7de89750b4b93a8d258b1ee77614d151133458fef1eb2c5d2da3293c92096",
+        "size_in_bytes": 1214
+      },
+      {
+        "_path": "share/faiss/faiss-targets.cmake",
+        "path_type": "hardlink",
+        "sha256": "0229ffb0a8dbe143c18700fea63a2313d4d5feb3c537c0b5ca2f27080ddb8f47",
+        "sha256_in_prefix": "0229ffb0a8dbe143c18700fea63a2313d4d5feb3c537c0b5ca2f27080ddb8f47",
+        "size_in_bytes": 3246
+      }
+    ],
+    "paths_version": 1
+  },
+  "requested_spec": "None",
+  "sha256": "0fcf363697d68a9481bc3b6620aca90c5c5322e41a62bb809d84ac019a1a8e98",
+  "size": 297140975,
+  "subdir": "linux-64",
+  "timestamp": 1667417779512,
+  "track_features": "",
+  "url": "https://conda.anaconda.org/pytorch/linux-64/libfaiss-1.7.3-hdbd6f0c_0_cuda10.2.tar.bz2",
+  "version": "1.7.3"
+}
