@@ -135,3 +135,4 @@ cache/
 .vscode/
 wandb/
 artifacts/
+VQA
