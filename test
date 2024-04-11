@@ -1,1 +1,4 @@
-python main.py --config configs/data/FLMR.jsonnet
+python src/main.py --config configs/data/FLMR.jsonnet
+
+
+DatasetDict.load_from_disk('/home/fz288/rds/hpc-work/PreFLMR/cache/process:ConcatenatePassageDatasets-3662bd208896d1e753dc408fbcb2290e.hf')

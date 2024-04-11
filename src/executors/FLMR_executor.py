@@ -45,19 +45,12 @@ from transformers import AdamW, Adafactor, get_scheduler
 from torch.optim import Adam
 
 from functools import partial
+from src.models.flmr import FLMRConfig, FLMRModelForRetrieval, FLMRQueryEncoderTokenizer, FLMRContextEncoderTokenizer
+from src.models.flmr import index_custom_collection
+from src.models.flmr import search_custom_collection, create_searcher
 
-from transformers import AutoModel, AutoTokenizer, AutoConfig, AutoModelForCausalLM
-from transformers import (
-    LlavaNextForConditionalGeneration,
-    LlavaNextConfig,
-)
-from flmr import FLMRConfig, FLMRModelForRetrieval, FLMRQueryEncoderTokenizer, FLMRContextEncoderTokenizer
-from flmr import FLMRModelWithAdapter, FLMRAdapterConfig
-from flmr import index_custom_collection
-from flmr import search_custom_collection, create_searcher
-
-from metrics import MetricsProcessor
-from utils.dirs import *
+from src.metrics import MetricsProcessor
+from src.utils.dirs import *
 import faiss
 import wandb
 import GPUtil

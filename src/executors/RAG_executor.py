@@ -44,16 +44,16 @@ from pytorch_lightning.plugins import CheckpointIO
 # For ColBERT model
 from colbert.infra import Run, RunConfig, ColBERTConfig
 from colbert.modeling.colbert import ColBERT
-from models.retriever.visual_colbert import *
+from src.models.retriever.visual_colbert import *
 from colbert.modeling.tokenization import QueryTokenizer, DocTokenizer, tensorize_triples
 from functools import partial
 
 from colbert.data import Queries
 from colbert import Searcher
 
-from metrics import MetricsProcessor
-from models.rag.rag_model import RagModel
-from utils.dirs import *
+from src.metrics import MetricsProcessor
+from src.models.rag.rag_model import RagModel
+from src.utils.dirs import *
 import faiss
 import wandb
 import GPUtil

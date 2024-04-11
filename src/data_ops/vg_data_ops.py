@@ -35,7 +35,7 @@ from torch.utils.data import DataLoader, RandomSampler, SequentialSampler
 import logging
 logger = logging.getLogger(__name__)
 
-from utils.dirs import create_dirs
+from src.utils.dirs import create_dirs
 
 
 @register_transform_functor

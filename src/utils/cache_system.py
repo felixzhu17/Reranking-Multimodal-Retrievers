@@ -3,7 +3,7 @@ import pickle
 from easydict import EasyDict
 import logging
 logger = logging.getLogger(__name__)
-from utils.dirs import create_dirs
+from src.utils.dirs import create_dirs
 
 
 def save_cached_data(config, data_to_save, data_name, data_path=''):

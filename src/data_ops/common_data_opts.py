@@ -34,20 +34,20 @@ from transformers import ViTFeatureExtractor
 from transformers import DPRQuestionEncoderTokenizer, DPRContextEncoderTokenizer
 from transformers import AutoImageProcessor
 from transformers import Blip2Processor
-from transformers import LlavaNextImageProcessor
+# from transformers import LlavaNextImageProcessor
 
 # For ColBERT model
 from colbert.modeling.tokenization import QueryTokenizer, DocTokenizer, tensorize_triples
 from colbert.infra import Run, RunConfig, ColBERTConfig
 
-from flmr import FLMRQueryEncoderTokenizer, FLMRContextEncoderTokenizer
+from src.models.flmr import FLMRQueryEncoderTokenizer, FLMRContextEncoderTokenizer
 
-from models.custom_clip_processor import CustomCLIPImageProcessor
+from src.models.custom_clip_processor import CustomCLIPImageProcessor
 
 import logging
 logger = logging.getLogger(__name__)
 
-from data_ops.custom_datasets import *
+from src.data_ops.custom_datasets import *
 
 torch.multiprocessing.set_sharing_strategy("file_system")
 

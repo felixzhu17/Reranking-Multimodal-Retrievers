@@ -36,7 +36,7 @@ from torch.utils.data import DataLoader, RandomSampler, SequentialSampler
 import logging
 logger = logging.getLogger(__name__)
 
-from utils.dirs import create_dirs
+from src.utils.dirs import create_dirs
 import numpy as np
 
 from concurrent.futures import ThreadPoolExecutor
@@ -47,7 +47,6 @@ import PIL.Image
 from datasets.utils.file_utils import get_datasets_user_agent
 import requests
 import hashlib
-
 
 @register_transform_functor
 class LoadPreprocessedData(HFDatasetTransform):

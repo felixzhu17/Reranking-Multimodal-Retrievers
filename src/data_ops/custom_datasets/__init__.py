@@ -1,10 +1,8 @@
-import os
-import sys
-
-path = os.path.dirname(os.path.abspath(__file__))
-
-for py in [f[:-3] for f in os.listdir(path) if f.endswith('.py') and f != '__init__.py']:
-    mod = __import__('.'.join([__name__, py]), fromlist=[py])
-    classes = [getattr(mod, x) for x in dir(mod) if isinstance(getattr(mod, x), type)]
-    for cls in classes:
-        setattr(sys.modules[__name__], cls.__name__, cls)
+from src.data_ops.custom_datasets.base_datasets import *
+from src.data_ops.custom_datasets.distillation_datasets import *
+from src.data_ops.custom_datasets.dpr_datasets import *
+from src.data_ops.custom_datasets.evqa_datasets import *
+from src.data_ops.custom_datasets.infoseek_datasets import *
+from src.data_ops.custom_datasets.module_parser import *
+from src.data_ops.custom_datasets.okvqa_datasets import *
+from src.data_ops.custom_datasets.vg_datasets import *

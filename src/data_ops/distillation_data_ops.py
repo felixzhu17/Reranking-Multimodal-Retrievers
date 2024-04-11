@@ -30,11 +30,11 @@ from torch.utils.data import DataLoader, RandomSampler, SequentialSampler
 import logging
 logger = logging.getLogger(__name__)
 
-from utils.dirs import create_dirs
+from src.utils.dirs import create_dirs
 import numpy as np
 
 from transformers import AutoImageProcessor
-from flmr import FLMRQueryEncoderTokenizer, FLMRContextEncoderTokenizer, FLMRModelForRetrieval
+from src.models.flmr import FLMRQueryEncoderTokenizer, FLMRContextEncoderTokenizer, FLMRModelForRetrieval
 
 
 @register_transform_functor

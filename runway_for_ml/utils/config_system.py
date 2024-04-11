@@ -167,7 +167,7 @@ def import_user_modules(module_paths=[]):
             try:
                 importlib.import_module(module_name) 
             except BaseException as e:
-                print(e)
+                print(f"Error message: {e}")
                 print(f"Could not import {module_name}")
 
 def add_runway_sys_args(arg_parser):

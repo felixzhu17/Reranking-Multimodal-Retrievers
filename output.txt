@@ -1,0 +1,813 @@
+Runway main started.
+Configuration Loaded.
+{'args': {'config': 'configs/data/FLMR.jsonnet',
+          'experiment_name': '',
+          'from_experiment': '',
+          'log_prediction_tables': False,
+          'log_prediction_tables_with_images': False,
+          'mode': 'prepare_data',
+          'modules': [],
+          'opts': None,
+          'override': False,
+          'reset': False,
+          'tags': [],
+          'test_suffix': '',
+          'use_dummy_data': False,
+          'wandb_artifacts': 'weizhelin/vqa-images-open/VQAv2-Images:v0'},
+ 'data_pipeline': {'do_inspect': True,
+                   'name': 'MergeDataPipeline',
+                   'regenerate': False,
+                   'transforms': {'output:PrepareDataloaders': {'cache': False,
+                                                                'input_node': ['process:ConcatenatePassageDatasets',
+                                                                               'process:WrapOutputIntoKeys'],
+                                                                'regenerate': True,
+                                                                'setup_kwargs': {'datasets_config': {'test': [{'dataset_type': 'EVQADatasetForDPR',
+                                                                                                               'split': 'test',
+                                                                                                               'use_column': 'evqa_data'}],
+                                                                                                     'train': [{'dataset_type': 'CommonDatasetForDPR',
+                                                                                                                'split': 'train',
+                                                                                                                'use_column': 'combined_data'}],
+                                                                                                     'valid': [{'dataset_type': 'EVQADatasetForDPR',
+                                                                                                                'split': 'test',
+                                                                                                                'use_column': 'evqa_data'}]},
+                                                                                 'extra_columns': {'passages': 'train_passages',
+                                                                                                   'valid_passages': 'valid_passages'},
+                                                                                 'feature_extractor_config': {},
+                                                                                 'image_processor_config': {'vit_image_processor': {'ImageProcessorClass': 'AutoImageProcessor',
+                                                                                                                                    'ImageProcessorModelVersion': 'laion/CLIP-ViT-bigG-14-laion2B-39B-b160k'}},
+                                                                                 'pass_columns': {'test_passages': 'test_passages',
+                                                                                                  'train_passages': 'train_passages',
+                                                                                                  'valid_passages': 'valid_passages',
+                                                                                                  'vqa_data_with_dpr_output': 'combined_data'},
+                                                                                 'tokenizer_config': {'decoder_tokenizer': {'SPECIAL_TOKENS': {'additional_special_tokens': []},
+                                                                                                                            'TokenizerClass': 'FLMRContextEncoderTokenizer',
+                                                                                                                            'TokenizerModelVersion': 'LinWeizheDragon/PreFLMR_ViT-G'},
+                                                                                                      'tokenizer': {'SPECIAL_TOKENS': {'additional_special_tokens': []},
+                                                                                                                    'TokenizerClass': 'FLMRQueryEncoderTokenizer',
+                                                                                                                    'TokenizerModelVersion': 'LinWeizheDragon/PreFLMR_ViT-G'}}},
+                                                                'transform_name': 'PrepareDataloaders'},
+                                  'process:ConcatenateDatasets': {'cache': True,
+                                                                  'input_node': ['process:LoadWITData',
+                                                                                 'process:LoadCCData',
+                                                                                 'process:LoadLLaVaData',
+                                                                                 'process:LoadMSMARCOData',
+                                                                                 'process:LoadOvenData',
+                                                                                 'process:LoadKVQAData',
+                                                                                 'process:LoadOKVQAData',
+                                                                                 'process:LoadEVQAData'],
+                                                                  'regenerate': False,
+                                                                  'setup_kwargs': {'concat_splits': {'test': [True,
+                                                                                                              False,
+                                                                                                              True,
+                                                                                                              True,
+                                                                                                              False,
+                                                                                                              False,
+                                                                                                              True,
+                                                                                                              True],
+                                                                                                     'train': [True,
+                                                                                                               True,
+                                                                                                               True,
+                                                                                                               True,
+                                                                                                               True,
+                                                                                                               True,
+                                                                                                               10,
+                                                                                                               True],
+                                                                                                     'valid': [True,
+                                                                                                               False,
+                                                                                                               True,
+                                                                                                               True,
+                                                                                                               False,
+                                                                                                               False,
+                                                                                                               True,
+                                                                                                               True]},
+                                                                                   'negative_names': ['wit_passages',
+                                                                                                      'cc_passages',
+                                                                                                      'llava_passages',
+                                                                                                      'msmarco_passages',
+                                                                                                      'oven_passages',
+                                                                                                      'kvqa_passages',
+                                                                                                      'okvqa_passages',
+                                                                                                      'evqa_passages'],
+                                                                                   'splits_to_process': ['train',
+                                                                                                         'valid',
+                                                                                                         'test']},
+                                                                  'transform_name': 'ConcatenateDatasets'},
+                                  'process:ConcatenatePassageDatasets': {'cache': True,
+                                                                         'input_node': ['process:LoadWITData',
+                                                                                        'process:LoadCCData',
+                                                                                        'process:LoadLLaVaData',
+                                                                                        'process:LoadMSMARCOData',
+                                                                                        'process:LoadOvenData',
+                                                                                        'process:LoadKVQAData',
+                                                                                        'process:LoadOKVQAData',
+                                                                                        'process:LoadEVQAData'],
+                                                                         'regenerate': False,
+                                                                         'setup_kwargs': {'concat_splits': {'test_passages': [True,
+                                                                                                                              False,
+                                                                                                                              True,
+                                                                                                                              True,
+                                                                                                                              False,
+                                                                                                                              False,
+                                                                                                                              True,
+                                                                                                                              True],
+                                                                                                            'train_passages': [True,
+                                                                                                                               True,
+                                                                                                                               True,
+                                                                                                                               True,
+                                                                                                                               True,
+                                                                                                                               True,
+                                                                                                                               True,
+                                                                                                                               True],
+                                                                                                            'valid_passages': [True,
+                                                                                                                               False,
+                                                                                                                               True,
+                                                                                                                               True,
+                                                                                                                               False,
+                                                                                                                               False,
+                                                                                                                               True,
+                                                                                                                               True]},
+                                                                                          'names': ['wit_passages',
+                                                                                                    'cc_passages',
+                                                                                                    'llava_passages',
+                                                                                                    'msmarco_passages',
+                                                                                                    'oven_passages',
+                                                                                                    'kvqa_passages',
+                                                                                                    'okvqa_passages',
+                                                                                                    'evqa_passages']},
+                                                                         'transform_name': 'ConcatenatePassageDatasets'},
+                                  'process:LoadCCData': {'cache': True,
+                                                         'regenerate': False,
+                                                         'setup_kwargs': {'data_path': 'BByrneLab/multi_task_multi_modal_knowledge_retrieval_benchmark_M2KR///CC_data',
+                                                                          'image_root_folder': '/home/fz288/rds/rds-bigpicture-iS0FZqj9lmg/shared_space/datasets/CC3M-LLAVA-595K',
+                                                                          'passage_path': 'BByrneLab/multi_task_multi_modal_knowledge_retrieval_benchmark_M2KR///CC_passages'},
+                                                         'transform_name': 'LoadPreprocessedData_v2'},
+                                  'process:LoadEVQAData': {'cache': True,
+                                                           'regenerate': False,
+                                                           'setup_kwargs': {'add_instruction': ['Using '
+                                                                                                'the '
+                                                                                                'provided '
+                                                                                                'image, '
+                                                                                                'obtain '
+                                                                                                'documents '
+                                                                                                'that '
+                                                                                                'address '
+                                                                                                'the '
+                                                                                                'subsequent '
+                                                                                                'question: ',
+                                                                                                'Retrieve '
+                                                                                                'documents '
+                                                                                                'that '
+                                                                                                'provide '
+                                                                                                'an '
+                                                                                                'answer '
+                                                                                                'to '
+                                                                                                'the '
+                                                                                                'question '
+                                                                                                'alongside '
+                                                                                                'the '
+                                                                                                'image: ',
+                                                                                                'Extract '
+                                                                                                'documents '
+                                                                                                'linked '
+                                                                                                'to '
+                                                                                                'the '
+                                                                                                'question '
+                                                                                                'provided '
+                                                                                                'in '
+                                                                                                'conjunction '
+                                                                                                'with '
+                                                                                                'the '
+                                                                                                'image: ',
+                                                                                                'Utilizing '
+                                                                                                'the '
+                                                                                                'given '
+                                                                                                'image, '
+                                                                                                'obtain '
+                                                                                                'documents '
+                                                                                                'that '
+                                                                                                'respond '
+                                                                                                'to '
+                                                                                                'the '
+                                                                                                'following '
+                                                                                                'question: ',
+                                                                                                'Using '
+                                                                                                'the '
+                                                                                                'given '
+                                                                                                'image, '
+                                                                                                'access '
+                                                                                                'documents '
+                                                                                                'that '
+                                                                                                'provide '
+                                                                                                'insights '
+                                                                                                'into '
+                                                                                                'the '
+                                                                                                'following '
+                                                                                                'question: ',
+                                                                                                'Obtain '
+                                                                                                'documents '
+                                                                                                'that '
+                                                                                                'correspond '
+                                                                                                'to '
+                                                                                                'the '
+                                                                                                'inquiry '
+                                                                                                'alongside '
+                                                                                                'the '
+                                                                                                'provided '
+                                                                                                'image: ',
+                                                                                                'With '
+                                                                                                'the '
+                                                                                                'provided '
+                                                                                                'image, '
+                                                                                                'gather '
+                                                                                                'documents '
+                                                                                                'that '
+                                                                                                'offer '
+                                                                                                'a '
+                                                                                                'solution '
+                                                                                                'to '
+                                                                                                'the '
+                                                                                                'question: ',
+                                                                                                'Utilizing '
+                                                                                                'the '
+                                                                                                'given '
+                                                                                                'image, '
+                                                                                                'obtain '
+                                                                                                'documents '
+                                                                                                'that '
+                                                                                                'respond '
+                                                                                                'to '
+                                                                                                'the '
+                                                                                                'following '
+                                                                                                'question: '],
+                                                                            'data_path': 'BByrneLab/multi_task_multi_modal_knowledge_retrieval_benchmark_M2KR///EVQA_data',
+                                                                            'image_root_folder': '/home/fz288/rds/rds-cvnlp-hirYTW1FQIw/shared_space/vqa_data/KBVQA_data/EVQA/images',
+                                                                            'passage_path': 'BByrneLab/multi_task_multi_modal_knowledge_retrieval_benchmark_M2KR///EVQA_passages'},
+                                                           'transform_name': 'LoadPreprocessedData_v2'},
+                                  'process:LoadKVQAData': {'cache': True,
+                                                           'regenerate': False,
+                                                           'setup_kwargs': {'add_instruction': ['Using '
+                                                                                                'the '
+                                                                                                'provided '
+                                                                                                'image, '
+                                                                                                'obtain '
+                                                                                                'documents '
+                                                                                                'that '
+                                                                                                'address '
+                                                                                                'the '
+                                                                                                'subsequent '
+                                                                                                'question: ',
+                                                                                                'Retrieve '
+                                                                                                'documents '
+                                                                                                'that '
+                                                                                                'provide '
+                                                                                                'an '
+                                                                                                'answer '
+                                                                                                'to '
+                                                                                                'the '
+                                                                                                'question '
+                                                                                                'alongside '
+                                                                                                'the '
+                                                                                                'image: ',
+                                                                                                'Extract '
+                                                                                                'documents '
+                                                                                                'linked '
+                                                                                                'to '
+                                                                                                'the '
+                                                                                                'question '
+                                                                                                'provided '
+                                                                                                'in '
+                                                                                                'conjunction '
+                                                                                                'with '
+                                                                                                'the '
+                                                                                                'image: ',
+                                                                                                'Utilizing '
+                                                                                                'the '
+                                                                                                'given '
+                                                                                                'image, '
+                                                                                                'obtain '
+                                                                                                'documents '
+                                                                                                'that '
+                                                                                                'respond '
+                                                                                                'to '
+                                                                                                'the '
+                                                                                                'following '
+                                                                                                'question: ',
+                                                                                                'Using '
+                                                                                                'the '
+                                                                                                'given '
+                                                                                                'image, '
+                                                                                                'access '
+                                                                                                'documents '
+                                                                                                'that '
+                                                                                                'provide '
+                                                                                                'insights '
+                                                                                                'into '
+                                                                                                'the '
+                                                                                                'following '
+                                                                                                'question: ',
+                                                                                                'Obtain '
+                                                                                                'documents '
+                                                                                                'that '
+                                                                                                'correspond '
+                                                                                                'to '
+                                                                                                'the '
+                                                                                                'inquiry '
+                                                                                                'alongside '
+                                                                                                'the '
+                                                                                                'provided '
+                                                                                                'image: ',
+                                                                                                'With '
+                                                                                                'the '
+                                                                                                'provided '
+                                                                                                'image, '
+                                                                                                'gather '
+                                                                                                'documents '
+                                                                                                'that '
+                                                                                                'offer '
+                                                                                                'a '
+                                                                                                'solution '
+                                                                                                'to '
+                                                                                                'the '
+                                                                                                'question: ',
+                                                                                                'Utilizing '
+                                                                                                'the '
+                                                                                                'given '
+                                                                                                'image, '
+                                                                                                'obtain '
+                                                                                                'documents '
+                                                                                                'that '
+                                                                                                'respond '
+                                                                                                'to '
+                                                                                                'the '
+                                                                                                'following '
+                                                                                                'question: '],
+                                                                            'data_path': 'BByrneLab/multi_task_multi_modal_knowledge_retrieval_benchmark_M2KR///KVQA_data',
+                                                                            'image_root_folder': '/home/fz288/rds/rds-cvnlp-hirYTW1FQIw/shared_space/vqa_data/KBVQA_data/KVQA/KVQAimgs',
+                                                                            'passage_path': 'BByrneLab/multi_task_multi_modal_knowledge_retrieval_benchmark_M2KR///KVQA_passages'},
+                                                           'transform_name': 'LoadPreprocessedData_v2'},
+                                  'process:LoadLLaVaData': {'cache': True,
+                                                            'regenerate': False,
+                                                            'setup_kwargs': {'add_instruction': ['Provide '
+                                                                                                 'a '
+                                                                                                 'brief '
+                                                                                                 'description '
+                                                                                                 'of '
+                                                                                                 'the '
+                                                                                                 'image '
+                                                                                                 'along '
+                                                                                                 'with '
+                                                                                                 'the '
+                                                                                                 'following '
+                                                                                                 'question:',
+                                                                                                 'Provide '
+                                                                                                 'a '
+                                                                                                 'concise '
+                                                                                                 'explanation '
+                                                                                                 'of '
+                                                                                                 'the '
+                                                                                                 'image '
+                                                                                                 'along '
+                                                                                                 'with '
+                                                                                                 'the '
+                                                                                                 'following '
+                                                                                                 'question:'],
+                                                                             'data_path': 'BByrneLab/multi_task_multi_modal_knowledge_retrieval_benchmark_M2KR///LLaVA_data',
+                                                                             'image_root_folder': '/home/fz288/rds/rds-cvnlp-hirYTW1FQIw/shared_space/vqa_data/KBVQA_data/ok-vqa/train2014',
+                                                                             'passage_path': 'BByrneLab/multi_task_multi_modal_knowledge_retrieval_benchmark_M2KR///LLaVA_passages'},
+                                                            'transform_name': 'LoadPreprocessedData_v2'},
+                                  'process:LoadMSMARCOData': {'cache': True,
+                                                              'regenerate': False,
+                                                              'setup_kwargs': {'data_path': 'BByrneLab/multi_task_multi_modal_knowledge_retrieval_benchmark_M2KR///MSMARCO_data',
+                                                                               'passage_path': 'BByrneLab/multi_task_multi_modal_knowledge_retrieval_benchmark_M2KR///MSMARCO_passages'},
+                                                              'transform_name': 'LoadPreprocessedData_v2'},
+                                  'process:LoadOKVQAData': {'cache': True,
+                                                            'regenerate': False,
+                                                            'setup_kwargs': {'add_instruction': ['Using '
+                                                                                                 'the '
+                                                                                                 'provided '
+                                                                                                 'image, '
+                                                                                                 'obtain '
+                                                                                                 'documents '
+                                                                                                 'that '
+                                                                                                 'address '
+                                                                                                 'the '
+                                                                                                 'subsequent '
+                                                                                                 'question: ',
+                                                                                                 'Retrieve '
+                                                                                                 'documents '
+                                                                                                 'that '
+                                                                                                 'provide '
+                                                                                                 'an '
+                                                                                                 'answer '
+                                                                                                 'to '
+                                                                                                 'the '
+                                                                                                 'question '
+                                                                                                 'alongside '
+                                                                                                 'the '
+                                                                                                 'image: ',
+                                                                                                 'Extract '
+                                                                                                 'documents '
+                                                                                                 'linked '
+                                                                                                 'to '
+                                                                                                 'the '
+                                                                                                 'question '
+                                                                                                 'provided '
+                                                                                                 'in '
+                                                                                                 'conjunction '
+                                                                                                 'with '
+                                                                                                 'the '
+                                                                                                 'image: ',
+                                                                                                 'Utilizing '
+                                                                                                 'the '
+                                                                                                 'given '
+                                                                                                 'image, '
+                                                                                                 'obtain '
+                                                                                                 'documents '
+                                                                                                 'that '
+                                                                                                 'respond '
+                                                                                                 'to '
+                                                                                                 'the '
+                                                                                                 'following '
+                                                                                                 'question: ',
+                                                                                                 'Using '
+                                                                                                 'the '
+                                                                                                 'given '
+                                                                                                 'image, '
+                                                                                                 'access '
+                                                                                                 'documents '
+                                                                                                 'that '
+                                                                                                 'provide '
+                                                                                                 'insights '
+                                                                                                 'into '
+                                                                                                 'the '
+                                                                                                 'following '
+                                                                                                 'question: ',
+                                                                                                 'Obtain '
+                                                                                                 'documents '
+                                                                                                 'that '
+                                                                                                 'correspond '
+                                                                                                 'to '
+                                                                                                 'the '
+                                                                                                 'inquiry '
+                                                                                                 'alongside '
+                                                                                                 'the '
+                                                                                                 'provided '
+                                                                                                 'image: ',
+                                                                                                 'With '
+                                                                                                 'the '
+                                                                                                 'provided '
+                                                                                                 'image, '
+                                                                                                 'gather '
+                                                                                                 'documents '
+                                                                                                 'that '
+                                                                                                 'offer '
+                                                                                                 'a '
+                                                                                                 'solution '
+                                                                                                 'to '
+                                                                                                 'the '
+                                                                                                 'question: ',
+                                                                                                 'Utilizing '
+                                                                                                 'the '
+                                                                                                 'given '
+                                                                                                 'image, '
+                                                                                                 'obtain '
+                                                                                                 'documents '
+                                                                                                 'that '
+                                                                                                 'respond '
+                                                                                                 'to '
+                                                                                                 'the '
+                                                                                                 'following '
+                                                                                                 'question: '],
+                                                                             'data_path': 'BByrneLab/multi_task_multi_modal_knowledge_retrieval_benchmark_M2KR///OKVQA_data',
+                                                                             'image_root_folder': '/home/fz288/rds/rds-cvnlp-hirYTW1FQIw/shared_space/vqa_data/KBVQA_data/ok-vqa',
+                                                                             'passage_path': 'BByrneLab/multi_task_multi_modal_knowledge_retrieval_benchmark_M2KR///OKVQA_passages'},
+                                                            'transform_name': 'LoadPreprocessedData_v2'},
+                                  'process:LoadOvenData': {'cache': True,
+                                                           'regenerate': False,
+                                                           'setup_kwargs': {'add_instruction': ['Using '
+                                                                                                'the '
+                                                                                                'provided '
+                                                                                                'image, '
+                                                                                                'obtain '
+                                                                                                'documents '
+                                                                                                'that '
+                                                                                                'address '
+                                                                                                'the '
+                                                                                                'subsequent '
+                                                                                                'question: ',
+                                                                                                'Retrieve '
+                                                                                                'documents '
+                                                                                                'that '
+                                                                                                'provide '
+                                                                                                'an '
+                                                                                                'answer '
+                                                                                                'to '
+                                                                                                'the '
+                                                                                                'question '
+                                                                                                'alongside '
+                                                                                                'the '
+                                                                                                'image: ',
+                                                                                                'Extract '
+                                                                                                'documents '
+                                                                                                'linked '
+                                                                                                'to '
+                                                                                                'the '
+                                                                                                'question '
+                                                                                                'provided '
+                                                                                                'in '
+                                                                                                'conjunction '
+                                                                                                'with '
+                                                                                                'the '
+                                                                                                'image: ',
+                                                                                                'Utilizing '
+                                                                                                'the '
+                                                                                                'given '
+                                                                                                'image, '
+                                                                                                'obtain '
+                                                                                                'documents '
+                                                                                                'that '
+                                                                                                'respond '
+                                                                                                'to '
+                                                                                                'the '
+                                                                                                'following '
+                                                                                                'question: ',
+                                                                                                'Using '
+                                                                                                'the '
+                                                                                                'given '
+                                                                                                'image, '
+                                                                                                'access '
+                                                                                                'documents '
+                                                                                                'that '
+                                                                                                'provide '
+                                                                                                'insights '
+                                                                                                'into '
+                                                                                                'the '
+                                                                                                'following '
+                                                                                                'question: ',
+                                                                                                'Obtain '
+                                                                                                'documents '
+                                                                                                'that '
+                                                                                                'correspond '
+                                                                                                'to '
+                                                                                                'the '
+                                                                                                'inquiry '
+                                                                                                'alongside '
+                                                                                                'the '
+                                                                                                'provided '
+                                                                                                'image: ',
+                                                                                                'With '
+                                                                                                'the '
+                                                                                                'provided '
+                                                                                                'image, '
+                                                                                                'gather '
+                                                                                                'documents '
+                                                                                                'that '
+                                                                                                'offer '
+                                                                                                'a '
+                                                                                                'solution '
+                                                                                                'to '
+                                                                                                'the '
+                                                                                                'question: ',
+                                                                                                'Utilizing '
+                                                                                                'the '
+                                                                                                'given '
+                                                                                                'image, '
+                                                                                                'obtain '
+                                                                                                'documents '
+                                                                                                'that '
+                                                                                                'respond '
+                                                                                                'to '
+                                                                                                'the '
+                                                                                                'following '
+                                                                                                'question: '],
+                                                                            'data_path': 'BByrneLab/multi_task_multi_modal_knowledge_retrieval_benchmark_M2KR///OVEN_data',
+                                                                            'image_root_folder': '/home/fz288/rds/rds-cvnlp-hirYTW1FQIw/shared_space/vqa_data/KBVQA_data/OVEN/Oven_images',
+                                                                            'passage_path': 'BByrneLab/multi_task_multi_modal_knowledge_retrieval_benchmark_M2KR///OVEN_passages'},
+                                                           'transform_name': 'LoadPreprocessedData_v2'},
+                                  'process:LoadWITData': {'cache': True,
+                                                          'regenerate': False,
+                                                          'setup_kwargs': {'add_instruction': ['Identify '
+                                                                                               'the '
+                                                                                               'document '
+                                                                                               'that '
+                                                                                               'is '
+                                                                                               'connected '
+                                                                                               'to '
+                                                                                               'this '
+                                                                                               'image.:',
+                                                                                               'Provide '
+                                                                                               'information '
+                                                                                               'about '
+                                                                                               'the '
+                                                                                               'document '
+                                                                                               'linked '
+                                                                                               'to '
+                                                                                               'this '
+                                                                                               'image.:',
+                                                                                               'Please '
+                                                                                               'describe '
+                                                                                               'the '
+                                                                                               'document '
+                                                                                               'that '
+                                                                                               'corresponds '
+                                                                                               'to '
+                                                                                               'this '
+                                                                                               'image.:',
+                                                                                               'What '
+                                                                                               'is '
+                                                                                               'the '
+                                                                                               'document '
+                                                                                               'that '
+                                                                                               'this '
+                                                                                               'image '
+                                                                                               'is '
+                                                                                               'related '
+                                                                                               'to?:',
+                                                                                               'Could '
+                                                                                               'you '
+                                                                                               'elucidate '
+                                                                                               'the '
+                                                                                               'document '
+                                                                                               'associated '
+                                                                                               'with '
+                                                                                               'this '
+                                                                                               'image?:',
+                                                                                               'Describe '
+                                                                                               'the '
+                                                                                               'document '
+                                                                                               'that '
+                                                                                               'accompanies '
+                                                                                               'this '
+                                                                                               'image.:',
+                                                                                               'Please '
+                                                                                               'give '
+                                                                                               'information '
+                                                                                               'on '
+                                                                                               'the '
+                                                                                               'document '
+                                                                                               'that '
+                                                                                               'goes '
+                                                                                               'with '
+                                                                                               'this '
+                                                                                               'image.:',
+                                                                                               'What '
+                                                                                               'document '
+                                                                                               'is '
+                                                                                               'represented '
+                                                                                               'by '
+                                                                                               'this '
+                                                                                               'image?:',
+                                                                                               'Identify '
+                                                                                               'the '
+                                                                                               'document '
+                                                                                               'that '
+                                                                                               'this '
+                                                                                               'image '
+                                                                                               'pertains '
+                                                                                               'to.:'],
+                                                                           'data_path': 'BByrneLab/multi_task_multi_modal_knowledge_retrieval_benchmark_M2KR///WIT_data',
+                                                                           'image_root_folder': '/home/fz288/rds/rds-cvnlp-hirYTW1FQIw/shared_space/vqa_data/KBVQA_data/wit/images',
+                                                                           'passage_path': 'BByrneLab/multi_task_multi_modal_knowledge_retrieval_benchmark_M2KR///WIT_passages'},
+                                                          'transform_name': 'LoadPreprocessedData_v2'},
+                                  'process:WrapOutputIntoKeys': {'cache': False,
+                                                                 'input_node': ['process:LoadWITData',
+                                                                                'process:LoadCCData',
+                                                                                'process:LoadLLaVaData',
+                                                                                'process:LoadMSMARCOData',
+                                                                                'process:LoadOvenData',
+                                                                                'process:LoadKVQAData',
+                                                                                'process:LoadOKVQAData',
+                                                                                'process:LoadEVQAData',
+                                                                                'process:ConcatenateDatasets'],
+                                                                 'regenerate': True,
+                                                                 'setup_kwargs': {'output_keys': ['wit_data',
+                                                                                                  'cc_data',
+                                                                                                  'llava_data',
+                                                                                                  'msmarco_data',
+                                                                                                  'oven_data',
+                                                                                                  'kvqa_data',
+                                                                                                  'okvqa_data',
+                                                                                                  'evqa_data',
+                                                                                                  'combined_data']},
+                                                                 'transform_name': 'WrapOutputIntoKeys'}}},
+ 'eval': {'eval_op_name': 'Your eval op name'},
+ 'executor': {'ExecutorClass': 'FLMRBaseExecutor',
+              'init_kwargs': {'index_splits': ['valid', 'test'],
+                              'use_data_node': 'output:PrepareDataloaders',
+                              'validation_indexing_source': ['evqa_passages']}},
+ 'experiment_name': 'default_DPR',
+ 'from_experiment': '',
+ 'log_prediction_tables': False,
+ 'meta': {'DATA_FOLDER': 'data',
+          'EXPERIMENT_FOLDER': 'experiments',
+          'TENSORBOARD_FOLDER': 'tensorboards',
+          'WANDB': {'CACHE_DIR': 'cache/wandb_cache/',
+                    'entity': 'weizhelin',
+                    'project': 'FLMRA',
+                    'tags': []},
+          'default_cache_dir': 'cache/',
+          'logger_enable': ['tensorboard', 'wandb'],
+          'platform_type': 'pytorch',
+          'seed': 2022,
+          'use_versioning': False},
+ 'metrics': [{'name': 'compute_DPR_scores'},
+             {'name': 'compute_DPR_scores_with_pos_ids'}],
+ 'mode': 'prepare_data',
+ 'model_config': {'ConfigClass': 'FLMRConfig',
+                  'Ks': [5, 10, 20, 50, 80, 100, 500],
+                  'ModelClass': 'FLMRModelForRetrieval',
+                  'ModelVersion': 'LinWeizheDragon/PreFLMR_ViT-G',
+                  'adapter_embedding_size': 128,
+                  'base_model': 'FLMR',
+                  'decoder_input_modules': {'module_list': [{'option': 'default',
+                                                             'separation_tokens': {'end': '',
+                                                                                   'start': ''},
+                                                             'type': 'KnowledgeInput'}],
+                                            'postprocess_module_list': [{'option': 'default',
+                                                                         'type': 'PostProcessFLMRItemInputTokenization'}]},
+                  'input_modules': {'module_list': [{'option': 'from_file',
+                                                     'type': 'VisionInput'},
+                                                    {'option': 'default',
+                                                     'separation_tokens': {'end': '',
+                                                                           'start': ''},
+                                                     'type': 'InstructionInput'}],
+                                    'postprocess_module_list': [{'option': 'default',
+                                                                 'type': 'PostProcessVisionInputProcessing'},
+                                                                {'option': 'default',
+                                                                 'type': 'PostProcessFLMRQuestionInputTokenization'}]},
+                  'max_decoder_source_length': 512,
+                  'max_source_length': 32,
+                  'modules': ['separate_query_and_item_encoders'],
+                  'nbits': 8,
+                  'num_negative_samples': 4,
+                  'output_modules': {'module_list': [{'option': 'default',
+                                                      'type': 'SimilarityOutput'}],
+                                     'postprocess_module_list': [{'option': 'default',
+                                                                  'type': 'PostProcessConcatenateLabels'}]},
+                  'prepend_tokens': {'item_encoder': '', 'query_encoder': ''},
+                  'pretrained': 1,
+                  'query_embedding_size': 4096},
+ 'override': False,
+ 'reset': False,
+ 'test': {'batch_size': 64,
+          'checkpoint_name': '',
+          'load_best_model': False,
+          'load_model_path': '',
+          'num_dataloader_workers': 0,
+          'trainer_paras': {}},
+ 'test_suffix': '',
+ 'train': {'batch_size': 8,
+           'early_stopping_callback_paras': {'mode': 'max',
+                                             'patience': 3,
+                                             'verbose': True},
+           'model_checkpoint_callback_paras': {'auto_insert_metric_name': False,
+                                               'filename': 'model_step_{step}',
+                                               'mode': 'max',
+                                               'monitor': 'valid/EVQADatasetForDPR.test/recall_at_5',
+                                               'save_last': True,
+                                               'save_on_train_epoch_end': False,
+                                               'save_top_k': 3,
+                                               'verbose': True},
+           'num_dataloader_workers': 8,
+           'optimizer_config': {'optimizer_name': 'AdamW',
+                                'optimizer_params': {'eps': 1e-08, 'lr': 1e-05},
+                                'scheduler': 'none',
+                                'scheduler_params': {'num_warmup_steps': 0}},
+           'trainer_paras': {'accumulate_grad_batches': 4,
+                             'check_val_every_n_epoch': None,
+                             'log_every_n_steps': 10,
+                             'max_epochs': 100,
+                             'val_check_interval': 10}},
+ 'use_dummy_data': False,
+ 'valid': {'batch_size': 64, 'num_dataloader_workers': 0}}
+User modules imported
+{'DATA_FOLDER': 'data',
+ 'EXPERIMENT_FOLDER': 'experiments',
+ 'TENSORBOARD_FOLDER': 'tensorboards',
+ 'WANDB': {'CACHE_DIR': 'cache/wandb_cache/',
+           'entity': 'weizhelin',
+           'project': 'FLMRA',
+           'tags': []},
+ 'default_cache_dir': 'cache/',
+ 'logger_enable': ['tensorboard', 'wandb'],
+ 'platform_type': 'pytorch',
+ 'seed': 2022,
+ 'use_versioning': False}
+PrepareDataloaders
+{'cache': False, 'input_node': ['process:ConcatenatePassageDatasets', 'process:WrapOutputIntoKeys'], 'regenerate': True, 'setup_kwargs': {'datasets_config': {'test': [{'dataset_type': 'EVQADatasetForDPR', 'split': 'test', 'use_column': 'evqa_data'}], 'train': [{'dataset_type': 'CommonDatasetForDPR', 'split': 'train', 'use_column': 'combined_data'}], 'valid': [{'dataset_type': 'EVQADatasetForDPR', 'split': 'test', 'use_column': 'evqa_data'}]}, 'extra_columns': {'passages': 'train_passages', 'valid_passages': 'valid_passages'}, 'feature_extractor_config': {}, 'image_processor_config': {'vit_image_processor': {'ImageProcessorClass': 'AutoImageProcessor', 'ImageProcessorModelVersion': 'laion/CLIP-ViT-bigG-14-laion2B-39B-b160k'}}, 'pass_columns': {'test_passages': 'test_passages', 'train_passages': 'train_passages', 'valid_passages': 'valid_passages', 'vqa_data_with_dpr_output': 'combined_data'}, 'tokenizer_config': {'decoder_tokenizer': {'SPECIAL_TOKENS': {'additional_special_tokens': []}, 'TokenizerClass': 'FLMRContextEncoderTokenizer', 'TokenizerModelVersion': 'LinWeizheDragon/PreFLMR_ViT-G'}, 'tokenizer': {'SPECIAL_TOKENS': {'additional_special_tokens': []}, 'TokenizerClass': 'FLMRQueryEncoderTokenizer', 'TokenizerModelVersion': 'LinWeizheDragon/PreFLMR_ViT-G'}}}, 'transform_name': 'PrepareDataloaders'}
+dict_keys([])
+attempting to check cache exist: cache/process:ConcatenatePassageDatasets-3662bd208896d1e753dc408fbcb2290e.hf --> True
+attempting to check cache exist: cache/process:LoadWITData-1914c90cfd2630d1cdc55a334c2e2253.hf --> True
+attempting to check cache exist: cache/process:LoadCCData-2576815d59c05434a426915790ba6465.hf --> True
+attempting to check cache exist: cache/process:LoadLLaVaData-0b6d607ef11952e5cda28bc772f377db.hf --> True
+attempting to check cache exist: cache/process:LoadMSMARCOData-a0c559425629e66a73984cb3e3b90f76.hf --> True
+attempting to check cache exist: cache/process:LoadOvenData-90038df569a07b9b8d8305309974acf0.hf --> True
+attempting to check cache exist: cache/process:LoadKVQAData-e4ef8a7f064347ba40d42ccfc4a2057d.hf --> True
+attempting to check cache exist: cache/process:LoadOKVQAData-f810a301c4921c239584cdd5426ec7ac.hf --> True
+attempting to check cache exist: cache/process:LoadEVQAData-f6877cb022b5d72f4e008a4a2b57eabb.hf --> True
+Load process:ConcatenatePassageDatasets-3662bd208896d1e753dc408fbcb2290e from disk cache
+Data loaded from cache/process:ConcatenatePassageDatasets-3662bd208896d1e753dc408fbcb2290e.hf
+WrapOutputIntoKeys
+{'cache': False, 'input_node': ['process:LoadWITData', 'process:LoadCCData', 'process:LoadLLaVaData', 'process:LoadMSMARCOData', 'process:LoadOvenData', 'process:LoadKVQAData', 'process:LoadOKVQAData', 'process:LoadEVQAData', 'process:ConcatenateDatasets'], 'regenerate': True, 'setup_kwargs': {'output_keys': ['wit_data', 'cc_data', 'llava_data', 'msmarco_data', 'oven_data', 'kvqa_data', 'okvqa_data', 'evqa_data', 'combined_data']}, 'transform_name': 'WrapOutputIntoKeys'}
+dict_keys([])
+Load process:LoadWITData-1914c90cfd2630d1cdc55a334c2e2253 from disk cache

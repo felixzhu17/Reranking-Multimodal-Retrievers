@@ -20,12 +20,12 @@ from transformers import DPRQuestionEncoder, DPRContextEncoder, DPRConfig
 from transformers import BertModel, BertConfig
 # from transformers.models.rag.retrieval_rag import CustomHFIndex, CanonicalHFIndex
 from transformers import Blip2ForConditionalGeneration, Blip2Config
-from models.retriever.retriever_dpr import RetrieverDPR
+from src.models.retriever.retriever_dpr import RetrieverDPR
 
 # For ColBERT model
 from colbert.infra import Run, RunConfig, ColBERTConfig
 from colbert.modeling.colbert import ColBERT
-from models.retriever.visual_colbert import *
+from src.models.retriever.visual_colbert import *
 from colbert.modeling.tokenization import QueryTokenizer, DocTokenizer, tensorize_triples
 from colbert.data import Queries
 from colbert import Searcher
@@ -48,7 +48,7 @@ import pickle
 from typing import Iterable, List, Optional, Tuple
 from peft import get_peft_config, get_peft_model, LoraConfig, TaskType
 import random
-from models.custom_peft import PeftModelForSeq2SeqLM
+from src.models.custom_peft import PeftModelForSeq2SeqLM
 
 
 

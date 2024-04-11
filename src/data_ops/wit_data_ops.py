@@ -38,7 +38,7 @@ from transformers import AutoImageProcessor
 import logging
 logger = logging.getLogger(__name__)
 
-from utils.dirs import create_dirs
+from src.utils.dirs import create_dirs
 import numpy as np
 
 from concurrent.futures import ThreadPoolExecutor

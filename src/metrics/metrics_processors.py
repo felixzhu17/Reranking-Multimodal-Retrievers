@@ -16,13 +16,13 @@ import wandb
 import logging
 logger = logging.getLogger(__name__)
 
-from utils.vqaEval import VQAEval
-from utils.text_cleaner import TextCleaner
+from src.utils.vqaEval import VQAEval
+from src.utils.text_cleaner import TextCleaner
 import pickle
 import torch
 
 import evaluate
-from utils.dirs import *
+from src.utils.dirs import *
 
 class MetricsProcessor():
     '''

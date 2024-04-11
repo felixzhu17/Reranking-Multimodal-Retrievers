@@ -44,16 +44,16 @@ from pytorch_lightning.plugins import CheckpointIO
 # For ColBERT model
 from colbert.infra import Run, RunConfig, ColBERTConfig
 from colbert.modeling.colbert import ColBERT
-from models.retriever.visual_colbert import VisualColBERTForPretraining
+from src.models.retriever.visual_colbert import VisualColBERTForPretraining
 from colbert.modeling.tokenization import QueryTokenizer, DocTokenizer, tensorize_triples
 from functools import partial
 from colbert import Indexer
 from colbert.data import Queries
 from colbert import Searcher
 
-from metrics import MetricsProcessor
-from models.retriever.retriever_dpr import RetrieverDPR
-from utils.dirs import *
+from src.metrics import MetricsProcessor
+from src.models.retriever.retriever_dpr import RetrieverDPR
+from src.utils.dirs import *
 import faiss
 import wandb
 
@@ -62,7 +62,7 @@ import logging
 logger = logging.getLogger(__name__)
 
 
-from executors.ColBERT_executor import ColBERTExecutor
+from src.executors.ColBERT_executor import ColBERTExecutor
 
 @register_executor
 class ColBERTVisionPretrainingExecutor(ColBERTExecutor):

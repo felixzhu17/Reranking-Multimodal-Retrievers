@@ -39,10 +39,10 @@ import pytorch_lightning as pl
 from pytorch_lightning import Trainer, seed_everything
 from pytorch_lightning.plugins import CheckpointIO
 
-from metrics import MetricsProcessor
-from models.retriever.retriever_dpr import RetrieverDPR
-from models.retriever.visual_dpr import VisualDPRForPretraining
-from utils.dirs import *
+from src.metrics import MetricsProcessor
+from src.models.retriever.retriever_dpr import RetrieverDPR
+from src.models.retriever.visual_dpr import VisualDPRForPretraining
+from src.utils.dirs import *
 import faiss
 import wandb
 import pickle
@@ -50,7 +50,7 @@ import pickle
 import logging
 logger = logging.getLogger(__name__)
 
-from .DPR_executor import DPRExecutor
+from src.executors.DPR_executor import DPRExecutor
 
 @register_executor
 class DPRVisionPretrainingExecutor(DPRExecutor):

@@ -24,7 +24,7 @@ from transformers import Blip2ForConditionalGeneration, Blip2Config
 # For ColBERT model
 from colbert.infra import Run, RunConfig, ColBERTConfig
 from colbert.modeling.colbert import ColBERT
-from models.retriever.visual_colbert import *
+from src.models.retriever.visual_colbert import *
 from colbert.modeling.tokenization import QueryTokenizer, DocTokenizer, tensorize_triples
 from colbert.data import Queries
 from colbert import Searcher

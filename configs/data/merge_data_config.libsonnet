@@ -10,8 +10,8 @@ local merge_data_pipeline = {
       regenerate: false,
       cache: true,
       setup_kwargs: {
-        data_path: "/home/fz288/rds/rds-cvnlp-hirYTW1FQIw/shared_space/vqa_data/FLMR/CC3M_595K_Data.hf",
-        passage_path: "/home/fz288/rds/rds-cvnlp-hirYTW1FQIw/shared_space/vqa_data/FLMR/CC3M_595K_Passages.hf",
+        data_path: "BByrneLab/multi_task_multi_modal_knowledge_retrieval_benchmark_M2KR///CC_data",
+        passage_path: "BByrneLab/multi_task_multi_modal_knowledge_retrieval_benchmark_M2KR///CC_passages",
         image_root_folder: "/home/fz288/rds/rds-bigpicture-iS0FZqj9lmg/shared_space/datasets/CC3M-LLAVA-595K",
       },
     },
@@ -20,8 +20,8 @@ local merge_data_pipeline = {
       regenerate: false,
       cache: true,
       setup_kwargs: {
-        data_path: "/home/fz288/rds/rds-cvnlp-hirYTW1FQIw/shared_space/vqa_data/FLMR/LLAVA_Data.hf",
-        passage_path: "/home/fz288/rds/rds-cvnlp-hirYTW1FQIw/shared_space/vqa_data/FLMR/LLAVA_Passages.hf",
+        data_path: "BByrneLab/multi_task_multi_modal_knowledge_retrieval_benchmark_M2KR///LLaVA_data",
+        passage_path: "BByrneLab/multi_task_multi_modal_knowledge_retrieval_benchmark_M2KR///LLaVA_passages",
         image_root_folder: "/home/fz288/rds/rds-cvnlp-hirYTW1FQIw/shared_space/vqa_data/KBVQA_data/ok-vqa/train2014",
         add_instruction: [
           "Provide a brief description of the image along with the following question:",
@@ -34,8 +34,8 @@ local merge_data_pipeline = {
       regenerate: false,
       cache: true,
       setup_kwargs: {
-        data_path: "/home/fz288/rds/rds-cvnlp-hirYTW1FQIw/shared_space/vqa_data/FLMR/MSMARCO_Data.hf",
-        passage_path: "/home/fz288/rds/rds-cvnlp-hirYTW1FQIw/shared_space/vqa_data/FLMR/MSMARCO_Passages.hf",
+        data_path: "BByrneLab/multi_task_multi_modal_knowledge_retrieval_benchmark_M2KR///MSMARCO_data",
+        passage_path: "BByrneLab/multi_task_multi_modal_knowledge_retrieval_benchmark_M2KR///MSMARCO_passages",
       },
     },
     'process:LoadOvenData': {
@@ -43,8 +43,8 @@ local merge_data_pipeline = {
       regenerate: false,
       cache: true,
       setup_kwargs: {
-        data_path: "/home/fz288/rds/rds-cvnlp-hirYTW1FQIw/shared_space/vqa_data/FLMR/OVEN_Data.hf",
-        passage_path: "/home/fz288/rds/rds-cvnlp-hirYTW1FQIw/shared_space/vqa_data/FLMR/OVEN_Passages.hf",
+        data_path: "BByrneLab/multi_task_multi_modal_knowledge_retrieval_benchmark_M2KR///OVEN_data",
+        passage_path: "BByrneLab/multi_task_multi_modal_knowledge_retrieval_benchmark_M2KR///OVEN_passages",
         image_root_folder: "/home/fz288/rds/rds-cvnlp-hirYTW1FQIw/shared_space/vqa_data/KBVQA_data/OVEN/Oven_images",
         add_instruction: [
           "Using the provided image, obtain documents that address the subsequent question: ",
@@ -63,8 +63,8 @@ local merge_data_pipeline = {
       regenerate: false,
       cache: true,
       setup_kwargs: {
-        data_path: "/home/fz288/rds/rds-cvnlp-hirYTW1FQIw/shared_space/vqa_data/FLMR/KVQA_Data.hf",
-        passage_path: "/home/fz288/rds/rds-cvnlp-hirYTW1FQIw/shared_space/vqa_data/FLMR/KVQA_Passages.hf",
+        data_path: "BByrneLab/multi_task_multi_modal_knowledge_retrieval_benchmark_M2KR///KVQA_data",
+        passage_path: "BByrneLab/multi_task_multi_modal_knowledge_retrieval_benchmark_M2KR///KVQA_passages",
         image_root_folder: "/home/fz288/rds/rds-cvnlp-hirYTW1FQIw/shared_space/vqa_data/KBVQA_data/KVQA/KVQAimgs",
         add_instruction: [
           "Using the provided image, obtain documents that address the subsequent question: ",
@@ -83,8 +83,8 @@ local merge_data_pipeline = {
       regenerate: false,
       cache: true,
       setup_kwargs: {
-        data_path: "/home/fz288/rds/rds-cvnlp-hirYTW1FQIw/shared_space/vqa_data/FLMR/EVQA_Data.hf",
-        passage_path: "/home/fz288/rds/rds-cvnlp-hirYTW1FQIw/shared_space/vqa_data/FLMR/EVQA_Passages.hf",
+        data_path: "BByrneLab/multi_task_multi_modal_knowledge_retrieval_benchmark_M2KR///EVQA_data",
+        passage_path: "BByrneLab/multi_task_multi_modal_knowledge_retrieval_benchmark_M2KR///EVQA_passages",
         image_root_folder: "/home/fz288/rds/rds-cvnlp-hirYTW1FQIw/shared_space/vqa_data/KBVQA_data/EVQA/images",
         add_instruction: [
           "Using the provided image, obtain documents that address the subsequent question: ",
@@ -103,8 +103,8 @@ local merge_data_pipeline = {
       regenerate: false,
       cache: true,
       setup_kwargs: {
-        data_path: "/home/fz288/rds/rds-cvnlp-hirYTW1FQIw/shared_space/vqa_data/FLMR/OKVQA_Data.hf",
-        passage_path: "/home/fz288/rds/rds-cvnlp-hirYTW1FQIw/shared_space/vqa_data/FLMR/OKVQA_Passages.hf",
+        data_path: "BByrneLab/multi_task_multi_modal_knowledge_retrieval_benchmark_M2KR///OKVQA_data",
+        passage_path: "BByrneLab/multi_task_multi_modal_knowledge_retrieval_benchmark_M2KR///OKVQA_passages",
         image_root_folder: "/home/fz288/rds/rds-cvnlp-hirYTW1FQIw/shared_space/vqa_data/KBVQA_data/ok-vqa",
         add_instruction: [
           "Using the provided image, obtain documents that address the subsequent question: ",
@@ -123,8 +123,8 @@ local merge_data_pipeline = {
       regenerate: false,
       cache: true,
       setup_kwargs: {
-        data_path: "/home/fz288/rds/rds-cvnlp-hirYTW1FQIw/shared_space/vqa_data/FLMR/WIT_Data.hf",
-        passage_path: "/home/fz288/rds/rds-cvnlp-hirYTW1FQIw/shared_space/vqa_data/FLMR/WIT_Passages.hf",
+        data_path: "BByrneLab/multi_task_multi_modal_knowledge_retrieval_benchmark_M2KR///WIT_data",
+        passage_path: "BByrneLab/multi_task_multi_modal_knowledge_retrieval_benchmark_M2KR///WIT_passages",
         image_root_folder: "/home/fz288/rds/rds-cvnlp-hirYTW1FQIw/shared_space/vqa_data/KBVQA_data/wit/images",
         add_instruction: [
           "Identify the document that is connected to this image.:",
@@ -190,26 +190,45 @@ local merge_data_pipeline = {
     //       "separation_tokens": {'start': 'Objects:', 'sep': ',', 'end': ''}},
     //   },
     // },
+    // 'process:ConcatenateDatasets': {
+    //   transform_name: 'ConcatenateDatasets',
+    //   input_node: [
+    //     'process:LoadWITData',
+    //     'process:LoadCCData',
+    //     'process:LoadLLaVaData',
+    //     'process:LoadMSMARCOData',
+    //     'process:LoadOvenData',
+    //     'process:LoadKVQAData',
+    //     'process:LoadOKVQAData',
+    //     'process:LoadEVQAData',
+    //   ],
+    //   regenerate: false,
+    //   cache: true,
+    //   setup_kwargs: {
+    //     negative_names: ["wit_passages", "cc_passages", "llava_passages", "msmarco_passages", "oven_passages", "kvqa_passages", 'okvqa_passages', 'evqa_passages'],
+    //     concat_splits: {
+    //       'train': [true, true, true, true, true, true, 10, true],
+    //       'valid': [true, false, true, true, false, false, true, true],
+    //       'test': [true, false, true, true, false, false, true, true],
+    //     },
+    //     splits_to_process: ["train", "valid", "test"],
+    //   },
+    // },
     'process:ConcatenateDatasets': {
       transform_name: 'ConcatenateDatasets',
       input_node: [
-        'process:LoadWITData',
-        'process:LoadCCData',
-        'process:LoadLLaVaData',
-        'process:LoadMSMARCOData',
-        'process:LoadOvenData',
         'process:LoadKVQAData',
         'process:LoadOKVQAData',
-        'process:LoadEVQAData',
+        'process:LoadEVQAData'
       ],
       regenerate: false,
       cache: true,
       setup_kwargs: {
-        negative_names: ["wit_passages", "cc_passages", "llava_passages", "msmarco_passages", "oven_passages", "kvqa_passages", 'okvqa_passages', 'evqa_passages'],
+        negative_names: ["kvqa_passages", "okvqa_passages", "evqa_passages"],
         concat_splits: {
-          'train': [true, true, true, true, true, true, 10, true],
-          'valid': [true, false, true, true, false, false, true, true],
-          'test': [true, false, true, true, false, false, true, true],
+          'train': [true, true, true],
+          'valid': [true, true, true],
+          'test': [true, true, true]
         },
         splits_to_process: ["train", "valid", "test"],
       },

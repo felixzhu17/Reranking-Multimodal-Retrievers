@@ -25,19 +25,19 @@ from torch.utils.data import DataLoader, RandomSampler, SequentialSampler
 import logging
 logger = logging.getLogger(__name__)
 
-from utils.dirs import create_dirs
-from utils.vqa_tools import VQA
-from utils.vqaEval import VQAEval
-from utils.cache_system import save_cached_data, load_cached_data
+from src.utils.dirs import create_dirs
+from src.utils.vqa_tools import VQA
+from src.utils.vqaEval import VQAEval
+from src.utils.cache_system import save_cached_data, load_cached_data
 from torchvision.utils import make_grid, save_image
 
 from PIL import Image
 import timm
 from timm.data import resolve_data_config
 from timm.data.transforms_factory import create_transform
-from data_ops.custom_datasets.module_parser import ModuleParser
+from src.data_ops.custom_datasets.module_parser import ModuleParser
 
-from .base_datasets import BaseDataset, DPRBaseDataset
+from src.data_ops.custom_datasets.base_datasets import BaseDataset, DPRBaseDataset
 
 class InfoseekDataset(BaseDataset, ModuleParser):
     """

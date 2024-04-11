@@ -37,9 +37,9 @@ from torch.utils.data import DataLoader, RandomSampler, SequentialSampler
 import logging
 logger = logging.getLogger(__name__)
 
-from utils.dirs import create_dirs
-from utils.vqa_tools import VQA
-from utils.vqaEval import VQAEval
+from src.utils.dirs import create_dirs
+from src.utils.vqa_tools import VQA
+from src.utils.vqaEval import VQAEval
 
 from transformers import AutoImageProcessor, CLIPVisionConfig, CLIPVisionModel, CLIPImageProcessor
 from torchvision import transforms
@@ -47,7 +47,7 @@ from diffusers import AutoencoderKL
 from datasets import Dataset, DatasetDict, concatenate_datasets
 import PIL
 
-from models.custom_clip_processor import CustomCLIPImageProcessor
+from src.models.custom_clip_processor import CustomCLIPImageProcessor
 
 
 @register_transform_functor
