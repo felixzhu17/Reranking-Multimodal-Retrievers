@@ -21,7 +21,7 @@ class BaseColBERT(torch.nn.Module):
 
         self.name = name
         self.colbert_config = ColBERTConfig.from_existing(ColBERTConfig.load_from_checkpoint(name), colbert_config)
-        self.model = HF_ColBERT.from_pretrained(name, colbert_config=self.colbert_config, trust_remote_code=True)
+        self.model = HF_ColBERT.from_pretrained(name, colbert_config=self.colbert_config)
         self.raw_tokenizer = AutoTokenizer.from_pretrained(self.model.base)
 
         self.eval()

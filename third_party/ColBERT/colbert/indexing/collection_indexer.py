@@ -27,11 +27,9 @@ from colbert.utils.utils import flatten, print_message
 
 from colbert.indexing.codecs.residual import ResidualCodec
 
-
 def encode(config, collection, shared_lists, shared_queues):
-    encoder = CollectionIndexer(config=config, collection=collection)
+    encoder = CollectionIndexer(config=config, collection=collection)    
     encoder.run(shared_lists)
-
 
 class CollectionIndexer():
     def __init__(self, config: ColBERTConfig, collection):
@@ -44,7 +42,14 @@ class CollectionIndexer():
         #     self.config.help()
 
         self.collection = Collection.cast(collection)
-        self.checkpoint = Checkpoint(self.config.checkpoint, colbert_config=self.config)
+        # self.checkpoint = Checkpoint(self.config.checkpoint, colbert_config=self.config)
+        from flmr import FLMRModelForIndexing, FLMRQueryEncoderTokenizer, FLMRContextEncoderTokenizer
+        query_tokenizer = FLMRQueryEncoderTokenizer.from_pretrained(self.config.checkpoint, subfolder="query_tokenizer")
+        context_tokenizer = FLMRContextEncoderTokenizer.from_pretrained(self.config.checkpoint, subfolder="context_tokenizer")
+        self.checkpoint = FLMRModelForIndexing.from_pretrained(self.config.checkpoint, 
+                                                                query_tokenizer=query_tokenizer, 
+                                                                context_tokenizer=context_tokenizer)
+
         if self.use_gpu:
             self.checkpoint = self.checkpoint.cuda()
 
@@ -194,7 +199,7 @@ class CollectionIndexer():
                 d = {'config': config.export()}
                 collection = d['config'].pop('collection')
                 if isinstance(collection[0], tuple):
-                    collection = [doc for doc, _ in collection]
+                    collection = [doc[0] for doc in collection]
                 d['config']['collection'] = collection
                 d['num_chunks'] = self.num_chunks
                 d['num_partitions'] = self.num_partitions
@@ -434,7 +439,7 @@ class CollectionIndexer():
             d = {'config': config.export()}
             collection = d['config'].pop('collection')
             if isinstance(collection[0], tuple):
-                collection = [doc for doc, _ in collection]
+                collection = [doc[0] for doc in collection]
             d['config']['collection'] = collection
             d['num_chunks'] = self.num_chunks
             d['num_partitions'] = self.num_partitions
