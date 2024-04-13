@@ -1,4 +1,12 @@
-python src/main.py --config configs/data/FLMR.jsonnet
+python src/main.py --config configs/data/FLMR.jsonnet --mode train
 
+from datasets import DatasetDict
+x = DatasetDict.load_from_disk('/home/fz288/rds/hpc-work/PreFLMR/cache/process:ConcatenateDatasets-81353e53c956be30cfee960db8ff4323.hf')
 
-DatasetDict.load_from_disk('/home/fz288/rds/hpc-work/PreFLMR/cache/process:ConcatenatePassageDatasets-3662bd208896d1e753dc408fbcb2290e.hf')
+from easydict import EasyDict
+import pickle
+def load_pickle_data(data_file_name):
+    with open(data_file_name, 'rb') as f:
+        load_pickle_data = pickle.load(f)['cache']
+    return EasyDict(load_pickle_data)
+x = load_pickle_data('/home/fz288/rds/hpc-work/PreFLMR/cache/output:PrepareDataloaders-ea7e8861a8e3ae97051f48a72dd89e2e.pkl')

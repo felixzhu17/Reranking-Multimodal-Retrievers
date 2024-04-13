@@ -159,9 +159,9 @@ class FLMRExecutor(BaseExecutor, MetricsProcessor):
                 ContextEncoderModelVersion, subfolder="context_tokenizer"
             )
 
-            # Temp code to avoid errors. TODO: remove
-            context_encoder_config.transformer_mapping_config_base = "/root/rds/data/models/bert-base-uncased"
-            context_encoder_config.vision_model_version = "/root/rds/data/models/openai--clip-vit-large-patch14"
+            # # Temp code to avoid errors. TODO: remove
+            # context_encoder_config.transformer_mapping_config_base = "/root/rds/data/models/bert-base-uncased"
+            # context_encoder_config.vision_model_version = "/root/rds/data/models/openai--clip-vit-large-patch14"
 
             context_encoder = ContextEncoderModelClass.from_pretrained(
                 ContextEncoderModelVersion,

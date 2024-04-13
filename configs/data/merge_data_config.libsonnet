@@ -5,16 +5,16 @@ local merge_data_pipeline = {
   regenerate: false,
   do_inspect: true,
   transforms: {
-    'process:LoadCCData': {
-      transform_name: 'LoadPreprocessedData_v2',
-      regenerate: false,
-      cache: true,
-      setup_kwargs: {
-        data_path: "BByrneLab/multi_task_multi_modal_knowledge_retrieval_benchmark_M2KR///CC_data",
-        passage_path: "BByrneLab/multi_task_multi_modal_knowledge_retrieval_benchmark_M2KR///CC_passages",
-        image_root_folder: "/home/fz288/rds/rds-bigpicture-iS0FZqj9lmg/shared_space/datasets/CC3M-LLAVA-595K",
-      },
-    },
+    // 'process:LoadCCData': {
+    //   transform_name: 'LoadPreprocessedData_v2',
+    //   regenerate: false,
+    //   cache: true,
+    //   setup_kwargs: {
+    //     data_path: "BByrneLab/multi_task_multi_modal_knowledge_retrieval_benchmark_M2KR///CC_data",
+    //     passage_path: "BByrneLab/multi_task_multi_modal_knowledge_retrieval_benchmark_M2KR///CC_passages",
+    //     image_root_folder: "/home/fz288/rds/rds-bigpicture-iS0FZqj9lmg/shared_space/datasets/CC3M-LLAVA-595K",
+    //   },
+    // },
     'process:LoadLLaVaData': {
       transform_name: 'LoadPreprocessedData_v2',
       regenerate: false,
@@ -22,7 +22,7 @@ local merge_data_pipeline = {
       setup_kwargs: {
         data_path: "BByrneLab/multi_task_multi_modal_knowledge_retrieval_benchmark_M2KR///LLaVA_data",
         passage_path: "BByrneLab/multi_task_multi_modal_knowledge_retrieval_benchmark_M2KR///LLaVA_passages",
-        image_root_folder: "/home/fz288/rds/rds-cvnlp-hirYTW1FQIw/shared_space/vqa_data/KBVQA_data/ok-vqa/train2014",
+        image_root_folder: "/home/fz288/rds/rds-cvnlp-hirYTW1FQIw/shared_space/vqa_data/KBVQA_data/ok-vqa",
         add_instruction: [
           "Provide a brief description of the image along with the following question:",
           "Provide a concise explanation of the image along with the following question:",
@@ -214,67 +214,112 @@ local merge_data_pipeline = {
     //     splits_to_process: ["train", "valid", "test"],
     //   },
     // },
-    'process:ConcatenateDatasets': {
-      transform_name: 'ConcatenateDatasets',
-      input_node: [
-        'process:LoadKVQAData',
-        'process:LoadOKVQAData',
-        'process:LoadEVQAData'
-      ],
-      regenerate: false,
-      cache: true,
-      setup_kwargs: {
-        negative_names: ["kvqa_passages", "okvqa_passages", "evqa_passages"],
-        concat_splits: {
-          'train': [true, true, true],
-          'valid': [true, true, true],
-          'test': [true, true, true]
-        },
-        splits_to_process: ["train", "valid", "test"],
+  'process:ConcatenateDatasets': {
+    transform_name: 'ConcatenateDatasets',
+    input_node: [
+      'process:LoadWITData',
+      'process:LoadLLaVaData',
+      'process:LoadMSMARCOData',
+      'process:LoadOvenData',
+      'process:LoadKVQAData',
+      'process:LoadOKVQAData',
+      'process:LoadEVQAData',
+    ],
+    regenerate: false,
+    cache: true,
+    setup_kwargs: {
+      negative_names: ["wit_passages", "llava_passages", "msmarco_passages", "oven_passages", "kvqa_passages", 'okvqa_passages', 'evqa_passages'],
+      concat_splits: {
+        'train': [true, true, true, true, true, 10, true],
+        'valid': [true, true, true, false, false, true, true],
+        'test': [true, true, true, false, false, true, true],
+      },
+      splits_to_process: ["train", "valid", "test"],
+    },
+  },
+    // 'process:WrapOutputIntoKeys': {
+    //   transform_name: 'WrapOutputIntoKeys',
+    //   input_node: [
+    //     'process:LoadWITData',
+    //     'process:LoadCCData',
+    //     'process:LoadLLaVaData',
+    //     'process:LoadMSMARCOData',
+    //     'process:LoadOvenData',
+    //     'process:LoadKVQAData',
+    //     'process:LoadOKVQAData',
+    //     'process:LoadEVQAData',
+    //     'process:ConcatenateDatasets',
+    //   ],
+    //   regenerate: true,
+    //   cache: true,
+    //   setup_kwargs: {
+    //     output_keys: ["wit_data", "cc_data", "llava_data", "msmarco_data", "oven_data", "kvqa_data", "okvqa_data", 'evqa_data', "combined_data"],
+    //   },
+    // },
+  //   'process:ConcatenatePassageDatasets': {
+  //     transform_name: 'ConcatenatePassageDatasets',
+  //     input_node: [
+  //       'process:LoadWITData',
+  //       'process:LoadCCData',
+  //       'process:LoadLLaVaData',
+  //       'process:LoadMSMARCOData',
+  //       'process:LoadOvenData',
+  //       'process:LoadKVQAData',
+  //       'process:LoadOKVQAData',
+  //       'process:LoadEVQAData',
+  //     ],
+  //     regenerate: false,
+  //     cache: true,
+  //     setup_kwargs: {
+  //       names: ["wit_passages", "cc_passages", "llava_passages", "msmarco_passages", "oven_passages", "kvqa_passages", 'okvqa_passages', 'evqa_passages'],
+  //       concat_splits: {
+  //         'train_passages': [true, true, true, true, true, true, true, true],
+  //         'valid_passages': [true, false, true, true, false, false, true, true],
+  //         'test_passages': [true, false, true, true, false, false, true, true],
+  //       },
+  //     },
+  //   },
+
+  'process:WrapOutputIntoKeys': {
+    transform_name: 'WrapOutputIntoKeys',
+    input_node: [
+      'process:LoadWITData',
+      'process:LoadLLaVaData',
+      'process:LoadMSMARCOData',
+      'process:LoadOvenData',
+      'process:LoadKVQAData',
+      'process:LoadOKVQAData',
+      'process:LoadEVQAData',
+      'process:ConcatenateDatasets',
+    ],
+    regenerate: true,
+    cache: true,
+    setup_kwargs: {
+      output_keys: ["wit_data", "llava_data", "msmarco_data", "oven_data", "kvqa_data", "okvqa_data", 'evqa_data', "combined_data"],
+    },
+  },
+  'process:ConcatenatePassageDatasets': {
+    transform_name: 'ConcatenatePassageDatasets',
+    input_node: [
+      'process:LoadWITData',
+      'process:LoadLLaVaData',
+      'process:LoadMSMARCOData',
+      'process:LoadOvenData',
+      'process:LoadKVQAData',
+      'process:LoadOKVQAData',
+      'process:LoadEVQAData',
+    ],
+    regenerate: false,
+    cache: true,
+    setup_kwargs: {
+      names: ["wit_passages", "llava_passages", "msmarco_passages", "oven_passages", "kvqa_passages", 'okvqa_passages', 'evqa_passages'],
+      concat_splits: {
+        'train_passages': [true, true, true, true, true, true, true],
+        'valid_passages': [true, true, true, false, false, true, true],
+        'test_passages': [true, true, true, false, false, true, true],
       },
     },
-    'process:WrapOutputIntoKeys': {
-      transform_name: 'WrapOutputIntoKeys',
-      input_node: [
-        'process:LoadWITData',
-        'process:LoadCCData',
-        'process:LoadLLaVaData',
-        'process:LoadMSMARCOData',
-        'process:LoadOvenData',
-        'process:LoadKVQAData',
-        'process:LoadOKVQAData',
-        'process:LoadEVQAData',
-        'process:ConcatenateDatasets',
-      ],
-      regenerate: true,
-      cache: false,
-      setup_kwargs: {
-        output_keys: ["wit_data", "cc_data", "llava_data", "msmarco_data", "oven_data", "kvqa_data", "okvqa_data", 'evqa_data', "combined_data"],
-      },
-    },
-    'process:ConcatenatePassageDatasets': {
-      transform_name: 'ConcatenatePassageDatasets',
-      input_node: [
-        'process:LoadWITData',
-        'process:LoadCCData',
-        'process:LoadLLaVaData',
-        'process:LoadMSMARCOData',
-        'process:LoadOvenData',
-        'process:LoadKVQAData',
-        'process:LoadOKVQAData',
-        'process:LoadEVQAData',
-      ],
-      regenerate: false,
-      cache: true,
-      setup_kwargs: {
-        names: ["wit_passages", "cc_passages", "llava_passages", "msmarco_passages", "oven_passages", "kvqa_passages", 'okvqa_passages', 'evqa_passages'],
-        concat_splits: {
-          'train_passages': [true, true, true, true, true, true, true, true],
-          'valid_passages': [true, false, true, true, false, false, true, true],
-          'test_passages': [true, false, true, true, false, false, true, true],
-        },
-      },
-    },
+  },
   },
 };
 

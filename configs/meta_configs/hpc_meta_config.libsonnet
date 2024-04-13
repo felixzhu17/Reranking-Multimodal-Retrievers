@@ -21,7 +21,7 @@ local default_meta = {
       "project": "FLMRA",
       "tags": [],
   },
-  "logger_enable": ["tensorboard", "wandb"], # "wandb" for wandb logger, "csv" for csv logger
+  "logger_enable": ["tensorboard", "csv"], # "wandb" for wandb logger, "csv" for csv logger
   "platform_type": "pytorch",
   "seed": seed,
   "default_cache_dir": default_cache_dir,

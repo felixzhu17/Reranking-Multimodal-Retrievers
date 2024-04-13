@@ -406,8 +406,15 @@ class RunwayExperiment:
         
         # trainer from args
         # trainer = Trainer.from_argparse_args(args, **additional_args)
-        trainer = Trainer(**args, **additional_args)
-        logger.info(f"arguments passed to trainer: {str(args)}")
+        # print("ARGS")
+        # print(args)
+        # print("ADDITIONAL ARGs")
+        # print(additional_args)
+        
+        
+        # trainer = Trainer(**args, **additional_args)
+        # logger.info(f"arguments passed to trainer: {str(args)}")
+        trainer = Trainer(**additional_args)
         logger.info(f"additional arguments passed to trainer: {str(additional_args)}")
         
         # trainer = pl.Trainer(**train_config.get('trainer_paras', {}), default_root_dir=self.train_dir ,callbacks=callback_list)

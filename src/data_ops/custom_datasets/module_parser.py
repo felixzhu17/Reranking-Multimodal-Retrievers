@@ -19,7 +19,7 @@ class ModuleParser():
     Process:
         (1) Sample-level Sub Parsers:
             Add data fields to the sample
-        (2) Porcessing: 
+        (2) Processing: 
             Aggregating features from individual sub parsers
             Strings under the same field will be automatically concatenated
             Use different fields for different image-based features

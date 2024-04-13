@@ -117,7 +117,27 @@ class FLMRBaseExecutor(BaseExecutor, MetricsProcessor):
         self.validation_step_outputs = defaultdict(list)
         self.test_step_outputs = defaultdict(list)
 
-    
+    def initialize_distributed(self):
+        """Initializes the distributed environment with automatic setup for MASTER_ADDR and MASTER_PORT."""
+        # Defaulting to local host and a common port if not specified
+        master_addr = os.environ.get('MASTER_ADDR', 'localhost')
+        master_port = os.environ.get('MASTER_PORT', '12345')
+
+        # Set these in the environment if they weren't already set (important for environments like SLURM)
+        os.environ['MASTER_ADDR'] = master_addr
+        os.environ['MASTER_PORT'] = master_port
+
+        # Getting rank and world size from SLURM environment variables, or default to single-process settings
+        rank = int(os.environ.get('SLURM_PROCID', 0))
+        world_size = int(os.environ.get('SLURM_NTASKS', 1))
+
+        # Initialize the PyTorch distributed process group
+        dist.init_process_group(
+            backend='nccl',  # Using NCCL as the backend for GPU support
+            rank=rank,
+            world_size=world_size
+        )
+
     def _init_model(self, model_config): 
         """Initialize self.model
 
@@ -145,8 +165,8 @@ class FLMRBaseExecutor(BaseExecutor, MetricsProcessor):
             )
 
             # Temp code to avoid errors. TODO: remove
-            config.transformer_mapping_config_base = "/root/rds/data/models/bert-base-uncased"
-            config.vision_model_version = "/root/rds/data/models/openai--clip-vit-large-patch14"
+            # config.transformer_mapping_config_base = "/root/rds/data/models/bert-base-uncased"
+            # config.vision_model_version = "/root/rds/data/models/openai--clip-vit-large-patch14"
 
             self.model = ModelClass.from_pretrained(
                 ModelVersion,
@@ -154,6 +174,7 @@ class FLMRBaseExecutor(BaseExecutor, MetricsProcessor):
                 query_tokenizer=flmr_query_tokenizer,
                 context_tokenizer=flmr_context_tokenizer,
                 torch_dtype=self.use_dtype,
+                trust_remote_code=True,
             )
         else:
             self.model = ModelClass.from_pretrained(ModelVersion, config=config, trust_remote_code=True)
@@ -176,6 +197,7 @@ class FLMRBaseExecutor(BaseExecutor, MetricsProcessor):
         
     
     def setup(self, stage):
+        self.initialize_distributed()
         super().setup(stage)
         self.prepared_data = self.dp.get_data([self.use_data_node], explode=True)
         
@@ -190,8 +212,10 @@ class FLMRBaseExecutor(BaseExecutor, MetricsProcessor):
                 lookup_dict = ds_split.to_pandas().set_index("question_id", drop=False).to_dict(orient="index")
                 self.prepared_data.vqa_data_with_dpr_output.lookup.update(lookup_dict)
             
-            print(f"Rank {torch.distributed.get_rank()} Done loading lookup table.")
-
+            if dist.is_initialized():
+                print(f"Rank {dist.get_rank()} Done loading lookup table.")
+            else:
+                print("Lookup table loaded without distributed setup.")
         # if isinstance(self.prepared_data.train_passages, datasets.Dataset):
         # ds = self.prepared_data.train_passages
         test_ds = self.prepared_data.valid_passages if self.split_to_retrieve_in_validation == 'valid' else self.prepared_data.test_passages

@@ -1,5 +1,5 @@
 local meta = import '../meta_configs/hpc_meta_config.libsonnet';
-local data = import 'merge_data_config.libsonnet';
+local data = import 'evqa_data.libsonnet';
 local merge_data = data.merge_data_pipeline;
 
 local pretrained_ckpt_path = "LinWeizheDragon/PreFLMR_ViT-G";
@@ -39,7 +39,7 @@ local data_loader = {
       ],
       transform_name: 'PrepareDataloaders',
       regenerate: true,
-      cache: false,
+      cache: true,
       setup_kwargs: {
         extra_columns: {
           "passages": "train_passages",
@@ -49,32 +49,17 @@ local data_loader = {
           "train_passages": "train_passages",
           "valid_passages": "valid_passages",
           "test_passages": "test_passages",
-          "vqa_data_with_dpr_output": "combined_data",
+          "vqa_data_with_dpr_output": "evqa_data",
         },
         datasets_config: {
           train: [
             {
-              dataset_type: 'CommonDatasetForDPR',
+              dataset_type: 'EVQADatasetForDPR',
               split: 'train',
-              use_column: 'combined_data',
+              use_column: 'evqa_data',
             },
           ],
           valid: [
-            // {
-            //   dataset_type: 'WITDatasetForDPR',
-            //   split: 'test',
-            //   use_column: 'wit_data',
-            // },
-            // {
-            //   dataset_type: 'llavaDatasetForDPR',
-            //   split: 'test',
-            //   use_column: 'llava_data',
-            // },
-            // {
-            //   dataset_type: 'MSMARCODatasetForDPR',
-            //   split: 'test',
-            //   use_column: 'msmarco_data',
-            // },
             {
               dataset_type: 'EVQADatasetForDPR',
               split: 'test',
@@ -179,9 +164,6 @@ local data_pipeline = std.mergePatch(merge_data, data_loader);
             monitor: 'valid/EVQADatasetForDPR.test/recall_at_5',
             save_top_k: 3,
             mode: "max",
-            // monitor: 'valid/EVQADatasetForDPR.test/avg_loss',
-            // save_top_k: 3,
-            // mode: "min",
             filename: 'model_step_{step}',
             save_last: true,
             verbose: true,

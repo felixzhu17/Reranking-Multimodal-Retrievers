@@ -172,6 +172,28 @@ class PrepareDataloaders(BaseTransform):
                 use_column = data_config.pop("use_column")
                 use_split = data_config.pop("split")
                 dataset_type = data_config.pop("dataset_type")
+                for i in input_data.keys():
+                    try:
+                        for j in input_data[i].keys():
+                            dataset = input_data[i][j]
+                            errors = []  # Initialize a list to collect error messages
+                            count = 0  # Initialize a counter to track the number of checks
+                            for entry in dataset:
+                                img_path = entry['img_path']
+                                if not os.path.exists(img_path):
+                                    # Instead of raising an error immediately, collect the error message
+                                    errors.append(f"Invalid image path in dataset '{i}[{j}]' at entry {count}: {img_path}")
+                                count += 1
+                                if count >= 5:  # Break after checking 5 entries
+                                    break
+                            if errors:  # If there are any errors collected, raise an exception
+                                error_message = "\n".join(errors)
+                                raise ValueError(error_message)
+                            print(f"First 5 image paths in dataset '{i}[{j}]' of length {len(dataset)} are valid.")
+                    except Exception as e:
+                        print(e)  # Print all collected errors
+                        continue  # Continue to the next dataset
+    
                 dataset_dict = {
                     'data': input_data[use_column][use_split],
                     'tokenizers': self.tokenizers,

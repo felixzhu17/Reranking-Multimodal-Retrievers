@@ -648,7 +648,7 @@ class FLMRModelForRetrieval(FLMRPretrainedModelForRetrieval):
             try:
                 FLMRModelForRetrieval.try_load_torch_extensions()
             except Exception as e:
-                raise(f"Unable to load `segmented_maxsim.cpp`. hf-hub does not download this file automatically. Please download it manually from `https://huggingface.co/LinWeizheDragon/PreFLMR_ViT-L/blob/main/segmented_maxsim.cpp` and put it under the same folder as the model file.\n {e}")
+                raise ValueError(f"Unable to load `segmented_maxsim.cpp`. hf-hub does not download this file automatically. Please download it manually from `https://huggingface.co/LinWeizheDragon/PreFLMR_ViT-L/blob/main/segmented_maxsim.cpp` and put it under the same folder as the model file.\n {e}")
 
         if self.config.mask_punctuation:
             self.skiplist = {
@@ -682,6 +682,8 @@ class FLMRModelForRetrieval(FLMRPretrainedModelForRetrieval):
 
     @classmethod
     def try_load_torch_extensions(cls):
+        print("PATH")
+        print(os.path.join(pathlib.Path(__file__).parent.resolve()))
         if hasattr(cls, "loaded_extensions"):
             return
 
