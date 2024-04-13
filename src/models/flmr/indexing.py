@@ -60,7 +60,7 @@ def index_custom_collection(
         indexer.index(
             name=index_name,
             collection=custom_collection,
-            # batch_size=indexing_batch_size,
+            batch_size=indexing_batch_size,
             overwrite=True,
         )
         index_path = indexer.get_index()

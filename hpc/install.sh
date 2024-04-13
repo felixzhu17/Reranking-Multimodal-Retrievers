@@ -10,7 +10,7 @@ pip install torch==1.12.1+cu113 torchvision==0.13.1+cu113 torchaudio==0.12.1 --e
 pip install transformers==4.38.2
 conda install -c pytorch faiss-gpu -y
 pip install setuptools==59.5.0
-pip install wandb pytorch-lightning==2.0.4 jsonnet easydict pandas scipy opencv-python fuzzywuzzy scikit-image matplotlib timm scikit-learn sentencepiece tensorboard datasets
+pip install wandb pytorch-lightning==2.1.0 jsonnet easydict pandas scipy opencv-python fuzzywuzzy scikit-image matplotlib timm scikit-learn sentencepiece tensorboard datasets
 pip install ujson evaluate GPUtil easydict peft==0.4.0
 pip install bitarray spacy ujson gitpython
 pip install ninja

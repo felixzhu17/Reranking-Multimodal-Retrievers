@@ -197,7 +197,7 @@ class FLMRBaseExecutor(BaseExecutor, MetricsProcessor):
         
     
     def setup(self, stage):
-        self.initialize_distributed()
+        # self.initialize_distributed()
         super().setup(stage)
         self.prepared_data = self.dp.get_data([self.use_data_node], explode=True)
         
