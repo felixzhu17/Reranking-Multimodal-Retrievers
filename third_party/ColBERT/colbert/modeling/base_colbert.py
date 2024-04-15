@@ -20,6 +20,7 @@ class BaseColBERT(torch.nn.Module):
         super().__init__()
 
         self.name = name
+        raise ValueError("IMPORTING ...", name)
         self.colbert_config = ColBERTConfig.from_existing(ColBERTConfig.load_from_checkpoint(name), colbert_config)
         self.model = HF_ColBERT.from_pretrained(name, colbert_config=self.colbert_config)
         self.raw_tokenizer = AutoTokenizer.from_pretrained(self.model.base)

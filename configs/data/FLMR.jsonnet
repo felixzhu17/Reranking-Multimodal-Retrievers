@@ -154,8 +154,12 @@ local data_pipeline = std.mergePatch(merge_data, data_loader);
         batch_size: 8,
         num_dataloader_workers: 8,
         trainer_paras: {
+            accelerator: 'auto',
+            devices: 'auto',
+            strategy: 'ddp_find_unused_parameters_true',
+            precision: 'bf16',
             max_epochs: 100,
-            accumulate_grad_batches: 4,
+            accumulate_grad_batches: 16,
             check_val_every_n_epoch: null,
             val_check_interval: 10,
             log_every_n_steps: 10,
@@ -195,9 +199,16 @@ local data_pipeline = std.mergePatch(merge_data, data_loader);
         checkpoint_name: "",
         load_model_path: "",
         load_best_model: false,
-        trainer_paras: {},
-        batch_size: 64,
+        trainer_paras: {
+            accelerator: 'auto',
+            devices: 'auto',
+            strategy: 'ddp_find_unused_parameters_true',
+            precision: 'bf16',
+            // limit_test_batches: 320,
+        },
+        batch_size: 16,
         num_dataloader_workers: 0,
+
     },
     eval: {
         'eval_op_name': 'Your eval op name'

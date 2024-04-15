@@ -154,8 +154,7 @@ class FLMRBaseExecutor(BaseExecutor, MetricsProcessor):
 
         config.load_cpu_extension = True
 
-        self.use_dtype = torch.float16
-
+        print(f"{self.use_dtype=}")
         if model_config.ModelClass == "FLMRModelForRetrieval":
             flmr_query_tokenizer = FLMRQueryEncoderTokenizer.from_pretrained(
                 ModelVersion, subfolder="query_tokenizer"
@@ -163,10 +162,6 @@ class FLMRBaseExecutor(BaseExecutor, MetricsProcessor):
             flmr_context_tokenizer = FLMRContextEncoderTokenizer.from_pretrained(
                 ModelVersion, subfolder="context_tokenizer"
             )
-
-            # Temp code to avoid errors. TODO: remove
-            # config.transformer_mapping_config_base = "/root/rds/data/models/bert-base-uncased"
-            # config.vision_model_version = "/root/rds/data/models/openai--clip-vit-large-patch14"
 
             self.model = ModelClass.from_pretrained(
                 ModelVersion,
@@ -176,20 +171,17 @@ class FLMRBaseExecutor(BaseExecutor, MetricsProcessor):
                 torch_dtype=self.use_dtype,
                 trust_remote_code=True,
             )
+            
+
+
         else:
             self.model = ModelClass.from_pretrained(ModelVersion, config=config, trust_remote_code=True)
 
-        # freeze parameters of query_encoder and context_encoder
-        # for name, param in self.model.query_encoder.named_parameters():
-        #     param.requires_grad = False
-        # for name, param in self.model.context_encoder.named_parameters():
-        #     param.requires_grad = False
-        
-        # for name, param in self.model.named_parameters():
-        #     if not param.requires_grad:
-        #         print(name)
-
-
+        print("Freezing vision encoders")
+        for name, param in self.model.query_vision_encoder.named_parameters():
+            param.requires_grad = False
+        for name, param in self.model.context_vision_encoder.named_parameters():
+            param.requires_grad = False
         
     
     def prepare_data(self):
@@ -281,64 +273,17 @@ class FLMRBaseExecutor(BaseExecutor, MetricsProcessor):
             else:
                 pretrained_dict = {k: v for k, v in state_dict_from_ckpt.items()}
             logger.info(f"Load the following parameters from the given checkpoint: {pretrained_dict.keys()}")
-            
-            # if "separate_question_encoder" in self.model_config.modules:
-            #     print("===========================================")
-            #     copied_params = {k.replace("model.bert", "query_encoder"): v for k, v in pretrained_dict.items() if "model.bert" in k}
-            #     copied_params.update({k.replace("model.linear", "query_linear"): v for k, v in pretrained_dict.items() if "model.linear" in k})
-                
-            #     FOUND_SAME_KEYS = False
-            #     for k in copied_params.keys():
-            #         if k in pretrained_dict:
-            #             logger.error(f"same keys found: {k}")
-            #             FOUND_SAME_KEYS = True
-                
-            #     if FOUND_SAME_KEYS:
-            #         logger.warning("found same keys - stop copying params from document encoder to query encoder.")
-            #     else:
-            #         print("copied_params", copied_params.keys())
-            #         pretrained_dict.update(copied_params)
-                
-            # if "enable_doc_encoder_lora" in self.model_config.modules:
-            #     # pprint(model_dict.keys())
-            #     # input()
-            #     # print("===========================================")
-            #     # pprint(pretrained_dict.keys())
-            #     # input()
-            #     new_pretrained_dict = {}
-            #     for k, v in pretrained_dict.items():
-            #         if k.startswith("model.model.bert."):
-            #             new_pretrained_dict[k.replace("model.model.bert.", "model.model.bert.base_model.model.")] = v
-            #             # model.query_encoder.base_model.model.
-            #             # model.query_encoder.pooler.dense.weight
-            #         elif k.startswith("model.query_encoder.") and "separate_question_encoder" in self.model_config.modules:
-            #             # logger.warning(f'LoRA weights: {k.replace("model.model.bert.", "model.query_encoder.base_model.model.")}')
-            #             new_pretrained_dict[k.replace("model.query_encoder.", "model.query_encoder.base_model.model.")] = v
-            #         else:
-            #             new_pretrained_dict[k] = v
-            #     pretrained_dict = new_pretrained_dict
-            #     logger.info("reformatted pretrained weights to accommodate LoRA.")
+
                 
             logger.info(f"Loading the following parameters into the current model: {pretrained_dict.keys()}")
             
             # 2. overwrite entries in the existing state dict
             model_dict.update(pretrained_dict) 
             
-            # When multimodal docs are enabled, load the vision_projection into doc_vision_projection
-            # if self.multimodal_docs:
-            #     doc_vision_projection_dict = {k.replace('vision_projection', 'doc_vision_projection'): v for k, v in state_dict_from_ckpt.items() if 'vision_projection' in k}
-            #     model_dict.update(doc_vision_projection_dict)
-            #     logger.info(f"Load the following parameters from the given checkpoint: {doc_vision_projection_dict.keys()}")
-            
             # 3. load the new state dict
             self.load_state_dict(model_dict, strict=False)
         
-        
-
-        # self.model.skiplist.update({w: True
-        #                      for symbol in self.tokenizer.tok.additional_special_tokens
-        #                      for w in [symbol, self.model.raw_tokenizer.encode(symbol, add_special_tokens=False)[0]]})
-        # pprint(self.model.skiplist)
+    
 
     def configure_optimizers(self):
         """
@@ -424,7 +369,6 @@ class FLMRBaseExecutor(BaseExecutor, MetricsProcessor):
             "query_attention_mask": sample_batched['attention_mask'].to(self.device),
             "context_input_ids": sample_batched['decoder_input_ids'].to(self.device),
             "context_attention_mask": sample_batched['decoder_input_attention_mask'].to(self.device),
-            "target_scores": sample_batched['scores'].to(self.device),
             "num_negative_examples": self.model_config.num_negative_samples,
         }
         
@@ -449,20 +393,15 @@ class FLMRBaseExecutor(BaseExecutor, MetricsProcessor):
         question_mask = sample_batched.get('question_mask', None)
         if question_mask is not None:
             train_batch["query_question_mask"] = question_mask.to(self.device)
+            
 
         forward_results = self.model(**train_batch)
+
+        # print(f"{forward_results=}")
 
         batch_loss = forward_results.loss
         ib_loss = forward_results.in_batch_negative_loss
 
-        # print("final scores", scores.shape, scores)
-        # input()
-
-        # if unwrap_model(self.model)._get_name() in MODEL_FOR_CAUSAL_LM_MAPPING_NAMES.values():
-        #     batch_loss = self.label_smoother(forward_results, train_batch.labels, shift_labels=True)
-        # else:
-        #     batch_loss = self.label_smoother(forward_results, train_batch.labels)
-        
         # log the current learning rate from shedulers
         current_lrs = self.scheduler.get_last_lr()
         for index, current_lr in enumerate(current_lrs):
@@ -478,6 +417,17 @@ class FLMRBaseExecutor(BaseExecutor, MetricsProcessor):
         }
         return data_to_return
     
+    # def on_train_batch_start(self, batch, batch_idx):
+    #     # Check and print stats for model weights at the start of the batch
+    #     print("Stats for model weights before forward pass:")
+    #     for name, param in self.named_parameters():
+    #         if param.data.numel() > 0:  # Check that parameters are not empty
+    #             param_mean = param.data.mean().item()
+    #             param_median = param.data.median().item()
+    #             param_max = param.data.max().item()
+    #             print(f"{name}: Mean = {param_mean}, Median = {param_median}, Max = {param_max}")
+
+                
     def validation_step(self, sample_batched, batch_idx, dataloader_idx=0):
         pred = self._compute_loss(sample_batched, batch_idx, dataloader_idx)
         # pred = self._compute_query_embeddings_step(sample_batched, batch_idx)
@@ -494,18 +444,6 @@ class FLMRBaseExecutor(BaseExecutor, MetricsProcessor):
             log_dict = self.evaluate_outputs(validation_step_output, self.val_dataloader()[i], self.val_dataloader_names[i], dataloader_idx=i)
             self.logging_results(log_dict, prefix=self.val_dataloader_names[i])
 
-            # batch_loss = []
-            # for step_output in validation_step_output:
-            #     batch_loss.append(step_output['loss'])
-            
-            # avg_validation_loss = float(np.mean(np.array(batch_loss)))
-
-            # self.log(f"{self.val_dataloader_names[i]}/avg_loss", avg_validation_loss, logger=True, sync_dist=True)
-            # print(f"{self.val_dataloader_names[i]}/avg_loss = {avg_validation_loss}")
-
-        # if "freeze_colbert_doc_encoder" not in self.model_config.modules:
-        #     # when validation finishes, remove tmp index
-        #     self.tmp_index = None
         self.tmp_index = defaultdict(None)
 
         self.validation_step_outputs = defaultdict(list)
@@ -577,16 +515,6 @@ class FLMRBaseExecutor(BaseExecutor, MetricsProcessor):
 
         batch_loss = forward_results.loss
         ib_loss = forward_results.in_batch_negative_loss
-
-        # print("validation_batch_loss", batch_loss)
-        # input()
-        # print("final scores", scores.shape, scores)
-        # input()
-
-        # if unwrap_model(self.model)._get_name() in MODEL_FOR_CAUSAL_LM_MAPPING_NAMES.values():
-        #     batch_loss = self.label_smoother(forward_results, train_batch.labels, shift_labels=True)
-        # else:
-        #     batch_loss = self.label_smoother(forward_results, train_batch.labels)
         
         # logs metrics for each training_step,
         # and the average across the epoch, to the progress bar and logger
@@ -737,21 +665,6 @@ class FLMRBaseExecutor(BaseExecutor, MetricsProcessor):
                         self.config.ckpt_dir,
                         f"validation_temp_model",
                     )
-                # logger.info(f"saving temp model to {tmp_model_path}...")
-                # if "enable_doc_encoder_lora" in self.config.model_config.modules:
-                #     # When using lora, we need to unload the model first
-                #     merged_model = copy.deepcopy(self.model)
-                #     merged_model.model.bert = merged_model.model.bert.merge_and_unload()
-                #     logger.info("LoRA unloaded and merged.")
-                #     merged_model.save_pretrained(tmp_model_path)
-                # else:
-                #     self.model.save_pretrained(tmp_model_path)
-                
-                # # save model_config to tmp_model_path
-                # with open(os.path.join(tmp_model_path, "global_config.json"), "w") as f:
-                #     json.dump(self.global_config, f, indent=4)
-                # logger.info(f"global_config saved to {tmp_model_path}.")
-
                 if multimodal_docs:
                     custom_collection = [
                         (passage_content, passage_image_feature, None) for passage_content, passage_image_feature in zip(passage_contents, passage_image_features)
@@ -774,20 +687,6 @@ class FLMRBaseExecutor(BaseExecutor, MetricsProcessor):
                     model_temp_folder=tmp_model_path,
                     nranks=get_world_size(), # number of GPUs used in indexing
                 )
-
-                # # Launch indexer
-                # with Run().context(RunConfig(nranks=get_world_size(), root=self.config.ckpt_dir, experiment=f"temp_index_{dataloader_idx}")):
-                    
-                #     config = ColBERTConfig(
-                #         nbits=nbits,
-                #         doc_maxlen=self.model_config.max_decoder_source_length,
-                #     )
-                #     print("indexing with", nbits, "bits")
-                    
-                #     indexer = self.IndexerClass(checkpoint=tmp_model_path, config=config)
-                #     indexer.index(name=f"temp_index.nbits={nbits}", collection=custom_collection, overwrite=True)
-                #     index_path = indexer.get_index()
-                #     del indexer
             else:
                 logger.info(f"Global rank {self.global_rank} waits for Rank 0...")
             
@@ -796,64 +695,6 @@ class FLMRBaseExecutor(BaseExecutor, MetricsProcessor):
             torch.cuda.empty_cache()
 
             self.model = self.model.to(self.device)
-
-            # if (self.trainer.state.stage == 'test' and self.global_rank==0) or (exhaustive_search_in_testing):
-            #     logger.info("Since the embeddings of items are required in RAG when retriever is trained jointly, we simply rerun the embedding generation to save all item embeddings into files. \n However, if the retriever is kept frozen in RAG, this part can be commented out to save time.")
-            #     # Add embeddings
-            #     # For easier implementation, we just rerun the item embedding generation here
-            #     i_count = 0
-            #     item_embeddings = []
-            #     item_embedding_mask = []
-            #     for i_batch_id in tqdm(range(n_item_batchs)):
-            #         i_start = i_batch_id * i_batch_size
-            #         i_end = min((i_batch_id + 1) * i_batch_size, n_items)
-            #         if i_end - i_start == 0:
-            #             break
-            #         passage_contents_batch = passage_contents[i_start:i_end]
-                    
-            #         # Encode this batch of data
-            #         item_input_ids, item_attention_mask = self.decoder_tokenizer.tensorize(passage_contents_batch)
-                
-            #         test_batch = (
-            #             item_input_ids.to(self.device),
-            #             item_attention_mask.to(self.device),
-            #         )
-
-            #         # batch_size x hidden_states
-            #         item_emb, item_emb_mask = self.model.doc(*test_batch, keep_dims='return_mask')
-                    
-            #         for x in item_emb:
-            #             item_embeddings.append(x.cpu().detach().numpy())
-            #         for x in item_emb_mask:
-            #             item_embedding_mask.append(x.cpu().detach().numpy())
-            #         # n_queries x batch_size
-            #         # i_rate_batch = torch.matmul(query_embeddings, item_emb.t()).detach().cpu()
-
-            #         # rate_batch[:, i_start:i_end] = i_rate_batch
-            #         i_count += item_emb.shape[0]
-
-            #     assert i_count == n_items
-            #     logger.info("finished generating item embeddings...")
-
-            #     # table_dataset = table_dataset.add_column("embeddings", item_embeddings)
-            #     # table_dataset = table_dataset.add_column("embedding_mask", item_embedding_mask)
-
-            #     if self.trainer.state.stage == 'test':
-            #         # Save the dataset
-            #         save_path = os.path.join(self.config.test_dir, 'step_{}'.format(self.global_step))
-            #         create_dirs([save_path])
-
-            #         embedding_save_path = os.path.join(save_path, "item_embeddings.pkl")
-            #         logger.info(f"saving embedding files to {embedding_save_path}")
-            #         with open(embedding_save_path, 'wb') as f:
-            #             pickle.dump({
-            #                 "item_embeddings": item_embeddings,
-            #                 "item_embedding_mask": item_embedding_mask,
-            #                 "passage_index2id": passage_index2id,
-            #             }, f)
-                
-            #     self.item_embeddings = item_embeddings
-            #     self.item_embedding_mask = item_embedding_mask
         
 
         # Sync all processes. If rank 0 starts saving item embeddings in testing, other processes will wait for it.
@@ -864,23 +705,6 @@ class FLMRBaseExecutor(BaseExecutor, MetricsProcessor):
             "passage_contents": passage_contents,
         }
 
-        # in testing mode, copy the temp index files
-        # if self.trainer.state.stage == 'test' and self.global_rank==0 and not exhaustive_search_in_testing:
-        #     save_path = os.path.join(self.config.test_dir, 'step_{}'.format(self.global_step))
-        #     create_dirs([save_path])
-            
-        #     index_path_from = os.path.join(
-        #         self.config.ckpt_dir, f"temp_index_{dataloader_idx}"
-        #     )
-        #     index_path_to = os.path.join(save_path, "colbert_index")
-        #     logger.info(f'saving index files from {index_path_from} into {index_path_to}')
-        #     import shutil
-        #     if os.path.exists(index_path_to):
-        #         # Delete if the index already exists
-        #         shutil.rmtree(index_path_to)
-
-        #     shutil.copytree(index_path_from, index_path_to)
-        
         # sync all processes
         torch.distributed.barrier()
 

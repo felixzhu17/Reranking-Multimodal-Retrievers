@@ -200,16 +200,20 @@ class FLMRModelForIndexing(FLMRModelForRetrieval):
 
                 for batch in encoded_batches:
                     D_, mask_ = batch.late_interaction_output, batch.context_mask
+                    if torch.isnan(D_).any():
+                        raise ValueError("FLMRModelForIndexing NaN values found in late interaction outputs")
                     D.append(D_)
                     mask.append(mask_)
 
+    
                 D, mask = torch.cat(D)[reverse_indices], torch.cat(mask)[reverse_indices]
+
 
                 doclens = mask.squeeze(-1).sum(-1).tolist()
 
                 D = D.view(-1, self.config.dim)
                 D = D[mask.bool().flatten()].cpu()
-
+                
                 return (D, doclens, *returned_text)
 
             assert keep_dims is False

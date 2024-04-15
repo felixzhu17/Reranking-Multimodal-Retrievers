@@ -682,7 +682,6 @@ class FLMRModelForRetrieval(FLMRPretrainedModelForRetrieval):
 
     @classmethod
     def try_load_torch_extensions(cls):
-        print("PATH")
         print(os.path.join(pathlib.Path(__file__).parent.resolve()))
         if hasattr(cls, "loaded_extensions"):
             return
@@ -832,9 +831,21 @@ class FLMRModelForRetrieval(FLMRPretrainedModelForRetrieval):
         )
         D, D_mask = context_outputs.late_interaction_output, context_outputs.context_mask
 
+
         # Gather tensors from other GPUs
         if in_batch_negatives_from_all_gpus:
             Q, D, D_mask = self.gather_tensors_from_other_gpus(Q, D, D_mask)
+            
+        if torch.isnan(Q).any():
+            print("Failed Inputs")
+            print(dict( input_ids=query_input_ids,
+            attention_mask=query_attention_mask,
+            pixel_values_shape=query_pixel_values,))
+            print("Failed Outputs")
+            print(query_outputs)
+            raise ValueError("Query - NaN values found in late interaction outputs")
+        if torch.isnan(D).any():
+            raise ValueError("Context - NaN values found in late interaction outputs")
         # Repeat each query encoding for every corresponding document.
         Q_duplicated = Q.repeat_interleave(num_negative_examples + 1, dim=0).contiguous()
 

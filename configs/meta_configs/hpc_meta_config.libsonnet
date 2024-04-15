@@ -17,11 +17,11 @@ local default_meta = {
   "TENSORBOARD_FOLDER": "tensorboards", 
   "WANDB": {
       "CACHE_DIR":  wandb_cache_dir,
-      "entity": "weizhelin",
-      "project": "FLMRA",
+      "entity": "fz288",
+      "project": "PreFLMR",
       "tags": [],
   },
-  "logger_enable": ["tensorboard", "csv"], # "wandb" for wandb logger, "csv" for csv logger
+  "logger_enable": ["tensorboard", "wandb"], # "wandb" for wandb logger, "csv" for csv logger
   "platform_type": "pytorch",
   "seed": seed,
   "default_cache_dir": default_cache_dir,

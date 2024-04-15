@@ -306,64 +306,7 @@ class RunwayExperiment:
 
     def train(self):
         train_config = self.config_dict.train
-
-        # self.ver_num = 0
-        # self.exp_dir = self._make_experiment_dir(self.root_exp_dir, self.exp_name, self.ver_num, self.tag)
-        
-        # if self.use_versioning:
-        #     self._check_version_and_update_exp_dir()
-        
-        # Reset the experiment (only used for training)
-        # delete_confirm = 'n'
-        # config = self.config_dict
-        # if config.reset and config.mode == "train":
-        #     dirs = [self.exp_dir]
-        #     # Reset all the folders
-        #     print("You are deleting following dirs: ", dirs, "input y to continue")
-        #     if config.args.override or config.args.get('force_reset', False): # better naming than override, without breaking existing code
-        #         delete_confirm = 'y'
-        #     else:
-        #         delete_confirm = input()
-        #     if delete_confirm == 'y':
-        #         for dir in dirs:
-        #             try:
-        #                 delete_dir(dir)
-        #             except Exception as e:
-        #                 print(e)
-        #     else:
-        #         print("reset cancelled.")
-        
-        
-
-
-        # self.config_dict['exp_version'] = self.ver_num
-
-        # self.train_dir = self.exp_dir / 'train'
-        # self.train_log_dir = self.train_dir / 'logs'
-        # self.ckpt_dir = self.train_dir / 'saved_models'
-        
         self.setup_sys_logs(self.train_log_dir)
-
-        # Save some frequently-used paths to config
-        # self.config_dict.train_dir = str(self.train_dir)
-        # self.config_dict.log_dir = str(self.train_log_dir)
-        # self.config_dict.ckpt_dir = str(self.ckpt_dir)
-
-        ## Delete wandb logs if wandb is enabled
-        # if 'wandb' in self.meta_conf['logger_enable']:
-        #     wandb_conf = self.config_dict.meta.WANDB
-        #     config = self.config_dict
-
-        #     all_runs = wandb.Api(timeout=19).runs(path=f'{wandb_conf.entity}/{wandb_conf.project}',  filters={"config.experiment_name": config.experiment_name})
-        #     if config.reset and config.mode == "train" and delete_confirm == 'y':
-        #         reset_wandb_runs(all_runs)
-        #     else:
-        #         if len(all_runs) > 0:
-        #             wandb_conf.id=all_runs[0].id
-        #             wandb_conf.resume="must"
-        #     # update the original config_dict
-        #     self.config_dict.meta.WANDB.update(wandb_conf)
-
 
         self.rw_executor = self.init_executor(mode='train') 
 
@@ -403,21 +346,9 @@ class RunwayExperiment:
         if trainer_paras.get('val_check_interval', None) is not None:
              # this is to use global_step as the interval number: global_step * grad_accumulation = batch_idx (val_check_interval is based on batch_idx)
             additional_args['val_check_interval'] = trainer_paras.val_check_interval * trainer_paras.get("accumulate_grad_batches", 1)
-        
-        # trainer from args
-        # trainer = Trainer.from_argparse_args(args, **additional_args)
-        # print("ARGS")
-        # print(args)
-        # print("ADDITIONAL ARGs")
-        # print(additional_args)
-        
-        
-        # trainer = Trainer(**args, **additional_args)
-        # logger.info(f"arguments passed to trainer: {str(args)}")
+    
         trainer = Trainer(**additional_args)
         logger.info(f"additional arguments passed to trainer: {str(additional_args)}")
-        
-        # trainer = pl.Trainer(**train_config.get('trainer_paras', {}), default_root_dir=self.train_dir ,callbacks=callback_list)
         trainer.fit(self.rw_executor, **train_config.get('trainer_fit_paras', {}))
     
     def test(self):
@@ -426,19 +357,6 @@ class RunwayExperiment:
 
         if self.use_versioning:
             assert 'exp_version' in self.config_dict, "You need to specify experiment version to run test!"
-        #     self.ver_num = self.config_dict['exp_version']
-        # else:
-        #     self.ver_num = 0
-        
-        # self.exp_dir = self._make_experiment_dir(self.root_exp_dir, self.exp_name, self.ver_num, self.tag)
-        # self.train_dir = self.exp_dir / 'train'
-        # self.ckpt_dir = self.train_dir / 'saved_models'
-        # self.test_dir = (self.exp_dir / f'test') / self.test_suffix
-
-        # Save some frequently-used paths to config
-        # self.config_dict.train_dir = str(self.train_dir)
-        # self.config_dict.test_dir = str(self.test_dir)
-        # self.config_dict.ckpt_dir = str(self.ckpt_dir)
 
         self.setup_sys_logs(self.test_dir)
         
@@ -458,9 +376,7 @@ class RunwayExperiment:
             self.config_dict.meta.WANDB.update(wandb_conf)
 
 
-        self.rw_executor = self.init_executor(mode='test')
-        # trainer = pl.Trainer(**test_config.get('trainer_paras', {}), default_root_dir=self.test_dir)
-        
+        self.rw_executor = self.init_executor(mode='test')        
         # 0. Load args from config_dict
         args = test_config.get('trainer_args', self.config_dict.get('args', {}))
         
@@ -474,16 +390,9 @@ class RunwayExperiment:
             'logger': self.loggers, # already initialised in advance
         })
 
-        # if args.strategy == 'ddp':
-        #     from pytorch_lightning.strategies import DDPStrategy
-        #     additional_args['strategy'] = DDPStrategy(find_unused_parameters=True)
-        
-        
-        
+
         # trainer from args
-        # trainer = Trainer.from_argparse_args(args, **additional_args)
-        trainer = Trainer(**args, **additional_args) # from_argparse_args is deprecated
-        logger.info(f"arguments passed to trainer: {str(args)}")
+        trainer = Trainer(**additional_args) 
         logger.info(f"additional arguments passed to trainer: {str(additional_args)}")
         
         # Auto-find checkpoints
@@ -506,7 +415,7 @@ class RunwayExperiment:
             ckpt_path=checkpoint_to_load if checkpoint_to_load else None
         )
 
-        self.eval()
+        # self.eval()
     
     def eval(self):
         logger.info("Evaluation starts...")

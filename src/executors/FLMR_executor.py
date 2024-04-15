@@ -428,7 +428,7 @@ class FLMRExecutor(BaseExecutor, MetricsProcessor):
             "query_attention_mask": sample_batched['attention_mask'].to(self.device),
             "context_input_ids": sample_batched['decoder_input_ids'].to(self.device),
             "context_attention_mask": sample_batched['decoder_input_attention_mask'].to(self.device),
-            "target_scores": sample_batched['scores'].to(self.device),
+            # "target_scores": sample_batched['scores'].to(self.device),
             "num_negative_examples": self.model_config.num_negative_samples,
         }
         

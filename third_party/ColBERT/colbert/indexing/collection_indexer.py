@@ -43,7 +43,7 @@ class CollectionIndexer():
 
         self.collection = Collection.cast(collection)
         # self.checkpoint = Checkpoint(self.config.checkpoint, colbert_config=self.config)
-        from flmr import FLMRModelForIndexing, FLMRQueryEncoderTokenizer, FLMRContextEncoderTokenizer
+        from src.models.flmr import FLMRModelForIndexing, FLMRQueryEncoderTokenizer, FLMRContextEncoderTokenizer
         query_tokenizer = FLMRQueryEncoderTokenizer.from_pretrained(self.config.checkpoint, subfolder="query_tokenizer")
         context_tokenizer = FLMRContextEncoderTokenizer.from_pretrained(self.config.checkpoint, subfolder="context_tokenizer")
         self.checkpoint = FLMRModelForIndexing.from_pretrained(self.config.checkpoint, 
@@ -312,9 +312,9 @@ class CollectionIndexer():
         bucket_cutoffs = heldout_avg_residual.float().quantile(bucket_cutoffs_quantiles)
         bucket_weights = heldout_avg_residual.float().quantile(bucket_weights_quantiles)
 
-        print_message(
-            f"#> Got bucket_cutoffs_quantiles = {bucket_cutoffs_quantiles} and bucket_weights_quantiles = {bucket_weights_quantiles}")
-        print_message(f"#> Got bucket_cutoffs = {bucket_cutoffs} and bucket_weights = {bucket_weights}")
+        # print_message(
+        #     f"#> Got bucket_cutoffs_quantiles = {bucket_cutoffs_quantiles} and bucket_weights_quantiles = {bucket_weights_quantiles}")
+        # print_message(f"#> Got bucket_cutoffs = {bucket_cutoffs} and bucket_weights = {bucket_weights}")
 
         return bucket_cutoffs, bucket_weights, avg_residual.mean()
 
@@ -456,7 +456,11 @@ def compute_faiss_kmeans(dim, num_partitions, kmeans_niters, shared_lists, retur
     sample = shared_lists[0][0]
     sample = sample.float().numpy()
 
-    kmeans.train(sample)
+    try:
+        kmeans.train(sample)
+    except:
+        print(sample)
+        raise ValueError
 
     centroids = torch.from_numpy(kmeans.centroids)
 

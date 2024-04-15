@@ -1,5 +1,5 @@
-python src/main.py --config configs/data/FLMR.jsonnet --mode train
-
+python src/main.py --config configs/data/FLMR.jsonnet --mode train --reset --override
+python -c 'import wandb ; wandb.init(project="PreFLMR")'
 from datasets import DatasetDict
 x = DatasetDict.load_from_disk('/home/fz288/rds/hpc-work/PreFLMR/cache/process:ConcatenateDatasets-81353e53c956be30cfee960db8ff4323.hf')
 
