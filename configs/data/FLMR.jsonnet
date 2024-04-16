@@ -152,16 +152,16 @@ local data_pipeline = std.mergePatch(merge_data, data_loader);
     },
     train: {
         batch_size: 8,
-        num_dataloader_workers: 8,
+        num_dataloader_workers: 4,
         trainer_paras: {
             accelerator: 'auto',
             devices: 'auto',
             strategy: 'ddp_find_unused_parameters_true',
             precision: 'bf16',
-            max_epochs: 100,
-            accumulate_grad_batches: 16,
+            max_epochs: -1,
+            accumulate_grad_batches: 8,
             check_val_every_n_epoch: null,
-            val_check_interval: 10,
+            val_check_interval: 1000,
             log_every_n_steps: 10,
         },
         model_checkpoint_callback_paras: {
@@ -192,7 +192,7 @@ local data_pipeline = std.mergePatch(merge_data, data_loader);
         },
     },
     valid: {
-        batch_size: 64,
+        batch_size: 16,
         num_dataloader_workers: 0,
     },
     test: {
@@ -204,7 +204,6 @@ local data_pipeline = std.mergePatch(merge_data, data_loader);
             devices: 'auto',
             strategy: 'ddp_find_unused_parameters_true',
             precision: 'bf16',
-            // limit_test_batches: 320,
         },
         batch_size: 16,
         num_dataloader_workers: 0,
