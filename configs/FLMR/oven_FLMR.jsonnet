@@ -1,5 +1,5 @@
 local meta = import '../meta_configs/hpc_meta_config.libsonnet';
-local data = import 'evqa_data.libsonnet';
+local data = import '../data/oven_data.libsonnet';
 local merge_data = data.merge_data_pipeline;
 
 local pretrained_ckpt_path = "LinWeizheDragon/PreFLMR_ViT-G";
@@ -49,28 +49,28 @@ local data_loader = {
           "train_passages": "train_passages",
           "valid_passages": "valid_passages",
           "test_passages": "test_passages",
-          "vqa_data_with_dpr_output": "evqa_data",
+          "vqa_data_with_dpr_output": "oven_data",
         },
         datasets_config: {
           train: [
             {
-              dataset_type: 'EVQADatasetForDPR',
+              dataset_type: 'OvenDatasetForDPR',
               split: 'train',
-              use_column: 'evqa_data',
+              use_column: 'oven_data',
             },
           ],
           valid: [
             {
-              dataset_type: 'EVQADatasetForDPR',
+              dataset_type: 'OvenDatasetForDPR',
               split: 'test',
-              use_column: 'evqa_data',
+              use_column: 'oven_data',
             },
           ],
           test: [
             {
-              dataset_type: 'EVQADatasetForDPR',
+              dataset_type: 'OvenDatasetForDPR',
               split: 'test',
-              use_column: 'evqa_data',
+              use_column: 'oven_data',
             },
           ],
         },
@@ -82,14 +82,12 @@ local data_loader = {
   },
 };
 
-
-// local validation_indexing_source = ["llava_passages", "evqa_passages"];
-local validation_indexing_source = ["evqa_passages"];
+local validation_indexing_source = ["oven_passages"];
 
 local data_pipeline = std.mergePatch(merge_data, data_loader);
 
 {
-    experiment_name: 'default_DPR',
+    experiment_name: 'Oven_PreFLMR',
     test_suffix: 'default_test',
     meta: meta.default_meta,
     data_pipeline: data_pipeline,
@@ -161,11 +159,11 @@ local data_pipeline = std.mergePatch(merge_data, data_loader);
             max_epochs: -1,
             accumulate_grad_batches: 8,
             check_val_every_n_epoch: null,
-            val_check_interval: 1000,
+            val_check_interval: 250,
             log_every_n_steps: 10,
         },
         model_checkpoint_callback_paras: {
-            monitor: 'valid/EVQADatasetForDPR.test/recall_at_5',
+            monitor: 'valid/OvenDatasetForDPR.test/pos_item_ids_recall_at_5',
             save_top_k: 3,
             mode: "max",
             filename: 'model_step_{step}',

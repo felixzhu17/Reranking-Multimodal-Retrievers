@@ -52,9 +52,6 @@ from colbert.data import Queries
 from colbert import Searcher
 
 from src.metrics import MetricsProcessor
-from src.models.rag.rag_model import RagModel
-from src.models.rag.rag_model_blip import RagModelForBlip
-from src.models.rag.rag_model_gpt import RagModelForGPT
 from src.utils.dirs import *
 import faiss
 import wandb

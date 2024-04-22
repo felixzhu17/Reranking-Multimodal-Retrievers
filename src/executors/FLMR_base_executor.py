@@ -272,10 +272,8 @@ class FLMRBaseExecutor(BaseExecutor, MetricsProcessor):
                 pretrained_dict = {k: v for k, v in state_dict_from_ckpt.items() if k in model_dict and "vision_projection" in k}
             else:
                 pretrained_dict = {k: v for k, v in state_dict_from_ckpt.items()}
-            logger.info(f"Load the following parameters from the given checkpoint: {pretrained_dict.keys()}")
-
-                
-            logger.info(f"Loading the following parameters into the current model: {pretrained_dict.keys()}")
+            # logger.info(f"Load the following parameters from the given checkpoint: {pretrained_dict.keys()}")
+            # logger.info(f"Loading the following parameters into the current model: {pretrained_dict.keys()}")
             
             # 2. overwrite entries in the existing state dict
             model_dict.update(pretrained_dict) 
@@ -283,11 +281,9 @@ class FLMRBaseExecutor(BaseExecutor, MetricsProcessor):
             # 3. load the new state dict
             self.load_state_dict(model_dict, strict=False)
         
-    
-
     def configure_optimizers(self):
         """
-        Return optimizers and schedulers
+        Return optimizers and schedulers, and optionally load state from checkpoint.
         """
         optimizer_name = self.optimizer_config['optimizer_name']
         optimizer_params = self.optimizer_config.get('optimizer_params', {})
@@ -295,19 +291,19 @@ class FLMRBaseExecutor(BaseExecutor, MetricsProcessor):
         optimization_parameters = [
             {
                 'params': [p for n, p in self.model.named_parameters() if "late_interaction_adapter" not in n and p.requires_grad],
-                'lr': optimizer_params.lr,
-                'initial_lr': optimizer_params.lr,
+                'lr': optimizer_params.get('lr', 0.001),  # Make sure to use get() to provide a default value
+                'initial_lr': optimizer_params.get('lr', 0.001),
             },
             {
                 'params': [p for n, p in self.model.named_parameters() if "late_interaction_adapter" in n and p.requires_grad],
-                'lr': self.optimizer_config.get("mapping_network_lr", optimizer_params.lr),
-                'initial_lr': self.optimizer_config.get("mapping_network_lr", optimizer_params.lr),
+                'lr': self.optimizer_config.get("mapping_network_lr", optimizer_params.get('lr', 0.001)),
+                'initial_lr': self.optimizer_config.get("mapping_network_lr", optimizer_params.get('lr', 0.001)),
             },
         ]
         
         for group in optimization_parameters:
             logger.info('#params: {}   lr: {}'.format(len(group['params']), group['lr']))
-            
+        
         """define optimizer"""
         
         if optimizer_name == 'AdamW':
@@ -317,7 +313,14 @@ class FLMRBaseExecutor(BaseExecutor, MetricsProcessor):
         elif optimizer_name == 'Adam':
             self.optimizer = Adam(optimization_parameters, **optimizer_params)
         else:
-            raise ValueError(f"Invaild optimizer name: {optimizer_name}")
+            raise ValueError(f"Invalid optimizer name: {optimizer_name}")
+        
+        checkpoint_to_load = self.global_config.train.get('load_model_path', '')
+        if checkpoint_to_load:
+            checkpoint = torch.load(checkpoint_to_load, map_location=self.device)
+            if 'optimizer_states' in checkpoint:
+                logger.info(f"Loading optimizer")
+                self.optimizer.load_state_dict(checkpoint['optimizer_states'][0]) 
         
         num_warmup_steps = self.optimizer_config.get('scheduler_params', {}).get('num_warmup_steps', 0)
         if self.optimizer_config.get('scheduler', None) == 'linear':
@@ -348,8 +351,6 @@ class FLMRBaseExecutor(BaseExecutor, MetricsProcessor):
                 # REQUIRED: The scheduler instance
                 "scheduler": self.scheduler,
                 # The unit of the scheduler's step size, could also be 'step'.
-                # 'epoch' updates the scheduler on epoch end whereas 'step'
-                # updates it after a optimizer update.
                 "interval": "step",
                 # How many epochs/steps should pass between calls to
                 # `scheduler.step()`. 1 corresponds to updating the learning
@@ -413,7 +414,7 @@ class FLMRBaseExecutor(BaseExecutor, MetricsProcessor):
         self.log("train/ib_loss", ib_loss, on_step=True, logger=True, sync_dist=True)
         
         data_to_return = {
-            'loss': batch_loss,
+            'loss': ib_loss,
         }
         return data_to_return
     

@@ -71,7 +71,7 @@ conda deactivate
 conda deactivate
 source hpc/conda.sh
 
-application="python src/main.py --config configs/data/FLMR.jsonnet --mode train --reset --override"
+application="python src/main.py --config configs/FLMR/oven_FLMR.jsonnet --mode train --experiment_name Oven_PreFLMR_New --opts train.load_model_path=\"/home/fz288/rds/hpc-work/PreFLMR/experiments/Oven_PreFLMR_New/train/saved_models/model_step_500.ckpt\" train.model_checkpoint_callback_paras.filename=\"model_step_{step}_restart_v2\""
 
 #! Are you using OpenMP (NB this is unrelated to OpenMPI)? If so increase this
 #! safe value to no more than 128:

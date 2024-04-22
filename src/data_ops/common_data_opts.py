@@ -210,7 +210,6 @@ class PrepareDataloaders(BaseTransform):
                     for extra_column, extra_column_from in self.extra_columns.items():
                         print("extra_column", extra_column, "extra_column_from", extra_column_from)
                         dataset_dict[extra_column] = input_data[extra_column_from]
-
                 dataset = globals()[dataset_type](self.global_config, dataset_dict)
                 # for i in dataset:
                 #     pprint(i)

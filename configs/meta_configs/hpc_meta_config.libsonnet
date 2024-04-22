@@ -17,8 +17,8 @@ local default_meta = {
   "TENSORBOARD_FOLDER": "tensorboards", 
   "WANDB": {
       "CACHE_DIR":  wandb_cache_dir,
-      "entity": "fz288",
-      "project": "PreFLMR",
+      "entity": "byrne-lab",
+      "project": "PreFLMR MLMI",
       "tags": [],
   },
   "logger_enable": ["tensorboard", "wandb"], # "wandb" for wandb logger, "csv" for csv logger

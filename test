@@ -1,5 +1,12 @@
 python src/main.py --config configs/data/FLMR.jsonnet --mode train --reset --override
-python -c 'import wandb ; wandb.init(project="PreFLMR")'
+python src/main.py --config configs/data/FLMR.jsonnet --mode test --test_suffix model_step_1000 --opts train.load_model_path="/home/fz288/rds/hpc-work/PreFLMR/experiments/default_DPR/train/saved_models/model_step_1000.ckpt" 
+
+python src/main.py --config configs/FLMR/oven_FLMR.jsonnet --mode train --opts train.load_model_path="experiments/Oven_PreFLMR/train/saved_models/model_step_500_restart_v3.ckpt" train.model_checkpoint_callback_paras.filename="model_step_{step}_restart_v4" 
+
+
+python src/main.py --config configs/FLMR/oven_FLMR.jsonnet --mode train --experiment_name Oven_PreFLMR_New --opts train.load_model_path="/home/fz288/rds/hpc-work/PreFLMR/experiments/Oven_PreFLMR_New/train/saved_models/model_step_500_restart_v11.ckpt" train.model_checkpoint_callback_paras.filename="model_step_{step}_restart_v12"
+
+python -c 'import wandb ; wandb.init(project="PreFLMR MLMI")'
 from datasets import DatasetDict
 x = DatasetDict.load_from_disk('/home/fz288/rds/hpc-work/PreFLMR/cache/process:ConcatenateDatasets-81353e53c956be30cfee960db8ff4323.hf')
 
