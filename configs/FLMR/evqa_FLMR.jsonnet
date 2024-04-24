@@ -69,6 +69,11 @@ local data_loader = {
           test: [
             {
               dataset_type: 'EVQADatasetForDPR',
+              split: 'train',
+              use_column: 'evqa_data',
+            },
+            {
+              dataset_type: 'EVQADatasetForDPR',
               split: 'test',
               use_column: 'evqa_data',
             },

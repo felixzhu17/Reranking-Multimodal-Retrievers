@@ -237,8 +237,9 @@ class LoadOKVQAData(HFDatasetTransform):
         self.data = EasyDict()
         
     def _call(self, inputs, **kwargs):
-        for input_data in inputs:
-            self.data.update(input_data)
+        if inputs:
+            for input_data in inputs:
+                self.data.update(input_data)
 
         module_config = self.module_config
 

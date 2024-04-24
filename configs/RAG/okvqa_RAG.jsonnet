@@ -1,5 +1,5 @@
-local meta = import '../../meta_configs/hpc_meta_config.libsonnet';
-local data = import 'okvqa_data_config.libsonnet';
+local meta = import '../meta_configs/hpc_meta_config.libsonnet';
+local data = import '../data/okvqa_data_config.libsonnet';
 local okvqa_data = data.okvqa_data_pipeline;
 
 local tokenizer_config = {
@@ -33,8 +33,6 @@ local data_loader = {
     'output:PrepareDataloaders': {
       input_node: [
         'process:LoadOKVQAData',
-        'input:LoadGoogleSearchPassageData',
-        // 'input:LoadGoogleSearchAnnotations',
       ],
       transform_name: 'PrepareDataloaders',
       regenerate: true,

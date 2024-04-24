@@ -18,7 +18,7 @@ from transformers import T5Tokenizer, T5ForConditionalGeneration, T5Config, T5Pr
 from transformers import VisualBertModel, VisualBertConfig, BertTokenizer
 from transformers import DPRQuestionEncoder, DPRContextEncoder, DPRConfig
 from transformers import BertModel, BertConfig
-# from transformers.models.rag.retrieval_rag import CustomHFIndex, CanonicalHFIndex
+from transformers.models.rag.retrieval_rag import CustomHFIndex, CanonicalHFIndex
 from transformers import Blip2ForConditionalGeneration, Blip2Config
 from src.models.retriever.retriever_dpr import RetrieverDPR
 
@@ -217,33 +217,11 @@ class RagModelForBlip(pl.LightningModule):
                     self.question_encoder.load_state_dict(pretrained_dict)
                     logger.info(f"Loaded the following parameters to question_encoder from the given checkpoint: {pretrained_dict.keys()}")
                     
-                    # Additionally, we load the vision projection weights for VisualColBERT
-                    # checkpoint_to_load = os.path.join(
-                    #     self.config.model_config.QueryEncoderModelVersion,
-                    #     "vision_projection.pt",
-                    # )
-                    # if os.path.exists(checkpoint_to_load):
-                    #     # We manually load the state dict
-                    #     print(f"Loading from {checkpoint_to_load}")
-                    #     state_dict_from_ckpt = torch.load(checkpoint_to_load, map_location=self.device)
-                    #     self.question_encoder.vision_projection.load_state_dict(state_dict_from_ckpt)
-                    #     print(f"Load the following parameters to vision_projection from the given checkpoint: {state_dict_from_ckpt.keys()}")
-                    # else:
-                    #     logger.warning("No vision projection weights found.")
 
                 else:
                     self.question_encoder = QueryEncoderModelClass(
                         name=colbert_config.checkpoint, 
                         colbert_config=colbert_config)
-                    
-
-                # self.question_encoder.raw_tokenizer = self.retriever_tokenizer
-
-                # Resize the bert embedding space to accommodate special tokens
-                # logger.info(f'tokenizer lengths = {len(self.tokenizer.tok)} and {len(self.decoder_tokenizer.tok)}')
-                # self.model.bert.resize_token_embeddings(
-                #     max(len(self.tokenizer.tok), len(self.decoder_tokenizer.tok))
-                # )
 
             else:
                 QueryEncoderConfigClass = globals()[self.config.model_config.QueryEncoderConfigClass]

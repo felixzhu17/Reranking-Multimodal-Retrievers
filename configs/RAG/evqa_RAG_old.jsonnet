@@ -1,4 +1,4 @@
-local meta = import '../../meta_configs/hpc_meta_config.libsonnet';
+local meta = import '../meta_configs/hpc_meta_config.libsonnet';
 local okvqa_data_pipeline_config = import "../../okvqa/wikipedia/okvqa_data_config.libsonnet";
 local okvqa_data_pipeline = okvqa_data_pipeline_config.okvqa_data_pipeline;
 

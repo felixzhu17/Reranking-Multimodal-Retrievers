@@ -17,3 +17,6 @@ def load_pickle_data(data_file_name):
         load_pickle_data = pickle.load(f)['cache']
     return EasyDict(load_pickle_data)
 x = load_pickle_data('/home/fz288/rds/hpc-work/PreFLMR/cache/output:PrepareDataloaders-ea7e8861a8e3ae97051f48a72dd89e2e.pkl')
+
+
+python src/main.py --config configs/RAG/okvqa_RAG.jsonnet
