@@ -179,11 +179,11 @@ local data_pipeline = std.mergePatch(merge_data, data_loader);
         },
     },
     train: {
-        batch_size: 4,
+        batch_size: 2,
         num_dataloader_workers: 0,
         trainer_paras: {
             max_epochs: 10,
-            accumulate_grad_batches: 8,
+            accumulate_grad_batches: 16,
             check_val_every_n_epoch: null,
             val_check_interval: 10,
             log_every_n_steps: 10,
@@ -239,5 +239,6 @@ local data_pipeline = std.mergePatch(merge_data, data_loader);
     "metrics": [
         {'name': 'compute_exact_match'},
         {'name': 'compute_retrieval_metrics'},
+        {'name': 'compute_okvqa_scores'},
     ],
 }
