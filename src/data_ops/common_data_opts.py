@@ -211,33 +211,7 @@ class PrepareDataloaders(BaseTransform):
                         print("extra_column", extra_column, "extra_column_from", extra_column_from)
                         dataset_dict[extra_column] = input_data[extra_column_from]
                 dataset = globals()[dataset_type](self.global_config, dataset_dict)
-                # for i in dataset:
-                #     pprint(i)
-                #     input()
-                
-                # # Save data to src/tgt file format
-                # save_path_src = os.path.join(
-                #     self.config.DATA_FOLDER, f"{use_split}.source"
-                # )
-                # save_path_tgt = os.path.join(
-                #     self.config.DATA_FOLDER, f"{use_split}.target"
-                # )
-                # source = []
-                # target = []
-                # for i in dataset:
-                #     source.append(i['question'])
-                #     concat_answers = [", ".join(i['answers'])] + [", ".join(ans) for ans in i.get('alternative_answers', [])]
-                #     target.append(
-                #         ("||".join(concat_answers) + "|||" + i['pos_item_id']).replace("\n", " ")
-                #     )
-                
-                # with open(save_path_src, 'w') as f:
-                #     f.write('\n'.join(source) + '\n')
-                # with open(save_path_tgt, 'w') as f:
-                #     f.write('\n'.join(target) + '\n')
-                # print(f"done saving files {save_path_src} and {save_path_tgt}.")
-                # input()
-
+    
                 if mode == 'train':
                     sampler = RandomSampler(dataset)
                 else:
@@ -251,15 +225,7 @@ class PrepareDataloaders(BaseTransform):
                     num_workers=self.global_config[mode].get('num_dataloader_workers', 0),
                 )
                 
-                # if mode == 'train':
-                # print(f"Data loader for {mode}/{dataset_type}.{use_split} has {len(data_loader)} batches")
-                # input()
-                # for i in data_loader:
-                #     # pprint(i)
-                #     input('done!')
-                #     # break
 
-                # self.datasets[mode][f"{mode}/{dataset_type}.{use_split}"] = dataset
                 prepared_dataloaders.setdefault(mode, {})[f"{mode}/{dataset_type}.{use_split}"] = data_loader
                 
                 logger.info(f'[Data Statistics]: {mode} data loader: {mode}/{dataset_type}.{use_split} {len(data_loader)}')

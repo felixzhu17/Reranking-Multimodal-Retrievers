@@ -1,11 +1,12 @@
 local meta = import '../meta_configs/hpc_meta_config.libsonnet';
-local data = import '../data/okvqa_data_config.libsonnet';
-local okvqa_data = data.okvqa_data_pipeline;
+local data = import '../data/okvqa_data.libsonnet';
+local merge_data = data.merge_data_pipeline;
+
 
 local tokenizer_config = {
   "tokenizer": {
     "TokenizerClass": "QueryTokenizer",
-    "TokenizerModelVersion": "/rds/project/rds-hirYTW1FQIw/shared_space/vqa_data/KBVQA_data/checkpoints/colbertv2.0",
+    "TokenizerModelVersion": "/home/fz288/rds/rds-cvnlp-hirYTW1FQIw/shared_space/vqa_data/KBVQA_data/checkpoints/colbertv2.0",
     "SPECIAL_TOKENS":{
       "additional_special_tokens": ["<BOV>", "<SOV>", "<EOV>", "<BOQ>", "<EOQ>", "<BOC>", "<EOC>", "<BOK>", "<EOK>"],
     },
@@ -13,34 +14,49 @@ local tokenizer_config = {
   "decoder_tokenizer": {
     "TokenizerClass": "Blip2Processor",
     "TokenizerModelVersion": "Salesforce/blip2-flan-t5-xl",
-    // "TokenizerModelVersion": "Salesforce/blip2-opt-2.7b",
     "SPECIAL_TOKENS":{
       "additional_special_tokens": [],
-      // "additional_special_tokens": ["<BOV>", "<SOV>", "<EOV>", "<BOQ>", "<EOQ>", "<BOC>", "<EOC>", "<BOK>", "<EOK>"],
     },
   },
 };
 local feature_extractor_config = {
 };
+local image_processor_config = {
+  "vit_image_processor": {
+    "ImageProcessorClass": "AutoImageProcessor",
+    "ImageProcessorModelVersion": "openai/clip-vit-base-patch32",
+  },
+};
 
 local index_files = {
-//   "index_passages_path": "ColBERT_NQTables_bz4_negative4_fix_doclen_full_search_NewcrossGPU/test/nq_tables_all/step_5427/table_dataset",
-  "index_path": "$OKVQA_ColBERT_full_corpus/test/generate_index/step_4501/colbert_index",
-  "embedding_path": "$OKVQA_ColBERT_full_corpus/test/generate_index/step_4501/item_embeddings.pkl",
+  "index_path": "",
+  "embedding_path": "",
+  "static_results": [
+    "/home/fz288/rds/hpc-work/PreFLMR/experiments/OKVQA_PreFLMR/test/index/index_test_OKVQADatasetForDPR.test_predictions_rank_0.json",
+    "/home/fz288/rds/hpc-work/PreFLMR/experiments/OKVQA_PreFLMR/test/index/index_test_OKVQADatasetForDPR.train_predictions_rank_0.json",
+  ],
 };
+local QueryEncoderModelVersion = "/home/fz288/rds/rds-cvnlp-hirYTW1FQIw/shared_space/vqa_data/KBVQA_data/checkpoints/colbertv2.0";
+
 local data_loader = {
   transforms: {
     'output:PrepareDataloaders': {
       input_node: [
-        'process:LoadOKVQAData',
+        'process:ConcatenatePassageDatasets',
+        'process:WrapOutputIntoKeys',
       ],
       transform_name: 'PrepareDataloaders',
       regenerate: true,
-      cache: false,
+      cache: true,
       setup_kwargs: {
-        extra_columns: ["passages"],
+        extra_columns: {
+          "passages": "train_passages",
+          "valid_passages": "valid_passages",
+        },
         pass_columns: {
-          "passages": "passages",
+          "train_passages": "train_passages",
+          "valid_passages": "valid_passages",
+          "test_passages": "test_passages",
           "vqa_data": "okvqa_data",
         },
         datasets_config: {
@@ -68,20 +84,19 @@ local data_loader = {
         },
         tokenizer_config: tokenizer_config,
         feature_extractor_config: feature_extractor_config,
+        image_processor_config: image_processor_config,
       },
     },
   },
 };
 
-local okvqa_data_pipeline = std.mergePatch(okvqa_data, data_loader);
-
-
+local data_pipeline = std.mergePatch(merge_data, data_loader);
 
 {
     experiment_name: 'default_RAG',
     test_suffix: 'default_test',
     meta: meta.default_meta,
-    data_pipeline: okvqa_data_pipeline,
+    data_pipeline: data_pipeline,
     model_config: {
         "base_model": "RAG",
         "ModelClass": "RagModelForBlip",
@@ -89,13 +104,12 @@ local okvqa_data_pipeline = std.mergePatch(okvqa_data, data_loader);
         "DecoderTokenizerClass": tokenizer_config.decoder_tokenizer.TokenizerClass,  // generator tokenizer
         "DecoderTokenizerModelVersion": tokenizer_config.decoder_tokenizer.TokenizerModelVersion, // generator tokenizer version
         
-        "QueryEncoderModelClass": "ColBERT", // question encoder
-        "QueryEncoderModelVersion": "$OKVQA_ColBERT_full_corpus/train/saved_models/step_4501",
-
+        "QueryEncoderModelClass": "FLMRWithoutVisionModel", // question encoder
+        "QueryEncoderModelVersion": QueryEncoderModelVersion,
+        
         "GeneratorModelClass": "Blip2ForConditionalGeneration", // answer generator
         "GeneratorConfigClass": "Blip2Config",
         "GeneratorModelVersion": "Salesforce/blip2-flan-t5-xl",
-        // "GeneratorModelVersion": "Salesforce/blip2-opt-2.7b",
         "pretrained": 1,
         "RAVQA_loss_type": "Approach6",
         "loss_ratio": {
@@ -106,13 +120,19 @@ local okvqa_data_pipeline = std.mergePatch(okvqa_data, data_loader);
         "modules": [
             "freeze_question_encoder",
             "force_existence",
+            "static_retrieval"
         ],
         "Ks": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 20, 50, 80, 100],
         "num_beams": 5,
+        "num_knowledge_passages_in_training": 5,
+        "num_ROIs": 9,
         "max_source_length":512,
         "max_decoder_source_length": 512,
         'max_target_length':10,
         'num_knowledge_passages': 5,
+        "mapping_network_prefix_length": 32,
+        "vision_embedding_size": 768,
+        "lm_embedding_size": 128,
         "index_files": index_files,
         "prepend_tokens": {
             "query_encoder": "",
@@ -159,14 +179,17 @@ local okvqa_data_pipeline = std.mergePatch(okvqa_data, data_loader);
         },
     },
     train: {
-        batch_size: 8,
+        batch_size: 4,
         num_dataloader_workers: 0,
         trainer_paras: {
             max_epochs: 10,
-            accumulate_grad_batches: 4,
+            accumulate_grad_batches: 8,
             check_val_every_n_epoch: null,
             val_check_interval: 10,
             log_every_n_steps: 10,
+        },
+        trainer_fit_paras: {
+            ckpt_path: null,
         },
         model_checkpoint_callback_paras: {
             monitor: 'valid/OKVQADataset.test/accuracy_overall',
@@ -199,7 +222,7 @@ local okvqa_data_pipeline = std.mergePatch(okvqa_data, data_loader);
         label_smoothing_factor: 0.1,
     },
     valid: {
-        batch_size: 64,
+        batch_size: 2,
         num_dataloader_workers: 0,
     },
     test: {
@@ -207,7 +230,7 @@ local okvqa_data_pipeline = std.mergePatch(okvqa_data, data_loader);
         load_model_path: "",
         load_best_model: false,
         trainer_paras: {},
-        batch_size: 64,
+        batch_size: 2,
         num_dataloader_workers: 0,
     },
     eval: {
@@ -216,6 +239,5 @@ local okvqa_data_pipeline = std.mergePatch(okvqa_data, data_loader);
     "metrics": [
         {'name': 'compute_exact_match'},
         {'name': 'compute_retrieval_metrics'},
-        {'name': 'compute_okvqa_scores'},
     ],
 }

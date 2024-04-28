@@ -45,6 +45,7 @@ from pytorch_lightning.plugins import CheckpointIO
 from colbert.infra import Run, RunConfig, ColBERTConfig
 from colbert.modeling.colbert import ColBERT
 from src.models.retriever.visual_colbert import *
+from src.models.rag import RagModelForBlip
 from colbert.modeling.tokenization import QueryTokenizer, DocTokenizer, tensorize_triples
 from functools import partial
 

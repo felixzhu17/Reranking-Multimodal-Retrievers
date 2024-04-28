@@ -575,13 +575,6 @@ class MetricsProcessor():
                 else:
                     hit.append(0)
             
-            # print("---------------------")
-            # print('pos_item_ids:', pos_item_ids)
-            # print('top_ranking_passages', [passage_data['passage_id'] for passage_data in top_ranking_passages[:max_K]])
-            # print("hit:", hit)
-            # print("---------------------")
-            # input()
-            
             for indexK, K in enumerate(Ks):
                 if sum(hit[:K]) > 0:
                     # At least one answer is retireved

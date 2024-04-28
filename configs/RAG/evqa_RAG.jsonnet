@@ -36,7 +36,7 @@ local index_files = {
     "/home/wl356/big_picture_rds/wl356/FLMR_release_experiments/OKVQA_FLMR_10ROI_with_text_based_vision_generate_index/test/generate_index/generate_index_test_OKVQADatasetForDPR.train_predictions_rank_0.json",
   ],
 };
-local QueryEncoderModelVersion = "/rds/project/rds-hirYTW1FQIw/shared_space/vqa_data/KBVQA_data/checkpoints/colbertv2.0";
+local QueryEncoderModelVersion = "/home/fz288/rds/rds-cvnlp-hirYTW1FQIw/shared_space/vqa_data/KBVQA_data/checkpoints/colbertv2.0";
 
 local data_loader = {
   transforms: {
@@ -57,26 +57,26 @@ local data_loader = {
           "train_passages": "train_passages",
           "valid_passages": "valid_passages",
           "test_passages": "test_passages",
-          "vqa_data_with_dpr_output": "evqa_data",
+          "vqa_data": "evqa_data",
         },
         datasets_config: {
           train: [
             {
-              dataset_type: 'EVQADatasetForDPR',
+              dataset_type: 'EVQADataset',
               split: 'train',
               use_column: 'evqa_data',
             },
           ],
           valid: [
             {
-              dataset_type: 'EVQADatasetForDPR',
+              dataset_type: 'EVQADataset',
               split: 'test',
               use_column: 'evqa_data',
             },
           ],
           test: [
             {
-              dataset_type: 'EVQADatasetForDPR',
+              dataset_type: 'EVQADataset',
               split: 'test',
               use_column: 'evqa_data',
             },
@@ -89,8 +89,6 @@ local data_loader = {
     },
   },
 };
-
-local validation_indexing_source = ["evqa_passages"];
 
 local data_pipeline = std.mergePatch(merge_data, data_loader);
 
@@ -122,6 +120,7 @@ local data_pipeline = std.mergePatch(merge_data, data_loader);
         "modules": [
             "freeze_question_encoder",
             "force_existence",
+            "static_retrieval"
         ],
         "Ks": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 20, 50, 80, 100],
         "num_beams": 5,

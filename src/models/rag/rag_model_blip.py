@@ -364,11 +364,6 @@ class RagModelForBlip(pl.LightningModule):
 
         # Generate query embeddings and obtain item embeddings from index
         if self.use_colbert:
-            # start = time.time()
-            # print("input_ids.shape", input_ids.shape)
-            # print(self.retriever_tokenizer.tok.batch_decode(input_ids))
-            # print("attention_mask.shape", attention_mask.shape)
-            # print("image_features.shape", image_features.shape)
             if image_features is not None:
                 Q = (input_ids, attention_mask, image_features)
             elif pixel_values is not None:
@@ -376,13 +371,6 @@ class RagModelForBlip(pl.LightningModule):
             else:
                 Q = (input_ids, attention_mask)
             question_hidden_states = self.question_encoder.query(*Q)
-            # print("embedding:")
-            # print(question_hidden_states)
-
-            # input()
-            # print(f"Query embedding time: {time.time() - start}")
-            
-            # start = time.time()
 
             custom_quries = {i: query for i, query in enumerate(input_text_sequences)}
             queries = Queries(data=custom_quries)
@@ -394,15 +382,11 @@ class RagModelForBlip(pl.LightningModule):
             
             ranking = self.index._search_all_Q(queries, question_hidden_states.cpu().detach(), k=n_docs_retrieve, progress=False)
             
-            # print(f"Retrieval time: {time.time() - start}")
-            
-            # pprint(ranking.todict())
             retrieval_results = ranking.todict()
 
             doc_scores = []
             all_retrieved_doc_indices = []
 
-            # start = time.time()
             
             for query_index, retrieved_docs in retrieval_results.items():
                 retrieved_doc_indices = []
@@ -434,7 +418,6 @@ class RagModelForBlip(pl.LightningModule):
 
                 doc_scores.append(scores)
                 all_retrieved_doc_indices.append(retrieved_doc_indices)
-                # print("processing time", time.time() - start)
             
             # batch_size x n_docs
             doc_scores = torch.stack(doc_scores)
@@ -444,14 +427,8 @@ class RagModelForBlip(pl.LightningModule):
             query_outputs = self.question_encoder(input_ids=input_ids,
                                                 attention_mask=attention_mask)
             question_hidden_states = query_outputs.pooler_output
-            # print('question_hidden_states', question_hidden_states.shape)
 
-            # start_time = time.time()
             ids, vectors = self.index.get_top_docs(question_hidden_states.cpu().detach().numpy(), n_docs)
-            # print(
-            #     f"index search time: {time.time() - start_time} sec, batch size {question_hidden_states.shape}"
-            # )
-            # print(ids)
 
             # question_hidden_states: batch_size x hidden_size
             # item_hidden_states: batch_size x n_docs x hidden_size
@@ -466,22 +443,10 @@ class RagModelForBlip(pl.LightningModule):
         if 'add_null_document' in self.config.model_config.modules:
             null_doc_scores = (question_hidden_states * self.null_embedding.unsqueeze(dim=0)).sum(dim=-1)
             # null_doc_scores: batch_size
-            # print('null_doc_scores', null_doc_scores)
+
             
         doc_scores_cpu = doc_scores.cpu().detach().numpy()
 
-        # start = time.time()
-
-        # print("Q_duplicated", Q_duplicated.shape)
-        # print("retrieved_item_embeddings", retrieved_item_embeddings.shape)
-        # print("retrieved_item_embeding_mask", retrieved_item_embeding_mask.shape)
-        
-        # # bz x q_len x dim  @ bz x dim x d_len
-        # # --> bz x q_len x d_len
-        # full_score_matrix = Q_duplicated.cuda() @ retrieved_item_embeddings.cuda().permute(0, 2, 1)
-        # # bz x q_len x d_len      bz x d_len x 1
-        # full_score_matrix = full_score_matrix * retrieved_item_embeding_mask.cuda().squeeze(-1)[:, None, :]
-        
         retrieved_docs = []
         for b in range(batch_size):
             doc_data = []
@@ -492,53 +457,12 @@ class RagModelForBlip(pl.LightningModule):
             else:
                 contents = self.index.get_doc_dicts(ids[b])
             
-            # # n_docs x q_len x d_len
-            # score_matrix = full_score_matrix[b:b+n_docs]
-            # for i in range(n_docs):
-            #     # q_len x d_len
-            #     q_to_d_scores = score_matrix[i]
-            #     q_input_ids = input_ids[b].detach().cpu().numpy().tolist() + ["global"] + [f"ROI_{i}_{j}" for i in range(9) for j in range(32) ]
-            #     d_content = contents[i]['text']
-            #     d_content = " ".join([".", "<BOK>", d_content, "<EOK>"])
-
-            #     d_input_ids = self.retriever_tokenizer.tok(d_content, max_length=512)["input_ids"]
-            #     print(q_to_d_scores)
-            #     print("q_input_ids", q_input_ids)
-            #     print("d_content", d_content)
-            #     print("d_input_ids", d_input_ids)
-
-            #     print("d_tokens", [self.retriever_tokenizer.tok.decode(d_id) for d_id in d_input_ids])
-
-            #     for q_index, q_id in enumerate(q_input_ids):
-            #         if q_id == 103:
-            #             continue
-            #         if isinstance(q_id, str):
-            #             q_token = q_id
-            #         else:
-            #             q_token = self.retriever_tokenizer.tok.decode(q_id)
-            #         q_token_to_doc_scores = q_to_d_scores[q_index]
-            #         max_score = torch.max(q_token_to_doc_scores)
-            #         max_score_toks = []
-            #         for d_index, d_token in enumerate(d_input_ids):
-            #             if q_token_to_doc_scores[d_index] == max_score:
-            #                 # print("===================")
-            #                 max_score_toks.append(self.retriever_tokenizer.tok.decode(d_token))
-            #                 # print(q_token, "--->", q_token_to_doc_scores[d_index], self.retriever_tokenizer.tok.decode(d_token))
-            #             # if q_token_to_doc_scores[d_index] == max_score:
-            #             #     print("===================")
-            #         print(q_token, "--->", q_token_to_doc_scores[d_index], max_score_toks)
-            #     print("===================")
-            #     input()
-            # input()
-            # print(contents)
-            # input()
 
             for i in range(n_docs):
                 if self.data_source == 'wiki':
                     content = 'title: ' + contents[i]['title'] + " content: " + contents[i]['text']
                 else:
                     content = contents[i].get('text', None) or contents[i].get('passage_content', None)
-                # content = ' '.join(['<BOK>', content, '<EOK>'])
                 content = ' '.join([content])
                 passage_data = {
                     'passage_id': str(ids[b, i]),
@@ -548,17 +472,13 @@ class RagModelForBlip(pl.LightningModule):
                 }
                 doc_data.append(passage_data)
             retrieved_docs.append(doc_data)
-        # print(f"retrieval postprocessing time: {time.time() - start} sec, batch size {batch_size}")
         assert len(retrieved_docs) == batch_size
         
         if 'add_null_document' in self.config.model_config.modules:
-            # print('doc_scores', doc_scores.shape) # batch_size x n_docs
             doc_scores = torch.cat([
                 null_doc_scores.reshape(batch_size, 1), # batch_size x 1
                 doc_scores,
             ], dim=-1)
-            # print('after doc_scores', doc_scores.shape) # batch_size x n_docs
-            # input()
 
         return EasyDict(
             retrieved_docs=retrieved_docs,
@@ -796,42 +716,6 @@ class RagModelForBlip(pl.LightningModule):
             if loss_ratio != 0:
                 total_loss += loss_dict[loss_name] * loss_ratio
         
-        
-        # additional_loss_ratio = self.config.model_config.additional_loss_ratio
-        # regularization_ratio = self.config.model_config.regularization_ratio
-        # marginalise_loss_ratio = self.config.model_config.marginalise_loss_ratio
-
-        # if additional_loss_ratio != 0:
-        #     # Add in-retrieval contrastive loss to the retriever!
-        #     answers = kwargs.get('answers', None)
-        #     assert answers is not None
-        #     retrieval_labels = self.get_retrieval_labels(
-        #         batch_answers=answers,
-        #         batch_retrieved_docs=retrieved_docs,
-        #     )
-        #     # print('retrieval_labels', retrieval_labels)
-        #     doc_scores_softmaxed = F.softmax(doc_scores, dim=-1)
-        #     retrieval_labels = retrieval_labels.to(doc_scores_softmaxed.device)
-        #     # print('doc_scores_softmaxed', doc_scores_softmaxed)
-        #     retrieval_loss = F.binary_cross_entropy(doc_scores_softmaxed, retrieval_labels)
-        #     # print(loss, retrieval_loss)
-        #     # input()
-        #     loss += retrieval_loss * additional_loss_ratio
-
-        
-        
-        # if regularization_ratio != 0 and batch_size > 1:
-        #     question_hidden_states = retrieval_results.question_hidden_states
-        #     cor = 0.0
-        #     for i in range(batch_size):
-        #         for j in range(i + 1, batch_size):
-        #             cor += self.DistanceCorrelation(question_hidden_states[i], question_hidden_states[j])
-            
-        #     print('cor', cor)
-        #     loss += regularization_ratio * cor[0]
-        
-        # if marginalise_loss_ratio != 0:
-        #     loss += marginalise_loss_ratio * loss_dict.dist_loss
 
         # function to extract grad
         def set_grad(var):
@@ -839,18 +723,7 @@ class RagModelForBlip(pl.LightningModule):
                 var.grad = grad
                 print('setting grad:', grad)
             return hook
-        
-        # answers = kwargs.get('answers', None)
-        # assert answers is not None
-        # retrieval_labels = self.get_retrieval_labels(
-        #     batch_answers=answers,
-        #     batch_retrieved_docs=retrieved_docs,
-        # )
-        # print(F.softmax(doc_scores, dim=-1))
-        # print(retrieval_labels)
-        # print('-------------')
-        # # register_hook for Z
-        # doc_scores.register_hook(set_grad(doc_scores))
+    
         return EasyDict(loss=total_loss,
                         loss_dict=loss_dict,
                         doc_scores=doc_scores.cpu().detach().numpy())
