@@ -195,9 +195,27 @@ class RerankModel(pl.LightningModule):
 
         self.config = config
         self.prepared_data = prepared_data
-        self.tokenizers = self.prepared_data['tokenizers']
-        self.retriever_tokenizer = self.tokenizers['tokenizer']
         # read from prepared data
+        
+        self.context_text_encoder = FLMRTextModel(config.text_config)
+        self.context_text_encoder_linear = nn.Linear(config.text_config.hidden_size, config.dim, bias=False)
+        self.context_vision_encoder = FLMRVisionModel(config.vision_config)
+        self.context_vision_projection = FLMRMultiLayerPerceptron(
+            (
+                self.vision_encoder_embedding_size,
+                (self.late_interaction_embedding_size * self.mapping_network_prefix_length) // 2,
+                self.late_interaction_embedding_size * self.mapping_network_prefix_length,
+            )
+        )
+        self.late_interaction_embedding_size = self.config.dim
+        
+
+
+        
+        self.reranker = CrossEncoder(config.cross_encoder_config)
+        self.loss_fn = nn.BCELoss()
+
+    def init_retrieve(self):
         self.passage_id2doc = None #self.prepared_data['passages'].id2doc
         
         import json
@@ -224,28 +242,39 @@ class RerankModel(pl.LightningModule):
                         self.questionId2topPassages[q_id] = top_ranking_passages
         logger.info(f"Loaded {len(self.questionId2topPassages)} static retrieval results.")
 
+    def init_transformer_mapping(self):
+        transformer_mapping_config_base = self.config.transformer_mapping_config_base
+        try:
+            from transformers import BertConfig
+            from transformers.models.bert.modeling_bert import BertEncoder
+        except Exception as e:
+            raise ImportError(f"Failed to import BertConfig and BertEncoder from transformers. {e}")
 
-        self.context_text_encoder = FLMRTextModel(config.text_config)
-        self.context_text_encoder_linear = nn.Linear(config.text_config.hidden_size, config.dim, bias=False)
-        self.context_vision_encoder = FLMRVisionModel(config.vision_config)
-        self.context_vision_projection = FLMRMultiLayerPerceptron(
-            (
-                self.vision_encoder_embedding_size,
-                (self.late_interaction_embedding_size * self.mapping_network_prefix_length) // 2,
-                self.late_interaction_embedding_size * self.mapping_network_prefix_length,
-            )
-        )
-        self.late_interaction_embedding_size = self.config.dim
-        
+        transformer_mapping_config = BertConfig.from_pretrained(transformer_mapping_config_base)
+
+        assert (
+            self.config.text_config.hidden_size == transformer_mapping_config.hidden_size
+        ), f"hidden_size {self.config.text_config.hidden_size} != transformer_mapping_config.hidden_size {transformer_mapping_config.hidden_size}. To use cross attention, the dimensions must match."
+        # shallow transformer
+        transformer_mapping_config.num_hidden_layers = self.config.transformer_mapping_num_hidden_layers
+        # add cross attention
+        transformer_mapping_config.is_decoder = True
+        transformer_mapping_config.add_cross_attention = True
+
+        # The linear layer from vision encoder to transformer input
         self.transformer_mapping_input_linear = nn.Linear(
             self.vision_encoder_embedding_size, transformer_mapping_config.hidden_size
         )
-        self.transformer_mapping_network = BertEncoder(transformer_mapping_config)
-        self.retrieve = self.static_retrieve
-        self.reranker = CrossEncoder(config.cross_encoder_config)
-        self.loss_fn = nn.BCELoss()
 
-    def static_retrieve(self, 
+        # The transformer encoder
+        self.transformer_mapping_network = BertEncoder(transformer_mapping_config)
+
+        # The linear layer from transformer output to FLMR dim
+        self.transformer_mapping_output_linear = nn.Linear(
+            transformer_mapping_config.hidden_size, self.late_interaction_embedding_size
+        )
+
+    def retrieve(self, 
                     input_ids: torch.Tensor,
                     question_ids: List, 
                     n_docs=None,
