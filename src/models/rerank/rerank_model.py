@@ -51,8 +51,7 @@ import random
 from src.models.custom_peft import PeftModelForSeq2SeqLM
 from src.models.flmr.models.flmr.modeling_flmr import FLMRQueryEncoderOutput, FLMRTextModel, FLMRVisionModel, FLMRMultiLayerPerceptron
 from transformers.models.bert.modeling_bert import BertEncoder
-
-
+from transformers import BertConfig
 
 class HFIndexBase(Index):
     def __init__(self, vector_size, dataset, index_initialized=False):
@@ -147,12 +146,6 @@ def shift_tokens_right(input_ids: torch.Tensor, pad_token_id: int, decoder_start
     return shifted_input_ids
 
 
-class CrossEncoderConfig:
-    # Configuration class for CrossEncoder
-    def __init__(self, hidden_size=768, num_labels=1):
-        self.hidden_size = hidden_size
-        self.num_labels = num_labels
-
 class CrossEncoder(PreTrainedModel):
     base_model_prefix = "bert_model"
     config_class = CrossEncoderConfig
@@ -195,24 +188,9 @@ class RerankModel(pl.LightningModule):
 
         self.config = config
         self.prepared_data = prepared_data
-        # read from prepared data
-        
-        self.context_text_encoder = FLMRTextModel(config.text_config)
-        self.context_text_encoder_linear = nn.Linear(config.text_config.hidden_size, config.dim, bias=False)
-        self.context_vision_encoder = FLMRVisionModel(config.vision_config)
-        self.context_vision_projection = FLMRMultiLayerPerceptron(
-            (
-                self.vision_encoder_embedding_size,
-                (self.late_interaction_embedding_size * self.mapping_network_prefix_length) // 2,
-                self.late_interaction_embedding_size * self.mapping_network_prefix_length,
-            )
-        )
-        self.late_interaction_embedding_size = self.config.dim
-        
-
-
-        
-        self.reranker = CrossEncoder(config.cross_encoder_config)
+        self.init_retrieve()
+        self.init_model_base()
+        self.init_reranker()
         self.loss_fn = nn.BCELoss()
 
     def init_retrieve(self):
@@ -242,14 +220,27 @@ class RerankModel(pl.LightningModule):
                         self.questionId2topPassages[q_id] = top_ranking_passages
         logger.info(f"Loaded {len(self.questionId2topPassages)} static retrieval results.")
 
+    def init_reranker(self):
+        cross_encoder_config_base = self.config.cross_encoder_config_base
+        cross_encoder_config = BertConfig.from_pretrained(cross_encoder_config_base)
+        self.reranker = CrossEncoder(cross_encoder_config)
+
+    def init_model_base(self):
+        self.late_interaction_embedding_size = self.config.dim
+        self.context_text_encoder = FLMRTextModel(self.config.text_config)
+        self.context_text_encoder_linear = nn.Linear(self.config.text_config.hidden_size, self.config.dim, bias=False)
+        self.context_vision_encoder = FLMRVisionModel(self.config.vision_config)
+        self.context_vision_projection = FLMRMultiLayerPerceptron(
+            (
+                self.vision_encoder_embedding_size,
+                (self.late_interaction_embedding_size * self.mapping_network_prefix_length) // 2,
+                self.late_interaction_embedding_size * self.mapping_network_prefix_length,
+            )
+        )
+        self.init_transformer_mapping()
+
     def init_transformer_mapping(self):
         transformer_mapping_config_base = self.config.transformer_mapping_config_base
-        try:
-            from transformers import BertConfig
-            from transformers.models.bert.modeling_bert import BertEncoder
-        except Exception as e:
-            raise ImportError(f"Failed to import BertConfig and BertEncoder from transformers. {e}")
-
         transformer_mapping_config = BertConfig.from_pretrained(transformer_mapping_config_base)
 
         assert (
@@ -274,6 +265,7 @@ class RerankModel(pl.LightningModule):
             transformer_mapping_config.hidden_size, self.late_interaction_embedding_size
         )
 
+  
     def retrieve(self, 
                     input_ids: torch.Tensor,
                     question_ids: List, 
