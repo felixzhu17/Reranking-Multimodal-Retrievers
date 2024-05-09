@@ -49,7 +49,8 @@ from typing import Iterable, List, Optional, Tuple
 from peft import get_peft_config, get_peft_model, LoraConfig, TaskType
 import random
 from src.models.custom_peft import PeftModelForSeq2SeqLM
-
+from src.models.flmr.models.flmr.modeling_flmr import FLMRQueryEncoderOutput, FLMRTextModel, FLMRVisionModel, FLMRMultiLayerPerceptron
+from transformers.models.bert.modeling_bert import BertEncoder
 
 
 
@@ -146,6 +147,45 @@ def shift_tokens_right(input_ids: torch.Tensor, pad_token_id: int, decoder_start
     return shifted_input_ids
 
 
+class CrossEncoderConfig:
+    # Configuration class for CrossEncoder
+    def __init__(self, hidden_size=768, num_labels=1):
+        self.hidden_size = hidden_size
+        self.num_labels = num_labels
+
+class CrossEncoder(PreTrainedModel):
+    base_model_prefix = "bert_model"
+    config_class = CrossEncoderConfig
+
+    def __init__(self, config: CrossEncoderConfig):
+        super().__init__(config)
+        # Initialize the BERT model with a pooling layer
+        self.bert_model = BertModel(config, add_pooling_layer=True)
+        # Define a classifier layer which projects the CLS token's embedding
+        self.classifier = nn.Linear(config.hidden_size, 1)
+        # Define a sigmoid activation function to output a probability score
+        self.sigmoid = nn.Sigmoid()
+
+    def forward(self, input_ids, attention_mask=None, token_type_ids=None):
+        # Forward pass through BERT model
+        outputs = self.bert_model(input_ids=input_ids,
+                                  attention_mask=attention_mask,
+                                  token_type_ids=token_type_ids,
+                                  return_dict=True)
+
+        # Get the CLS token's output (first token of sequence output)
+        cls_output = outputs.last_hidden_state[:, 0]
+
+        # Pass the CLS token's output through the classifier to get the logit
+        logits = self.classifier(cls_output)
+
+        # Apply sigmoid activation to convert logits to probabilities
+        probabilities = self.sigmoid(logits)
+
+        return probabilities
+
+
+
 class RerankModel(pl.LightningModule):
     '''
     Class for RAG, re-implementation
@@ -156,14 +196,10 @@ class RerankModel(pl.LightningModule):
         self.config = config
         self.prepared_data = prepared_data
         self.tokenizers = self.prepared_data['tokenizers']
-
         self.retriever_tokenizer = self.tokenizers['tokenizer']
-        self.generator_tokenizer = self.tokenizers['decoder_tokenizer']
-
         # read from prepared data
         self.passage_id2doc = None #self.prepared_data['passages'].id2doc
         
-
         import json
         # load all predictions in 
         self.questionId2topPassages = {}
@@ -189,15 +225,25 @@ class RerankModel(pl.LightningModule):
         logger.info(f"Loaded {len(self.questionId2topPassages)} static retrieval results.")
 
 
-        # Initialising question encoder
-        RerankerModelClass = globals()[self.config.model_config.RerankerModelClass]
-
-
-        self.reranker = RerankerModelClass(
-            name=xxx.checkpoint, 
-            colbert_config=xxx)
-
+        self.context_text_encoder = FLMRTextModel(config.text_config)
+        self.context_text_encoder_linear = nn.Linear(config.text_config.hidden_size, config.dim, bias=False)
+        self.context_vision_encoder = FLMRVisionModel(config.vision_config)
+        self.context_vision_projection = FLMRMultiLayerPerceptron(
+            (
+                self.vision_encoder_embedding_size,
+                (self.late_interaction_embedding_size * self.mapping_network_prefix_length) // 2,
+                self.late_interaction_embedding_size * self.mapping_network_prefix_length,
+            )
+        )
+        self.late_interaction_embedding_size = self.config.dim
+        
+        self.transformer_mapping_input_linear = nn.Linear(
+            self.vision_encoder_embedding_size, transformer_mapping_config.hidden_size
+        )
+        self.transformer_mapping_network = BertEncoder(transformer_mapping_config)
         self.retrieve = self.static_retrieve
+        self.reranker = CrossEncoder(config.cross_encoder_config)
+        self.loss_fn = nn.BCELoss()
 
     def static_retrieve(self, 
                     input_ids: torch.Tensor,
@@ -290,25 +336,187 @@ class RerankModel(pl.LightningModule):
                       input_text_sequences: List,
                     **kwargs):
 
+        batch_size = query_input_ids.shape[0]
         n_docs = self.config.model_config.num_knowledge_passages_in_training
         
         # Retrieve docs for given question inputs
         retrieval_results = self.retrieve(query_input_ids, question_ids, n_docs=n_docs)
         retrieved_docs, doc_scores = retrieval_results.retrieved_docs, retrieval_results.doc_scores
+        output_attentions = output_attentions if output_attentions is not None else self.config.output_attentions
+        output_hidden_states = (
+            output_hidden_states if output_hidden_states is not None else self.config.output_hidden_states
+        )
+        query_input_ids = query_input_ids.repeat_interleave(n_docs + 1, dim=0).contiguous()
+        query_pixel_values = query_pixel_values.repeat_interleave(n_docs + 1, dim=0).contiguous()
+        query_text_ids = torch.cat([query_input_ids, context_input_ids], dim=0)
+        query_outputs = self.query(query_input_ids, attention_mask, query_pixel_values, query_image_features, output_attentions, output_hidden_states)
+        scores = self.reranker(query_outputs.late_interaction_output, attention_mask)
+        labels = torch.zeros(1, n_docs + 1)
+        labels[0, 0] = 1
+        labels = labels.repeat(batch_size, 1)
+        loss = self.loss_fn(scores, labels)
+        return loss
 
 
-        true_score = self.reranker(query_input_ids, query_pixel_values, context_input_ids, )
-        for i in retrieved_docs: 
-            if i != context:
-                other_scores = self.reranker(query_input_ids, query_pixel_values, i.input_ids)
-        
-        self.loss(true_score, other_scores)
-
-
-    def get_loss(
-        self, seq_logits, doc_scores, target, reduce_loss=True, epsilon=0.0, exclude_bos_score=False, ignore_index=-100, n_docs=None, retrieval_labels=None,
+    def query(
+        self,
+        input_ids: torch.Tensor,
+        attention_mask: torch.Tensor,
+        pixel_values: Optional[torch.Tensor] = None,
+        image_features: Optional[torch.Tensor] = None,
+        output_attentions: Optional[bool] = None,
+        output_hidden_states: Optional[bool] = None,
     ):
-       ...
+        r"""
+        Returns:
+
+        """
+
+        output_attentions = output_attentions if output_attentions is not None else self.config.output_attentions
+        output_hidden_states = (
+            output_hidden_states if output_hidden_states is not None else self.config.output_hidden_states
+        )
+
+        input_modality = []
+        if pixel_values is not None or image_features is not None:
+            input_modality.append("image")
+        if input_ids is not None and attention_mask is not None:
+            input_modality.append("text")
+
+        text_encoder_outputs = None
+        vision_encoder_outputs = None
+        transformer_mapping_outputs = None
+
+        if "image" in input_modality:
+            assert (
+                pixel_values is not None or image_features is not None
+            ), "pixel_values or image_features must be provided if image modality is used"
+            assert (
+                pixel_values is None or image_features is None
+            ), "pixel_values and image_features cannot be provided at the same time"
+
+        if "text" in input_modality:
+            assert (
+                input_ids is not None and attention_mask is not None
+            ), "input_ids and attention_mask must be provided if text modality is used"
+            # Forward the text encoder
+            input_ids, attention_mask = input_ids.to(self.device), attention_mask.to(self.device)
+            text_encoder_outputs = self.context_text_encoder(input_ids, attention_mask=attention_mask)
+            text_encoder_hidden_states = text_encoder_outputs[0]
+            text_embeddings = self.context_text_encoder_linear(text_encoder_hidden_states)
+            mask = torch.tensor(self.query_mask(input_ids, skiplist=[]), device=self.device).unsqueeze(2).float()
+
+            text_embeddings = text_embeddings * mask
+
+        if "image" in input_modality:
+            if pixel_values is not None:
+                batch_size = pixel_values.shape[0]
+                # Forward the vision encoder
+                pixel_values = pixel_values.to(self.device)
+                if len(pixel_values.shape) == 5:
+                    # Multiple ROIs are provided
+                    # merge the first two dimensions
+                    pixel_values = pixel_values.reshape(
+                        -1, pixel_values.shape[2], pixel_values.shape[3], pixel_values.shape[4]
+                    )
+                vision_encoder_outputs = self.context_vision_encoder(pixel_values, output_hidden_states=True)
+                vision_embeddings = vision_encoder_outputs.last_hidden_state[:, 0]
+
+            if image_features is not None:
+                batch_size = image_features.shape[0]
+                vision_embeddings = image_features.to(self.device)
+
+            # Forward the vision projection / mapping network
+            vision_embeddings = self.context_vision_projection(vision_embeddings)
+            vision_embeddings = vision_embeddings.view(batch_size, -1, self.late_interaction_embedding_size)
+
+            if self.config.use_transformer_mapping_network:
+                # select the second last layer
+                vision_second_last_layer_hidden_states = vision_encoder_outputs.hidden_states[-2][:, 1:]
+                # transformer_mapping
+                transformer_mapping_input_features = self.transformer_mapping_input_linear(
+                    vision_second_last_layer_hidden_states
+                )
+
+                # Cross attention only attends to the first 32 tokens
+                encoder_mask = torch.ones_like(mask).to(mask.device, dtype=mask.dtype)
+                cross_attention_length = self.config.transformer_mapping_cross_attention_length
+                if text_encoder_hidden_states.shape[1] > cross_attention_length:
+                    text_encoder_hidden_states = text_encoder_hidden_states[:, :cross_attention_length]
+                    encoder_mask = encoder_mask[:, :cross_attention_length]
+
+                # Obtain cross attention mask
+                encoder_extended_attention_mask = self.invert_attention_mask(encoder_mask.squeeze(-1))
+                # Pass through the transformer mapping
+                transformer_mapping_outputs = self.transformer_mapping_network(
+                    transformer_mapping_input_features,
+                    encoder_hidden_states=text_encoder_hidden_states,
+                    encoder_attention_mask=encoder_extended_attention_mask,
+                )
+                transformer_mapping_output_features = transformer_mapping_outputs.last_hidden_state
+                # Convert the dimension to FLMR dim
+                transformer_mapping_output_features = self.transformer_mapping_output_linear(
+                    transformer_mapping_output_features
+                )
+                # Merge with the vision embeddings
+                vision_embeddings = torch.cat([vision_embeddings, transformer_mapping_output_features], dim=1)
+
+        Q = torch.cat([text_embeddings, vision_embeddings], dim=1)
+
+        vision_encoder_attentions = (
+            vision_encoder_outputs.attentions
+            if vision_encoder_outputs is not None
+            and hasattr(vision_encoder_outputs, "attentions")
+            and output_attentions
+            else None
+        )
+        vision_encoder_hidden_states = (
+            vision_encoder_outputs.hidden_states
+            if vision_encoder_outputs is not None
+            and hasattr(vision_encoder_outputs, "hidden_states")
+            and output_hidden_states
+            else None
+        )
+        text_encoder_attentions = (
+            text_encoder_outputs.attentions
+            if text_encoder_outputs is not None and hasattr(text_encoder_outputs, "attentions") and output_attentions
+            else None
+        )
+        text_encoder_hidden_states = (
+            text_encoder_outputs.hidden_states
+            if text_encoder_outputs is not None
+            and hasattr(text_encoder_outputs, "hidden_states")
+            and output_hidden_states
+            else None
+        )
+        transformer_mapping_network_attentions = (
+            transformer_mapping_outputs.attentions
+            if transformer_mapping_outputs is not None
+            and hasattr(transformer_mapping_outputs, "attentions")
+            and output_attentions
+            else None
+        )
+        transformer_mapping_network_hidden_states = (
+            transformer_mapping_outputs.hidden_states
+            if transformer_mapping_outputs is not None
+            and hasattr(transformer_mapping_outputs, "hidden_states")
+            and output_hidden_states
+            else None
+        )
+
+        return FLMRQueryEncoderOutput(
+            pooler_output=Q[:, 0, :],
+            late_interaction_output=torch.nn.functional.normalize(Q, p=2, dim=2),
+            vision_encoder_attentions=vision_encoder_attentions,
+            vision_encoder_hidden_states=vision_encoder_hidden_states,
+            text_encoder_attentions=text_encoder_attentions,
+            text_encoder_hidden_states=text_encoder_hidden_states,
+            transformer_mapping_network_attentions=transformer_mapping_network_attentions,
+            transformer_mapping_network_hidden_states=transformer_mapping_network_hidden_states,
+        )
+
+
+
         
 
 
