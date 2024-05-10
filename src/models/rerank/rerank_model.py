@@ -276,7 +276,7 @@ class RerankModel(pl.LightningModule):
         query_input_ids = query_input_ids.repeat_interleave(n_docs + 1, dim=0).contiguous()
         query_pixel_values = query_pixel_values.repeat_interleave(n_docs + 1, dim=0).contiguous()
         query_text_ids = torch.cat([query_input_ids, context_input_ids], dim=0)
-        query_outputs = self.query(query_input_ids, attention_mask, query_pixel_values, query_image_features, output_attentions, output_hidden_states)
+        query_outputs = self.query(query_input_ids, attention_mask, query_pixel_values, None, None, None)
         scores = self.reranker(query_outputs.late_interaction_output, attention_mask)
         labels = torch.zeros(1, n_docs + 1)
         labels[0, 0] = 1
