@@ -18,7 +18,6 @@ from transformers import T5Tokenizer, T5ForConditionalGeneration, T5Config, T5Pr
 from transformers import VisualBertModel, VisualBertConfig, BertTokenizer
 from transformers import DPRQuestionEncoder, DPRContextEncoder, DPRConfig
 from transformers import BertModel, BertConfig
-from transformers.models.rag.retrieval_rag import CustomHFIndex, CanonicalHFIndex
 from transformers import Blip2ForConditionalGeneration, Blip2Config
 from src.models.retriever.retriever_dpr import RetrieverDPR
 
@@ -53,104 +52,11 @@ from src.models.flmr.models.flmr.modeling_flmr import FLMRQueryEncoderOutput, FL
 from transformers.models.bert.modeling_bert import BertEncoder
 from transformers import BertConfig
 
-class HFIndexBase(Index):
-    def __init__(self, vector_size, dataset, index_initialized=False):
-        self.vector_size = vector_size
-        self.dataset = dataset
-        self._index_initialized = index_initialized
-        self._check_dataset_format(with_index=index_initialized)
-        dataset.set_format("numpy", columns=["embeddings"], output_all_columns=True, dtype="float32")
-
-    def _check_dataset_format(self, with_index: bool):
-        if not isinstance(self.dataset, Dataset):
-            raise ValueError(f"Dataset should be a datasets.Dataset object, but got {type(self.dataset)}")
-        # if len({"title", "text", "embeddings"} - set(self.dataset.column_names)) > 0:
-        #     raise ValueError(
-        #         "Dataset should be a dataset with the following columns: "
-        #         "title (str), text (str) and embeddings (arrays of dimension vector_size), "
-        #         f"but got columns {self.dataset.column_names}"
-        #     )
-        if with_index and "embeddings" not in self.dataset.list_indexes():
-            raise ValueError(
-                "Missing faiss index in the dataset. Make sure you called `dataset.add_faiss_index` to compute it "
-                "or `dataset.load_faiss_index` to load one from the disk."
-            )
-
-    def init_index(self):
-        raise NotImplementedError()
-
-    def is_initialized(self):
-        return self._index_initialized
-
-    def get_doc_dicts(self, doc_ids: np.ndarray) -> List[dict]:
-        return [self.dataset[doc_ids[i].tolist()] for i in range(doc_ids.shape[0])]
-
-    def get_top_docs(self, question_hidden_states: np.ndarray, n_docs=5) -> Tuple[np.ndarray, np.ndarray]:
-        _, ids = self.dataset.search_batch("embeddings", question_hidden_states, n_docs)
-        docs = [self.dataset[[i for i in indices if i >= 0]] for indices in ids]
-        vectors = [doc["embeddings"] for doc in docs]
-        for i in range(len(vectors)):
-            if len(vectors[i]) < n_docs:
-                vectors[i] = np.vstack([vectors[i], np.zeros((n_docs - len(vectors[i]), self.vector_size))])
-        return np.array(ids), np.array(vectors)  # shapes (batch_size, n_docs) and (batch_size, n_docs, d)
-
-
-
-class CustomHFIndex(HFIndexBase):
-    """
-    A wrapper around an instance of [`~datasets.Datasets`]. The dataset and the index are both loaded from the
-    indicated paths on disk.
-    Args:
-        vector_size (`int`): the dimension of the passages embeddings used by the index
-        dataset_path (`str`):
-            The path to the serialized dataset on disk. The dataset should have 3 columns: title (str), text (str) and
-            embeddings (arrays of dimension vector_size)
-        index_path (`str`)
-            The path to the serialized faiss index on disk.
-    """
-
-    def __init__(self, vector_size: int, dataset, index_path=None):
-        super().__init__(vector_size, dataset, index_initialized=index_path is None)
-        self.index_path = index_path
-
-    @classmethod
-    def load_from_disk(cls, vector_size, dataset_path, index_path):
-        logger.info(f"Loading passages from {dataset_path}")
-        if dataset_path is None or index_path is None:
-            raise ValueError(
-                "Please provide `dataset_path` and `index_path` after calling `dataset.save_to_disk(dataset_path)` "
-                "and `dataset.get_index('embeddings').save(index_path)`."
-            )
-        dataset = load_from_disk(dataset_path)
-        return cls(vector_size=vector_size, dataset=dataset, index_path=index_path)
-
-    def init_index(self):
-        if not self.is_initialized():
-            logger.info(f"Loading index from {self.index_path}")
-            self.dataset.load_faiss_index("embeddings", file=self.index_path)
-            self._index_initialized = True
-
-
-
-def shift_tokens_right(input_ids: torch.Tensor, pad_token_id: int, decoder_start_token_id: int):
-    """
-    Shift input ids one token to the right.
-    """
-    shifted_input_ids = input_ids.new_zeros(input_ids.shape)
-    shifted_input_ids[:, 1:] = input_ids[:, :-1].clone()
-    shifted_input_ids[:, 0] = decoder_start_token_id
-    if pad_token_id is None:
-        raise ValueError("self.model.config.pad_token_id has to be defined.")
-    # replace possible -100 values in labels by `pad_token_id`
-    shifted_input_ids.masked_fill_(shifted_input_ids == -100, pad_token_id)
-    return shifted_input_ids
-
 
 class CrossEncoder(PreTrainedModel):
-    base_model_prefix = "bert_model"
-    config_class = CrossEncoderConfig
+    base_model_prefix = "reranker"
 
-    def __init__(self, config: CrossEncoderConfig):
+    def __init__(self, config):
         super().__init__(config)
         # Initialize the BERT model with a pooling layer
         self.bert_model = BertModel(config, add_pooling_layer=True)
