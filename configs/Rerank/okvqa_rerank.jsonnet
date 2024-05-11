@@ -110,7 +110,8 @@ local data_pipeline = std.mergePatch(merge_data, data_loader);
           "RerankerClass": "RerankModel",
           "pretrain_model_version": reranker_pretrained_ckpt_path,
           "cross_encoder_config_base": "bert-base-uncased",
-          "cross_encoder_num_hidden_layers": 3
+          "cross_encoder_num_hidden_layers": 3,
+          "cross_encoder_max_position_embeddings": 750
 
         },
         "Ks": [5, 10, 20, 50, 80, 100, 500],

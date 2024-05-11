@@ -38,7 +38,7 @@ import time
 import logging
 logger = logging.getLogger(__name__)
 
-
+import string
 import numpy as np
 from tqdm import tqdm
 from datasets import Dataset, load_dataset, load_from_disk
@@ -77,8 +77,11 @@ class CrossEncoder(nn.Module):
 
         # Pass the CLS token's output through the classifier to get the logit
         logits = self.classifier(cls_output)
+        
+        return logits
 
-        # Apply sigmoid activation to convert logits to probabilities
+    def predict(self, input_embeds, attention_mask=None, token_type_ids=None):
+        logits = self.forward(input_embeds, attention_mask, token_type_ids)
         probabilities = self.sigmoid(logits)
 
         return probabilities
@@ -101,7 +104,7 @@ class RerankModel(pl.LightningModule):
         # self.init_retrieve()
         self.init_model_base()
         self.init_reranker()
-        self.loss_fn = nn.BCELoss()
+        self.loss_fn = nn.BCEWithLogitsLoss()
 
     def init_retrieve(self):
         self.passage_id2doc = None 
@@ -134,6 +137,7 @@ class RerankModel(pl.LightningModule):
         cross_encoder_config_base = self.config.cross_encoder_config_base
         cross_encoder_config = BertConfig.from_pretrained(cross_encoder_config_base)
         cross_encoder_config.num_hidden_layers = self.config.cross_encoder_num_hidden_layers
+        cross_encoder_config.max_position_embeddings = self.config.cross_encoder_max_position_embeddings
         self.reranker = CrossEncoder(cross_encoder_config)
         self.cross_encoder_input_mapping = nn.Linear(self.late_interaction_embedding_size, cross_encoder_config.hidden_size)
         
@@ -142,18 +146,19 @@ class RerankModel(pl.LightningModule):
         pretrain_config = FLMRConfig.from_pretrained(self.config.pretrain_model_version, trust_remote_code=True)
         self.late_interaction_embedding_size = pretrain_config.dim
         self.max_position_embeddings = pretrain_config.text_config.max_position_embeddings
+        self.transformer_mapping_cross_attention_length = pretrain_config.transformer_mapping_cross_attention_length
         
-        flmr_query_tokenizer = FLMRQueryEncoderTokenizer.from_pretrained(
+        self.query_tokenizer = FLMRQueryEncoderTokenizer.from_pretrained(
             self.config.pretrain_model_version, subfolder="query_tokenizer"
         )
-        flmr_context_tokenizer = FLMRContextEncoderTokenizer.from_pretrained(
+        self.context_tokenizer = FLMRContextEncoderTokenizer.from_pretrained(
             self.config.pretrain_model_version, subfolder="context_tokenizer"
         )
 
         pretrain_model = FLMRModelForRetrieval.from_pretrained(self.config.pretrain_model_version, 
                                                                config=pretrain_config,
-                                                                query_tokenizer=flmr_query_tokenizer,
-                                                                context_tokenizer=flmr_context_tokenizer,
+                                                                query_tokenizer=self.query_tokenizer,
+                                                                context_tokenizer=self.context_tokenizer,
                                                                 torch_dtype=self.use_dtype,
                                                                 trust_remote_code=True,)
         self.context_text_encoder = pretrain_model.context_text_encoder
@@ -163,6 +168,29 @@ class RerankModel(pl.LightningModule):
         self.transformer_mapping_input_linear = pretrain_model.transformer_mapping_input_linear
         self.transformer_mapping_network = pretrain_model.transformer_mapping_network
         self.transformer_mapping_output_linear = pretrain_model.transformer_mapping_output_linear
+        
+        if pretrain_config.load_cpu_extension:
+            try:
+                FLMRModelForRetrieval.try_load_torch_extensions()
+            except Exception as e:
+                raise ValueError(f"Unable to load `segmented_maxsim.cpp`. hf-hub does not download this file automatically. Please download it manually from `https://huggingface.co/LinWeizheDragon/PreFLMR_ViT-L/blob/main/segmented_maxsim.cpp` and put it under the same folder as the model file.\n {e}")
+
+        if pretrain_config.mask_punctuation:
+            self.skiplist = {
+                w: True
+                for symbol in string.punctuation
+                for w in [symbol, self.context_tokenizer.encode(symbol, add_special_tokens=False)[0]]
+            }
+
+        if pretrain_config.mask_instruction_token is not None:
+            self.mask_instruction = True
+            # obtain the token id of the instruction token
+            self.instruction_token_id = self.query_tokenizer.encode(
+                pretrain_config.mask_instruction_token, add_special_tokens=False
+            )[0]
+        else:
+            self.mask_instruction = False
+        
     #     else:
     #         self.context_text_encoder = FLMRTextModel(pretrain_config.text_config)
     #         self.context_text_encoder_linear = nn.Linear(pretrain_config.text_config.hidden_size, pretrain_config.dim, bias=False)
@@ -304,27 +332,45 @@ class RerankModel(pl.LightningModule):
         query_attention_mask = query_attention_mask.repeat_interleave(num_negative_examples + 1, dim=0).contiguous()
         query_pixel_values = query_pixel_values.repeat_interleave(num_negative_examples + 1, dim=0).contiguous()
         
-        sep_token_id = self.tokenizer.convert_tokens_to_ids(self.tokenizer.sep_token)
-        sep_token_tensor = torch.full((query_input_ids.size(0), 1), sep_token_id, dtype=query_input_ids.dtype, device=query_input_ids.device)
-        sep_token_mask = torch.ones((query_input_ids.size(0), 1), dtype=query_attention_mask.dtype, device=query_attention_mask.device)
-
-        # raise ValueError(f"query_input_ids shape: {query_input_ids.shape}, sep_token_tensor shape: {sep_token_tensor.shape}, context_input_ids shape: {context_input_ids.shape}")
+        joint_query_input_ids = torch.cat([query_input_ids, context_input_ids[:, 2:]], dim=1)
+        joint_query_attention_mask = torch.cat([query_attention_mask, context_attention_mask[:, 2:]], dim=1)
+    
         
-        joint_query_input_ids = torch.cat([query_input_ids, sep_token_tensor, context_input_ids], dim=1)
-        joint_query_attention_mask = torch.cat([query_attention_mask, sep_token_mask, context_attention_mask], dim=1)
-        
+        # Prune the input size when the appended documents are too long
         if joint_query_input_ids.size(1) > self.max_position_embeddings:
             joint_query_input_ids = joint_query_input_ids[:, :self.max_position_embeddings]
             joint_query_attention_mask = joint_query_attention_mask[:, :self.max_position_embeddings]        
             
         query_outputs = self.query(joint_query_input_ids, joint_query_attention_mask, query_pixel_values, None, None, None)
-        query_outputs = self.cross_encoder_input_mapping(query_outputs)
-        scores = self.reranker(query_outputs.late_interaction_output, joint_query_attention_mask)
-        print(scores.shape)
-        labels = torch.zeros(1, num_negative_examples + 1)
+        reranker_inputs = self.cross_encoder_input_mapping(query_outputs.late_interaction_output)
+        
+        # All vision embeddings should be used in the attention
+        expand_mask = torch.ones(joint_query_attention_mask.size(0), reranker_inputs.size(1) - joint_query_attention_mask.size(1), dtype=joint_query_attention_mask.dtype, device=joint_query_attention_mask.device)
+        reranker_attention_mask = torch.cat([joint_query_attention_mask, expand_mask], dim=1)
+        
+        
+        # # Save joint_query_input_ids, joint_query_attention_mask, reranker_inputs, reranker_attention_mask to a pkl file
+        # data = {
+        #     'joint_query_input_ids': joint_query_input_ids,
+        #     'joint_query_attention_mask': joint_query_attention_mask,
+        #     'reranker_inputs': reranker_inputs,
+        #     'reranker_attention_mask': reranker_attention_mask
+        # }
+
+        # with open('joint_data.pkl', 'wb') as f:
+        #     pickle.dump(data, f)
+        
+        # raise ValueError
+        
+        logits = self.reranker(reranker_inputs, reranker_attention_mask)
+        
+        # First document is the positive example, concatenate them all along the first dimension and use binary cross entropy
+        labels = torch.zeros(num_negative_examples + 1, 1)
         labels[0, 0] = 1
         labels = labels.repeat(batch_size, 1)
-        loss = self.loss_fn(scores, labels)
+        labels = labels.to(logits.device)
+
+        loss = self.loss_fn(logits, labels)
         return loss
 
 
@@ -367,10 +413,9 @@ class RerankModel(pl.LightningModule):
             # Forward the text encoder
             input_ids, attention_mask = input_ids.to(self.device), attention_mask.to(self.device)
             text_encoder_outputs = self.context_text_encoder(input_ids, attention_mask=attention_mask)
-            text_encoder_hidden_states = text_encoder_outputs[0]
-            text_embeddings = self.context_text_encoder_linear(text_encoder_hidden_states)
-            mask = torch.tensor(self.query_mask(input_ids, skiplist=[]), device=self.device).unsqueeze(2).float()
-
+            text_encoder_hidden_states = text_encoder_outputs[0] # torch.Size([80, 512, 768])
+            text_embeddings = self.context_text_encoder_linear(text_encoder_hidden_states) # torch.Size([80, 512, 128])
+            mask = torch.tensor(self.query_mask(input_ids, skiplist=[]), device=self.device).unsqueeze(2).float() # torch.Size([80, 512, 1])
             text_embeddings = text_embeddings * mask
 
         if "image" in input_modality:
@@ -403,27 +448,30 @@ class RerankModel(pl.LightningModule):
             )
 
             # Cross attention only attends to the first 32 tokens
-            encoder_mask = torch.ones_like(mask).to(mask.device, dtype=mask.dtype)
-            cross_attention_length = self.config.transformer_mapping_cross_attention_length
+            encoder_mask = torch.ones_like(mask).to(mask.device, dtype=mask.dtype) # torch.Size([80, 512, 1])
+            
+            cross_attention_length = self.transformer_mapping_cross_attention_length
             if text_encoder_hidden_states.shape[1] > cross_attention_length:
                 text_encoder_hidden_states = text_encoder_hidden_states[:, :cross_attention_length]
                 encoder_mask = encoder_mask[:, :cross_attention_length]
 
             # Obtain cross attention mask
-            encoder_extended_attention_mask = self.invert_attention_mask(encoder_mask.squeeze(-1))
+            encoder_extended_attention_mask = self.invert_attention_mask(encoder_mask.squeeze(-1)) # torch.Size([80, 1, 1, 32])
+
             # Pass through the transformer mapping
             transformer_mapping_outputs = self.transformer_mapping_network(
-                transformer_mapping_input_features,
-                encoder_hidden_states=text_encoder_hidden_states,
-                encoder_attention_mask=encoder_extended_attention_mask,
+                transformer_mapping_input_features, # torch.Size([80, 49, 768])
+                encoder_hidden_states=text_encoder_hidden_states, # torch.Size([80, 32, 768])
+                encoder_attention_mask=encoder_extended_attention_mask, # torch.Size([80, 1, 1, 32]) 
             )
+            
             transformer_mapping_output_features = transformer_mapping_outputs.last_hidden_state
             # Convert the dimension to FLMR dim
             transformer_mapping_output_features = self.transformer_mapping_output_linear(
                 transformer_mapping_output_features
             )
             # Merge with the vision embeddings
-            vision_embeddings = torch.cat([vision_embeddings, transformer_mapping_output_features], dim=1)
+            vision_embeddings = torch.cat([vision_embeddings, transformer_mapping_output_features], dim=1) # torch.Size([80, 81, 128])
 
         Q = torch.cat([text_embeddings, vision_embeddings], dim=1)
 
@@ -478,3 +526,49 @@ class RerankModel(pl.LightningModule):
             transformer_mapping_network_attentions=transformer_mapping_network_attentions,
             transformer_mapping_network_hidden_states=transformer_mapping_network_hidden_states,
         )
+        
+    def query_mask(self, input_ids, skiplist):
+        if not self.mask_instruction:
+            return self.mask(input_ids, skiplist)
+
+        # find the position of end of instruction in input_ids
+        # mask the tokens before the position
+        sep_id = self.instruction_token_id
+        sep_positions = torch.argmax((input_ids == sep_id).int(), dim=1).tolist()
+        # if any of the positions is lower than 1, set to 1
+        for i, x in enumerate(sep_positions):
+            if x < 1:
+                sep_positions[i] = 1
+                logger.error(f"can not find the separator in the input_ids: {input_ids[i].tolist()}")
+        mask = [
+            [
+                (x not in skiplist) and (x != 0) and (index > sep_positions[seq_index] or index < 2)
+                for index, x in enumerate(d)
+            ]
+            for seq_index, d in enumerate(input_ids.cpu().tolist())
+        ]
+        return mask
+
+    def invert_attention_mask(self, encoder_attention_mask):
+        """
+        Invert an attention mask (e.g., switches 0. and 1.).
+
+        Args:
+            encoder_attention_mask (`torch.Tensor`): An attention mask.
+
+        Returns:
+            `torch.Tensor`: The inverted attention mask.
+        """
+        if encoder_attention_mask.dim() == 3:
+            encoder_extended_attention_mask = encoder_attention_mask[:, None, :, :]
+        if encoder_attention_mask.dim() == 2:
+            encoder_extended_attention_mask = encoder_attention_mask[:, None, None, :]
+        # T5 has a mask that can compare sequence ids, we can simulate this here with this transposition
+        # Cf. https://github.com/tensorflow/mesh/blob/8d2465e9bc93129b913b5ccc6a59aa97abd96ec6/mesh_tensorflow
+        # /transformer/transformer_layers.py#L270
+        # encoder_extended_attention_mask = (encoder_extended_attention_mask ==
+        # encoder_extended_attention_mask.transpose(-1, -2))
+        encoder_extended_attention_mask = encoder_extended_attention_mask.to(dtype=self.dtype)  # fp16 compatibility
+        encoder_extended_attention_mask = (1.0 - encoder_extended_attention_mask) * torch.finfo(self.dtype).min
+
+        return encoder_extended_attention_mask

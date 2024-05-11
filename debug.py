@@ -34,5 +34,5 @@ import pickle
 
 
 
-with open('prepared_data.pkl', 'rb') as file:
+with open('joint_data.pkl', 'rb') as file:
     data = pickle.load(file)

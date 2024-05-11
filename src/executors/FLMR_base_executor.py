@@ -170,11 +170,6 @@ class FLMRBaseExecutor(BaseExecutor, MetricsProcessor):
     def setup(self, stage):
         super().setup(stage)
         self.prepared_data = self.dp.get_data([self.use_data_node], explode=True)
-        import pickle
-        with open('prepared_data.pkl', 'wb') as f:
-            pickle.dump(self.prepared_data, f)
-        raise ValueError
-        
         print(len(self.prepared_data.vqa_data_with_dpr_output.get('lookup', {})))
         if len(self.prepared_data.vqa_data_with_dpr_output.get('lookup', {})) == 0:
             self.prepared_data.vqa_data_with_dpr_output.lookup = {}
