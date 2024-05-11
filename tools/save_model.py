@@ -3,7 +3,7 @@ import shutil
 
 from transformers import AutoConfig, AutoModel
 from transformers import AutoImageProcessor, AutoTokenizer
-from models.flmr import FLMRQueryEncoderTokenizer, FLMRContextEncoderTokenizer, FLMRModelForRetrieval, FLMRConfig
+from src.models.flmr import FLMRQueryEncoderTokenizer, FLMRContextEncoderTokenizer, FLMRModelForRetrieval, FLMRConfig
 
 
 if __name__ == '__main__':

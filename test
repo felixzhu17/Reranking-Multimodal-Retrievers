@@ -19,12 +19,8 @@ def load_pickle_data(data_file_name):
 x = load_pickle_data('/home/fz288/rds/hpc-work/PreFLMR/cache/output:PrepareDataloaders-edf8c08d8ac107d33abf542faafd0bcf.pkl')
 import torch
 from torch.utils.data import DataLoader
-
-# Assume 'data_loader' is your DataLoader instance
-data_loader = DataLoader(...)  # This should already be defined in your code
-
 # Fetch the first batch
-for data in x['data_loaders']['train']['train/OKVQADataset.train']:
+for data in data['data_loaders']['train']['train/OKVQADatasetForDPR.train']:
     break  # This stops the iteration after the first batch
 
 # Now 'data' holds the first batch
@@ -36,7 +32,7 @@ print(data)
 python src/main.py --config configs/RAG/okvqa_RAG.jsonnet --mode train
 
 
-
+python src/main.py --config configs/FLMR/okvqa_FLMR.jsonnet --mode train
 
 
 python src/main.py --config configs/FLMR/okvqa_FLMR.jsonnet --mode test --test_suffix index --experiment_name OKVQA_PreFLMR
@@ -48,3 +44,5 @@ for data_split in ['train', 'valid', 'test']:
     x.vqa_data_with_dpr_output.lookup.update(lookup_dict)
 
 x.vqa_data_with_dpr_output.lookup[str(516065)].keys()
+
+python src/main.py --config configs/Rerank/okvqa_rerank.jsonnet --mode train

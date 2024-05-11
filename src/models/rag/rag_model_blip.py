@@ -154,6 +154,11 @@ class RagModelForBlip(pl.LightningModule):
         super().__init__()
 
         self.config = config
+        # import pickle
+        # with open("RAG_config.pkl", "wb") as f:
+        #     pickle.dump(self.config, f)
+        # raise ValueError
+        
         self.prepared_data = prepared_data
         self.tokenizers = self.prepared_data['tokenizers']
 

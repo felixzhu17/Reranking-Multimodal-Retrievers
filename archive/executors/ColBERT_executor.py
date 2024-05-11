@@ -93,7 +93,7 @@ class ColBERTExecutor(BaseExecutor, MetricsProcessor):
         self.tmp_index = defaultdict(None)
         self.multimodal_docs = model_config.get("multimodal_docs", False)
         if self.multimodal_docs:
-            from models.retriever.colbert_utils import MultiModalIndexer
+            from src.models.retriever.colbert_utils import MultiModalIndexer
             self.IndexerClass = MultiModalIndexer
         else:
             from colbert import Indexer

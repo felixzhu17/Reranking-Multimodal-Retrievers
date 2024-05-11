@@ -1294,7 +1294,7 @@ class VisualColBERTForPretrainingWithShallowTransformerMappingMAE(ColBERT):
         # self.vision_model = VisionModelClass.from_pretrained(self.model_config.VisionModelVersion, config=vision_model_config)
         
         
-        from models.models_vit import vit_base_patch16
+        from src.models.models_vit import vit_base_patch16
         self.vision_model = vit_base_patch16(
             global_pool=True,
         )

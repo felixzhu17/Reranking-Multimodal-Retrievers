@@ -551,8 +551,14 @@ class FLMRModelForRetrieval(FLMRPretrainedModelForRetrieval):
     _tied_weights_keys = []  # Added dynamically at initialization depending on the architecture
 
     def __init__(self, config: FLMRConfig, query_tokenizer=None, context_tokenizer=None):
+        
         super().__init__(config)
         self.config = config
+        # import pickle
+        # with open("PreFLMR_config.pkl", "wb") as f:
+        #     pickle.dump(self.config, f)
+        # raise ValueError
+        
         self.vision_model_version = config.vision_model_version
 
         self.context_text_encoder = FLMRTextModel(config.text_config)
@@ -600,6 +606,8 @@ class FLMRModelForRetrieval(FLMRPretrainedModelForRetrieval):
                 try:
                     from transformers import BertConfig
                     from transformers.models.bert.modeling_bert import BertEncoder
+
+
                 except Exception as e:
                     raise ImportError(f"Failed to import BertConfig and BertEncoder from transformers. {e}")
 

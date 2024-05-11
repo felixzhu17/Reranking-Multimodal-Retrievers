@@ -161,7 +161,7 @@ class MultiModalCollectionIndexer(CollectionIndexer):
 
 
 
-from models.retriever.visual_colbert import *
+from src.models.retriever.visual_colbert import *
 
 
 from colbert.modeling.tokenization import QueryTokenizer, DocTokenizer

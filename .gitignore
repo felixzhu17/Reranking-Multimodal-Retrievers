@@ -136,3 +136,4 @@ cache/
 wandb/
 artifacts/
 VQA
+*.pkl
