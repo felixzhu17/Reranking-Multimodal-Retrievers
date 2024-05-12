@@ -31,6 +31,15 @@ local image_processor_config = {
   },
 };
 
+local index_files = {
+  "index_path": "",
+  "embedding_path": "",
+  "static_results": [
+    "/home/fz288/rds/hpc-work/PreFLMR/experiments/OKVQA_PreFLMR/test/index/index_test_OKVQADatasetForDPR.test_predictions_rank_0.pkl",
+    "/home/fz288/rds/hpc-work/PreFLMR/experiments/OKVQA_PreFLMR/test/index/index_test_OKVQADatasetForDPR.train_predictions_rank_0.pkl",
+  ],
+};
+
 local data_loader = {
   transforms: {
     'output:PrepareDataloaders': {
@@ -118,11 +127,14 @@ local data_pipeline = std.mergePatch(merge_data, data_loader);
         "num_negative_samples": 4,
         "max_source_length": 32,
         "max_decoder_source_length": 512,
+        "reranking_batch_size": 16,
         "pretrained": 1,
         "modules": [
             "separate_query_and_item_encoders",
         ],
+        "index_files": index_files,
         "nbits": 8,
+        "docs_to_rerank": 500,
         "prepend_tokens": {
             "query_encoder": "",
             "item_encoder": "",
@@ -160,7 +172,7 @@ local data_pipeline = std.mergePatch(merge_data, data_loader);
         ExecutorClass: 'RerankerExecutor',
         init_kwargs: {
             "use_data_node": "output:PrepareDataloaders",
-            "index_splits": ['valid', 'test'],
+            "index_splits": ['train', 'valid', 'test'],
             "validation_indexing_source": validation_indexing_source,
         },
     },
@@ -218,6 +230,7 @@ local data_pipeline = std.mergePatch(merge_data, data_loader);
             devices: 'auto',
             strategy: 'ddp_find_unused_parameters_true',
             precision: 'bf16',
+            limit_test_batches: 10,
         },
         batch_size: 16,
         num_dataloader_workers: 0,

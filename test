@@ -46,3 +46,4 @@ for data_split in ['train', 'valid', 'test']:
 x.vqa_data_with_dpr_output.lookup[str(516065)].keys()
 
 python src/main.py --config configs/Rerank/okvqa_rerank.jsonnet --mode train
+python src/main.py --config configs/Rerank/okvqa_rerank.jsonnet --mode test

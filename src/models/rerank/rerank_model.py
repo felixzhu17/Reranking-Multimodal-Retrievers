@@ -92,12 +92,11 @@ class RerankModel(pl.LightningModule):
     '''
     Class for RAG, re-implementation
     '''
-    def __init__(self, config: EasyDict, prepared_data, dtype) -> None:
+    def __init__(self, config: EasyDict, prepared_data) -> None:
         super().__init__()
 
         self.config = config
         self.prepared_data = prepared_data
-        self.use_dtype = dtype
         self.tokenizers = self.prepared_data['tokenizers']
         self.tokenizer = self.tokenizers['tokenizer']
         self.decoder_tokenizer = self.tokenizers['decoder_tokenizer']
@@ -159,7 +158,7 @@ class RerankModel(pl.LightningModule):
                                                                config=pretrain_config,
                                                                 query_tokenizer=self.query_tokenizer,
                                                                 context_tokenizer=self.context_tokenizer,
-                                                                torch_dtype=self.use_dtype,
+                                                                torch_dtype=self.dtype,
                                                                 trust_remote_code=True,)
         self.context_text_encoder = pretrain_model.context_text_encoder
         self.context_text_encoder_linear = pretrain_model.context_text_encoder_linear
@@ -332,10 +331,10 @@ class RerankModel(pl.LightningModule):
         query_attention_mask = query_attention_mask.repeat_interleave(num_negative_examples + 1, dim=0).contiguous()
         query_pixel_values = query_pixel_values.repeat_interleave(num_negative_examples + 1, dim=0).contiguous()
         
+
         joint_query_input_ids = torch.cat([query_input_ids, context_input_ids[:, 2:]], dim=1)
         joint_query_attention_mask = torch.cat([query_attention_mask, context_attention_mask[:, 2:]], dim=1)
-    
-        
+
         # Prune the input size when the appended documents are too long
         if joint_query_input_ids.size(1) > self.max_position_embeddings:
             joint_query_input_ids = joint_query_input_ids[:, :self.max_position_embeddings]
@@ -371,7 +370,7 @@ class RerankModel(pl.LightningModule):
         labels = labels.to(logits.device)
 
         loss = self.loss_fn(logits, labels)
-        return loss
+        return EasyDict(loss = loss, logits = logits)
 
 
     def query(
@@ -458,12 +457,21 @@ class RerankModel(pl.LightningModule):
             # Obtain cross attention mask
             encoder_extended_attention_mask = self.invert_attention_mask(encoder_mask.squeeze(-1)) # torch.Size([80, 1, 1, 32])
 
-            # Pass through the transformer mapping
-            transformer_mapping_outputs = self.transformer_mapping_network(
-                transformer_mapping_input_features, # torch.Size([80, 49, 768])
-                encoder_hidden_states=text_encoder_hidden_states, # torch.Size([80, 32, 768])
-                encoder_attention_mask=encoder_extended_attention_mask, # torch.Size([80, 1, 1, 32]) 
-            )
+
+            try:
+                # Pass through the transformer mapping
+                transformer_mapping_outputs = self.transformer_mapping_network(
+                    transformer_mapping_input_features, # torch.Size([80, 49, 768])
+                    encoder_hidden_states=text_encoder_hidden_states, # torch.Size([80, 32, 768])
+                    encoder_attention_mask=encoder_extended_attention_mask, # torch.Size([80, 1, 1, 32]) 
+                )
+            except:
+                print(transformer_mapping_input_features.dtype)
+                print(text_encoder_hidden_states.dtype)
+                print(encoder_extended_attention_mask.dtype)
+                raise ValueError
+            
+            
             
             transformer_mapping_output_features = transformer_mapping_outputs.last_hidden_state
             # Convert the dimension to FLMR dim

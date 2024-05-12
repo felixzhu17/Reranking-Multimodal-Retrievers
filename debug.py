@@ -1,38 +1,62 @@
 import pickle
-# # from src.models.flmr.models.flmr.configuration_flmr import FLMRConfig
 
-# print(1)
-# # Read RAG_config.pkl
-# with open('RAG_config.pkl', 'rb') as file:
-#     rag_config = pickle.load(file)
+# passage_id2doc = None 
 
-# # print(1)
-# # # Read PreFLMR_config.pkl
-# # with open('PreFLMR_config.pkl', 'rb') as file:
-# #     preflmr_config = pickle.load(file)
-# # print(1)
-# # Read PreFLMR_train_batch.pkl
-# with open('PreFLMR_train_batch.pkl', 'rb') as file:
-#     preflmr_train_batch = pickle.load(file)
-    
-# # >>> preflmr_train_batch['query_input_ids'].shape
-# # torch.Size([8, 32])
-# # >>> preflmr_train_batch['query_attention_mask'].shape
-# # torch.Size([8, 32])
-# # >>> preflmr_train_batch['context_input_ids'].shape
-# # torch.Size([40, 512])
-# # >>> preflmr_train_batch['num_negative_examples']
-# # 4
-# # >>> preflmr_train_batch['query_pixel_values'].shape
-# # torch.Size([8, 3, 224, 224])
+# import json
+# import pickle
+# from src.models.flmr import FLMRContextEncoderTokenizer
 
-# query_input_ids = preflmr_train_batch['query_input_ids']
-# query_attention_mask = preflmr_train_batch['query_attention_mask']
-# context_input_ids = preflmr_train_batch['context_input_ids']
-# query_pixel_values = preflmr_train_batch['query_pixel_values']
-# n_docs = preflmr_train_batch['num_negative_examples']
+# input_files = [
+#     "/home/fz288/rds/hpc-work/PreFLMR/experiments/OKVQA_PreFLMR/test/index/index_test_OKVQADatasetForDPR.test_predictions_rank_0.json",
+#     "/home/fz288/rds/hpc-work/PreFLMR/experiments/OKVQA_PreFLMR/test/index/index_test_OKVQADatasetForDPR.train_predictions_rank_0.json",
+# ]
+
+# # tokenizer = FLMRContextEncoderTokenizer.from_pretrained("LinWeizheDragon/PreFLMR_ViT-B", subfolder="context_tokenizer")
+
+# questionId2topPassages = {}
+# for prediction_pkl in input_files:
+#     if prediction_pkl.endswith('.json'):
+#         # load using json
+#         with open(prediction_pkl, 'r') as f:
+#             predictions = json.load(f)['output']
+#             for pred in predictions:
+#                 q_id = pred['question_id']
+#                 top_ranking_passages = pred['top_ranking_passages']
+#                 questionId2topPassages[q_id] = top_ranking_passages
+#     else:
+#         # Can use `src/tools/reduce_retrieval_result_file_size.py` to reduce json file size to speed up the loading
+#         # in this case, we load from a pkl file
+#         with open(prediction_pkl, 'rb') as f:
+#             predictions = pickle.load(f)['output']
+#             for pred in predictions:
+#                 q_id = pred['question_id']
+#                 top_ranking_passages = pred['top_ranking_passages']
+#                 questionId2topPassages[q_id] = top_ranking_passages
+
+# # Assert that the length of all questionId2topPassages values are equal
+# lengths = [len(passages) for passages in questionId2topPassages.values()]
+# assert all(length == lengths[0] for length in lengths)
+
+with open("/home/fz288/rds/hpc-work/PreFLMR/question_ids.pkl", 'rb') as f:
+    questions = pickle.load(f)
+
+with open("current_batches.pkl", 'rb') as f:
+    batch = pickle.load(f)
 
 
 
-with open('joint_data.pkl', 'rb') as file:
-    data = pickle.load(file)
+# for q_id in questions:
+#     assert q_id in questionId2topPassages
+
+
+# predictions[0]['top_ranking_passages'][0]['content']
+
+# encoding = tokenizer([predictions[0]['top_ranking_passages'][0]['content'], predictions[0]['top_ranking_passages'][1]['content']],
+#                                     padding='max_length',
+#                                     max_length=512,
+#                                     truncation=True,
+#                                     return_tensors="pt")
+# generator_input_ids, generator_attention_mask = encoding.input_ids, encoding.attention_mask
+# generator_input_ids = generator_input_ids.to(labels.device)
+# generator_attention_mask = generator_attention_mask.to(labels.device)
+
