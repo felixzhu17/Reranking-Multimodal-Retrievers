@@ -935,9 +935,7 @@ class FLMRModelForRetrieval(FLMRPretrainedModelForRetrieval):
             num_negative_examples + 1, dim=0
         ).contiguous()
 
-        raise ValueError(Q_duplicated.shape, D.shape, D_mask.shape)
-
-        scores = self.score(Q_duplicated, D, D_mask)
+        scores, scores_raw = self.score(Q_duplicated, D, D_mask)
 
         # Use contrastive learning
         batch_size = query_input_ids.shape[0]
@@ -1076,6 +1074,7 @@ class FLMRModelForRetrieval(FLMRPretrainedModelForRetrieval):
         return FLMRModelForRetrievalOutput(
             loss=loss,
             scores=scores,
+            scores_raw=scores_raw,
             in_batch_negative_loss=ib_loss,
             query_late_interaction_output=query_outputs.late_interaction_output,
             context_late_interaction_output=context_outputs.late_interaction_output,
@@ -1583,10 +1582,6 @@ class FLMRModelForRetrieval(FLMRPretrainedModelForRetrieval):
         )
 
     def score(self, Q, D_padded, D_mask):
-        # assert self.colbert_config.similarity == 'cosine'
-        # if self.colbert_config.similarity == 'l2':
-        #     assert self.colbert_config.interaction == 'colbert'
-        #     return (-1.0 * ((Q.unsqueeze(2) - D_padded.unsqueeze(1))**2).sum(-1)).max(-1).values.sum(-1)
         return colbert_score(Q, D_padded, D_mask, use_gpu=self.use_gpu)
 
     def mask(self, input_ids, skiplist):

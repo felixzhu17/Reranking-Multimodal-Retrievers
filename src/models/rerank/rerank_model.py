@@ -127,40 +127,9 @@ class RerankModel(pl.LightningModule):
         self.tokenizers = self.prepared_data["tokenizers"]
         self.tokenizer = self.tokenizers["tokenizer"]
         self.decoder_tokenizer = self.tokenizers["decoder_tokenizer"]
-        # self.init_retrieve()
         self.init_model_base()
         self.init_reranker()
         self.loss_fn = nn.BCEWithLogitsLoss()
-
-    def init_retrieve(self):
-        self.passage_id2doc = None
-
-        import json
-
-        # load all predictions in
-        self.questionId2topPassages = {}
-        for prediction_pkl in self.config.model_config.index_files.static_results:
-            logger.info(f"Loading static retrieval results from {prediction_pkl}")
-            if prediction_pkl.endswith(".json"):
-                # load using json
-                with open(prediction_pkl, "r") as f:
-                    predictions = json.load(f)["output"]
-                    for pred in predictions:
-                        q_id = pred["question_id"]
-                        top_ranking_passages = pred["top_ranking_passages"]
-                        self.questionId2topPassages[q_id] = top_ranking_passages
-            else:
-                # Can use `src/tools/reduce_retrieval_result_file_size.py` to reduce json file size to speed up the loading
-                # in this case, we load from a pkl file
-                with open(prediction_pkl, "rb") as f:
-                    predictions = pickle.load(f)["output"]
-                    for pred in predictions:
-                        q_id = pred["question_id"]
-                        top_ranking_passages = pred["top_ranking_passages"]
-                        self.questionId2topPassages[q_id] = top_ranking_passages
-        logger.info(
-            f"Loaded {len(self.questionId2topPassages)} static retrieval results."
-        )
 
     def init_reranker(self):
         cross_encoder_config_base = self.config.cross_encoder_config_base
@@ -282,84 +251,6 @@ class RerankModel(pl.LightningModule):
     #         transformer_mapping_config.hidden_size, self.late_interaction_embedding_size
     #     )
 
-    def retrieve(
-        self, input_ids: torch.Tensor, question_ids: List, n_docs=None, **kwargs
-    ):
-        """A dummy retrieval function, retrieve from static results
-
-        Args:
-            input_ids (torch.Tensor): [description]
-            attention_mask (torch.Tensor): [description]
-            labels (torch.Tensor): [description]
-            question_ids (List): [description]
-            input_text_sequences (List): [description]
-            n_docs ([type], optional): [description]. Defaults to None.
-
-        Returns:
-            [type]: [description]
-        """
-        if n_docs is None:
-            n_docs = self.config.model_config.num_knowledge_passages
-
-        n_docs_to_retrieve = self.config.model_config.num_knowledge_passages
-
-        batch_size = input_ids.shape[0]
-
-        pos_item_ids = kwargs.get("pos_item_ids", [None] * batch_size)
-        if pos_item_ids is None:
-            pos_item_ids = [None] * batch_size
-
-        #####   Dummy Retrieval ####
-        retrieved_docs = []
-        doc_scores = []
-        for question_id, pos_ids in zip(question_ids, pos_item_ids):
-            annotation = self.questionId2topPassages.get(str(question_id), None)
-            if annotation is None:
-                annotation = [
-                    {"score": 10, "title": "", "content": "", "passage_id": ""}
-                ] * n_docs
-
-            if n_docs < n_docs_to_retrieve:
-                # This helps to reduce the number of documents used in training so that model can fit in the GPU memory provided
-                # randomly select n_docs from top n_docs_to_retrieve
-                top_passages = random.sample(annotation[:n_docs_to_retrieve], n_docs)
-            else:
-                top_passages = annotation[:n_docs]
-
-            if (
-                "use_gt_docs_for_training" in self.config.model_config.modules
-                and pos_ids is not None
-            ):
-                annotation = []
-                for i in range(n_docs):
-                    annotation.append(
-                        {
-                            "score": 10,
-                            "title": "",
-                            "content": "",
-                            "passage_id": random.sample(pos_ids, 1)[0],
-                        }
-                    )
-                top_passages = annotation
-
-            for p in top_passages:
-                p["title"] = ""
-                passage_id = p["passage_id"]
-                p["content"] = self.passage_id2doc.get(passage_id, "")
-
-            retrieved_docs.append(top_passages)
-            scores = [p["score"] for p in top_passages]
-            doc_scores.append(scores)
-
-        doc_scores = torch.FloatTensor(doc_scores).to(device=self.device)
-
-        assert len(retrieved_docs) == batch_size
-
-        return EasyDict(
-            retrieved_docs=retrieved_docs,
-            doc_scores=doc_scores,
-        )
-
     def forward(
         self,
         query_input_ids: torch.Tensor,
@@ -372,11 +263,6 @@ class RerankModel(pl.LightningModule):
     ):
 
         batch_size = query_input_ids.shape[0]
-
-        # Retrieve docs for given question inputs
-        # retrieval_results = self.retrieve(query_input_ids, question_ids, n_docs=n_docs)
-        # retrieved_docs, doc_scores = retrieval_results.retrieved_docs, retrieval_results.doc_scores
-
         query_input_ids = query_input_ids.repeat_interleave(
             num_negative_examples + 1, dim=0
         ).contiguous()
@@ -388,7 +274,7 @@ class RerankModel(pl.LightningModule):
         ).contiguous()
         query_text_size = query_input_ids.size(1)
         context_text_size = context_input_ids.size(1)
-        assert context_text_size == self.model_config.max_decoder_source_length
+        assert context_text_size == self.max_position_embeddings
 
         left_truncate_context_size = 2
         right_truncate_context_size = left_truncate_context_size - query_text_size

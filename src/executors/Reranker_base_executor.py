@@ -153,39 +153,40 @@ class RerankerBaseExecutor(BaseExecutor, MetricsProcessor):
             model_config (dict): contains key-values for model configuration
         """
 
-        # retriever_config = model_config.retriever_config
+        if "preflmr_attention_fusion" in self.model_config.modules:
+            retriever_config = model_config.retriever_config
 
-        # ModelClass = globals()[retriever_config.ModelClass]
-        # ConfigClass = globals()[retriever_config.ConfigClass]
-        # ModelVersion = retriever_config.ModelVersion
+            ModelClass = globals()[retriever_config.ModelClass]
+            ConfigClass = globals()[retriever_config.ConfigClass]
+            ModelVersion = retriever_config.ModelVersion
 
-        # config = ConfigClass.from_pretrained(ModelVersion, trust_remote_code=True)
+            config = ConfigClass.from_pretrained(ModelVersion, trust_remote_code=True)
 
-        # config.load_cpu_extension = True
+            config.load_cpu_extension = True
 
-        # if retriever_config.ModelClass == "FLMRModelForRetrieval":
-        #     flmr_query_tokenizer = FLMRQueryEncoderTokenizer.from_pretrained(
-        #         ModelVersion, subfolder="query_tokenizer"
-        #     )
-        #     flmr_context_tokenizer = FLMRContextEncoderTokenizer.from_pretrained(
-        #         ModelVersion, subfolder="context_tokenizer"
-        #     )
+            if retriever_config.ModelClass == "FLMRModelForRetrieval":
+                flmr_query_tokenizer = FLMRQueryEncoderTokenizer.from_pretrained(
+                    ModelVersion, subfolder="query_tokenizer"
+                )
+                flmr_context_tokenizer = FLMRContextEncoderTokenizer.from_pretrained(
+                    ModelVersion, subfolder="context_tokenizer"
+                )
 
-        #     self.retriever = ModelClass.from_pretrained(
-        #         ModelVersion,
-        #         config=config,
-        #         query_tokenizer=flmr_query_tokenizer,
-        #         context_tokenizer=flmr_context_tokenizer,
-        #         torch_dtype=self.use_dtype,
-        #         trust_remote_code=True,
-        #     )
+                self.retriever = ModelClass.from_pretrained(
+                    ModelVersion,
+                    config=config,
+                    query_tokenizer=flmr_query_tokenizer,
+                    context_tokenizer=flmr_context_tokenizer,
+                    torch_dtype=self.use_dtype,
+                    trust_remote_code=True,
+                )
 
-        # else:
-        #     self.retriever = ModelClass.from_pretrained(ModelVersion, config=config, trust_remote_code=True)
+            else:
+                self.retriever = ModelClass.from_pretrained(ModelVersion, config=config, trust_remote_code=True)
 
-        # print("Freezing Retriever")
-        # for name, param in self.retriever.named_parameters():
-        #     param.requires_grad = False
+            print("Freezing Retriever")
+            for name, param in self.retriever.named_parameters():
+                param.requires_grad = False
 
         reranker_config = model_config.reranker_config
         RerankerClass = globals()[reranker_config.RerankerClass]
@@ -491,6 +492,9 @@ class RerankerBaseExecutor(BaseExecutor, MetricsProcessor):
                 context_attention_masks, dim=0
             )
 
+        if "preflmr_attention_fusion" in self.model_config.modules:
+            train_batch["preflmr_scores"] = self.retriever(**train_batch).scores_raw
+
         batch_loss = self.reranker(**train_batch).loss
 
         # log the current learning rate from shedulers
@@ -673,7 +677,7 @@ class RerankerBaseExecutor(BaseExecutor, MetricsProcessor):
                 retrieved_docs
             )
 
-            all_logits = self.reranker(
+            batch_input = dict(
                 query_input_ids=query_input_id,
                 query_attention_mask=query_attention_mask,
                 query_pixel_values=query_pixel_value,
@@ -681,6 +685,14 @@ class RerankerBaseExecutor(BaseExecutor, MetricsProcessor):
                 context_attention_mask=context_attention_masks,
                 num_negative_examples=context_input_ids.shape[0]
                 - query_input_id.shape[0],
+            )
+            if "preflmr_attention_fusion" in self.model_config.modules:
+                preflmr_scores = self.retriever(**batch_input).scores_raw
+                batch_input["preflmr_scores"] = preflmr_scores
+
+
+            all_logits = self.reranker(
+                **batch_input
             ).logits
 
             # Detach and clone the logits to avoid modifying the computation graph
