@@ -340,10 +340,7 @@ class RerankModel(pl.LightningModule):
             ),
             dim=1,
         )
-        
-        assert reranker_inputs[:, :query_text_size].size(1) == 32
-        assert reranker_inputs[:, context_text_size:].size(1) == 81
-        assert reranker_inputs[:, query_text_size:context_text_size].size(1) == 480
+    
         
         reranker_attention_mask = torch.cat(
             (
@@ -363,24 +360,34 @@ class RerankModel(pl.LightningModule):
                 context_text_size - query_text_size,
                 query_text_size + image_token_size,
             )
-            query_mask = torch.zeros(
+            
+            # Query Self-Attention Mask
+            upper_left = torch.zeros(
                 (
                     expanded_batch_size,
                     query_text_size + image_token_size,
                     query_text_size + image_token_size,
                 ), device = self.device
             )
-            context_mask = torch.zeros(
+            
+            # Context Self-Attention Mask
+            bottom_right = torch.zeros(
                 (
                     expanded_batch_size,
                     context_text_size - query_text_size,
                     context_text_size - query_text_size,
                 ), device = self.device
             )
+            
+            # Cross-Attention Fusion
+            upper_right = truncated_scores.permute(0, 2, 1)
+            bottom_left = truncated_scores
+            
+            
             reranker_attention_adj = torch.cat(
                 [
-                    torch.cat([query_mask, truncated_scores.permute(0, 2, 1)], dim=2),
-                    torch.cat([truncated_scores, context_mask], dim=2),
+                    torch.cat([upper_left, truncated_scores.permute(0, 2, 1)], dim=2),
+                    torch.cat([truncated_scores, bottom_right], dim=2),
                 ],
                 dim=1,
             )
