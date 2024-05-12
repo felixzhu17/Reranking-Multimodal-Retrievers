@@ -55,7 +55,7 @@ from src.models.flmr import (
 )
 from src.models.flmr import index_custom_collection
 from src.models.flmr import search_custom_collection, create_searcher
-from src.models.rerank.rerank_model import RerankModel
+from src.models.rerank.rerank_model import RerankModel, InteractionRerankModel
 
 from src.metrics import MetricsProcessor
 from src.utils.dirs import *
@@ -152,8 +152,18 @@ class RerankerBaseExecutor(BaseExecutor, MetricsProcessor):
         Args:
             model_config (dict): contains key-values for model configuration
         """
+        reranker_config = model_config.reranker_config
+        RerankerClass = globals()[reranker_config.RerankerClass]
+        if "interaction_reranker" in self.model_config.modules:
+            raise NotImplementedError
+            assert RerankerClass == InteractionRerankModel, "Only RerankModel supports interaction_reranker"
+        self.prepared_data = self.dp.get_data([self.use_data_node], explode=True)
+        self.reranker = RerankerClass(reranker_config)
+        print("Freezing Reranker vision encoders")
+        for name, param in self.reranker.context_vision_encoder.named_parameters():
+            param.requires_grad = False
 
-        if "preflmr_attention_fusion" in self.model_config.modules:
+        if "preflmr_attention_fusion" in self.model_config.modules or "interaction_reranker" in self.model_config.modules:
             retriever_config = model_config.retriever_config
 
             ModelClass = globals()[retriever_config.ModelClass]
@@ -188,13 +198,6 @@ class RerankerBaseExecutor(BaseExecutor, MetricsProcessor):
             for name, param in self.retriever.named_parameters():
                 param.requires_grad = False
 
-        reranker_config = model_config.reranker_config
-        RerankerClass = globals()[reranker_config.RerankerClass]
-        self.prepared_data = self.dp.get_data([self.use_data_node], explode=True)
-        self.reranker = RerankerClass(reranker_config)
-        print("Freezing Reranker vision encoders")
-        for name, param in self.reranker.context_vision_encoder.named_parameters():
-            param.requires_grad = False
 
     def init_retrieve(self):
 
@@ -442,6 +445,7 @@ class RerankerBaseExecutor(BaseExecutor, MetricsProcessor):
         }
 
     def training_step(self, sample_batched, batch_idx):
+        retrieval_results = None
         train_batch = {
             "query_input_ids": sample_batched["input_ids"].to(self.device),
             "query_attention_mask": sample_batched["attention_mask"].to(self.device),
@@ -492,8 +496,16 @@ class RerankerBaseExecutor(BaseExecutor, MetricsProcessor):
                 context_attention_masks, dim=0
             )
 
+        if "interaction_reranker" in self.model_config.modules:
+            retrieval_results = self.retriever(**train_batch)
+            train_batch = {
+                "query_late_interaction": retrieval_results.query_late_interaction,
+                "context_late_interaction": retrieval_results.context_late_interaction,
+                "num_negative_examples": self.model_config.num_negative_samples,
+            }
+            
         if "preflmr_attention_fusion" in self.model_config.modules:
-            train_batch["preflmr_scores"] = self.retriever(**train_batch).scores_raw
+            train_batch["preflmr_scores"] = retrieval_results.scores_raw if retrieval_results is not None else self.retriever(**train_batch).scores_raw
             train_batch["fusion_multiplier"] = self.model_config.fusion_multiplier
 
         batch_loss = self.reranker(**train_batch).loss
