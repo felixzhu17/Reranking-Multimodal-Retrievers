@@ -123,19 +123,19 @@ local data_pipeline = std.mergePatch(merge_data, data_loader);
           "cross_encoder_max_position_embeddings": 750
 
         },
-        "Ks": [5, 10, 20, 50, 80, 100, 500],
+        "Ks": [5, 10, 20, 50],
         "num_negative_samples": 4,
         "max_source_length": 32,
         "max_decoder_source_length": 512,
-        "reranking_batch_size": 500,
         "pretrained": 1,
         "modules": [
             "separate_query_and_item_encoders",
             "train_with_retrieved_docs",
+            "preflmr_attention_fusion",
         ],
         "index_files": index_files,
         "nbits": 8,
-        "docs_to_rerank": 500,
+        "docs_to_rerank": 100,
         "prepend_tokens": {
             "query_encoder": "",
             "item_encoder": "",

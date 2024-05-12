@@ -185,6 +185,7 @@ class FLMRModelForRetrievalOutput(ModelOutput):
 
     loss: torch.FloatTensor
     scores: torch.FloatTensor = None
+    scores_raw: Optional[torch.FloatTensor] = None
     in_batch_negative_loss: torch.FloatTensor = None
     query_late_interaction_output: torch.FloatTensor = None
     context_late_interaction_output: torch.FloatTensor = None
@@ -192,6 +193,7 @@ class FLMRModelForRetrievalOutput(ModelOutput):
     query_hidden_states: Optional[Tuple[Tuple[Tensor]]] = None
     context_attentions: Optional[Tuple[Tuple[Tensor]]] = None
     context_hidden_states: Optional[Tuple[Tuple[Tensor]]] = None
+    
 
 
 class FLMRPreTrainedModel(PreTrainedModel):
@@ -561,10 +563,6 @@ class FLMRModelForRetrieval(FLMRPretrainedModelForRetrieval):
 
         super().__init__(config)
         self.config = config
-        # import pickle
-        # with open("PreFLMR_config.pkl", "wb") as f:
-        #     pickle.dump(self.config, f)
-        # raise ValueError
 
         self.vision_model_version = config.vision_model_version
 
@@ -1100,7 +1098,7 @@ class FLMRModelForRetrieval(FLMRPretrainedModelForRetrieval):
         ).flatten(
             0, 1
         )  # query-major unsqueeze
-        scores = colbert_score_reduce(scores, D_mask.repeat(Q.size(0), 1, 1))
+        scores, _ = colbert_score_reduce(scores, D_mask.repeat(Q.size(0), 1, 1))
 
         in_batch_scores = scores.reshape(Q.size(0), -1)
 

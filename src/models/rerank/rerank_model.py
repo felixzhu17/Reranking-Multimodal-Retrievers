@@ -263,6 +263,8 @@ class RerankModel(pl.LightningModule):
     ):
 
         batch_size = query_input_ids.shape[0]
+        expanded_batch_size = batch_size * (num_negative_examples + 1)
+        assert expanded_batch_size == context_input_ids.shape[0]
         query_input_ids = query_input_ids.repeat_interleave(
             num_negative_examples + 1, dim=0
         ).contiguous()
@@ -319,11 +321,12 @@ class RerankModel(pl.LightningModule):
 
         # All vision embeddings should be used in the attention
         expand_mask = torch.ones(
-            batch_size,
+            expanded_batch_size,
             image_token_size,
             dtype=joint_query_attention_mask.dtype,
             device=joint_query_attention_mask.device,
         )
+        
         reranker_attention_mask = torch.cat(
             [joint_query_attention_mask, expand_mask], dim=1
         )  # torch.Size([80, 593])
@@ -337,6 +340,11 @@ class RerankModel(pl.LightningModule):
             ),
             dim=1,
         )
+        
+        assert reranker_inputs[:, :query_text_size].size(1) == 32
+        assert reranker_inputs[:, context_text_size:].size(1) == 81
+        assert reranker_inputs[:, query_text_size:context_text_size].size(1) == 480
+        
         reranker_attention_mask = torch.cat(
             (
                 reranker_attention_mask[:, :query_text_size],
@@ -346,32 +354,32 @@ class RerankModel(pl.LightningModule):
             dim=1,
         )
 
-        if preflmr_scores:
+        if preflmr_scores is not None:
             truncated_scores = preflmr_scores[
                 :, left_truncate_context_size:right_truncate_context_size, :
             ]
             assert truncated_scores.shape == (
-                batch_size,
+                expanded_batch_size,
                 context_text_size - query_text_size,
                 query_text_size + image_token_size,
             )
             query_mask = torch.zeros(
                 (
-                    batch_size,
+                    expanded_batch_size,
                     query_text_size + image_token_size,
                     query_text_size + image_token_size,
-                )
+                ), device = self.device
             )
             context_mask = torch.zeros(
                 (
-                    batch_size,
+                    expanded_batch_size,
                     context_text_size - query_text_size,
                     context_text_size - query_text_size,
-                )
+                ), device = self.device
             )
             reranker_attention_adj = torch.cat(
                 [
-                    torch.cat([query_mask, truncated_scores.transpose(0, 2, 1)], dim=2),
+                    torch.cat([query_mask, truncated_scores.permute(0, 2, 1)], dim=2),
                     torch.cat([truncated_scores, context_mask], dim=2),
                 ],
                 dim=1,

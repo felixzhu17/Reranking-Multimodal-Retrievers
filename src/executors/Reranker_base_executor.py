@@ -496,6 +496,8 @@ class RerankerBaseExecutor(BaseExecutor, MetricsProcessor):
             train_batch["preflmr_scores"] = self.retriever(**train_batch).scores_raw
 
         batch_loss = self.reranker(**train_batch).loss
+        raise ValueError
+
 
         # log the current learning rate from shedulers
         current_lrs = self.scheduler.get_last_lr()
