@@ -383,6 +383,14 @@ class RerankModel(pl.LightningModule):
             upper_right = truncated_scores.permute(0, 2, 1)
             bottom_left = truncated_scores
             
+            # Save upper_right and bottom_left to pkl
+            with open('upper_right.pkl', 'wb') as f:
+                pickle.dump(upper_right, f)
+
+            with open('bottom_left.pkl', 'wb') as f:
+                pickle.dump(bottom_left, f)
+                
+            raise ValueError
             
             reranker_attention_adj = torch.cat(
                 [
