@@ -66,10 +66,11 @@ class CrossEncoder(nn.Module):
         # Define a sigmoid activation function to output a probability score
         self.sigmoid = nn.Sigmoid()
 
-    def forward(self, inputs_embeds, attention_mask=None, token_type_ids=None):
+    def forward(self, inputs_embeds, attention_mask=None, attention_adj = None, token_type_ids=None):
         # Forward pass through BERT model
         outputs = self.bert_model(inputs_embeds=inputs_embeds,
                                   attention_mask=attention_mask,
+                                  attention_adj=attention_adj,
                                   token_type_ids=token_type_ids,
                                   return_dict=True)
 
@@ -364,11 +365,13 @@ class RerankModel(pl.LightningModule):
         if preflmr_scores:
             truncated_scores = preflmr_scores[:, left_truncate_context_size:right_truncate_context_size, :]
             assert truncated_scores.shape == (batch_size, context_text_size - query_text_size, query_text_size + image_token_size)
-            query_mask = torch.ones((batch_size, query_text_size + image_token_size, query_text_size + image_token_size))
-            context_mask = torch.ones((batch_size, context_text_size - query_text_size, context_text_size - query_text_size))
-            reranker_attention_mask = torch.cat([torch.cat([query_mask, truncated_scores.transpose(0, 2, 1)], dim=2), torch.cat([truncated_scores, context_mask], dim=2)], dim=1)
+            query_mask = torch.zeros((batch_size, query_text_size + image_token_size, query_text_size + image_token_size))
+            context_mask = torch.zeros((batch_size, context_text_size - query_text_size, context_text_size - query_text_size))
+            reranker_attention_adj = torch.cat([torch.cat([query_mask, truncated_scores.transpose(0, 2, 1)], dim=2), torch.cat([truncated_scores, context_mask], dim=2)], dim=1)
+        else:
+            reranker_attention_adj = None
 
-        logits = self.reranker(reranker_inputs, reranker_attention_mask)
+        logits = self.reranker(reranker_inputs, attention_mask=reranker_attention_mask, attention_adj=reranker_attention_adj)
         
         # First document is the positive example, concatenate them all along the first dimension and use binary cross entropy
         labels = torch.zeros(num_negative_examples + 1, 1)
