@@ -123,7 +123,7 @@ local data_pipeline = std.mergePatch(merge_data, data_loader);
           "cross_encoder_max_position_embeddings": 750
 
         },
-        "Ks": [5, 10, 20, 50],
+        "Ks": [5, 10, 20, 50, 100],
         "num_negative_samples": 4,
         "max_source_length": 32,
         "max_decoder_source_length": 512,

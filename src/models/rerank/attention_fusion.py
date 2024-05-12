@@ -80,10 +80,9 @@ class AttentionFusionBertModel(BertModel):
         extended_attention_mask: torch.Tensor = self.get_extended_attention_mask(
             attention_mask, input_shape
         )
-        
 
-        
         if attention_adj is not None:
+            
             if attention_adj.dim() == 3:
                 attention_adj = attention_adj[:, None, :, :]
 
@@ -99,9 +98,7 @@ class AttentionFusionBertModel(BertModel):
                 raise ValueError(
                     "attention_adj and extended_attention_mask must have the same data type"
                 )
-            print(extended_attention_mask.shape)
-            print(attention_adj.shape)
-                
+
             extended_attention_mask = extended_attention_mask + attention_adj
 
         # If a 2D or 3D attention mask is provided for the cross-attention

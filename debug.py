@@ -37,10 +37,10 @@ import pickle
 # lengths = [len(passages) for passages in questionId2topPassages.values()]
 # assert all(length == lengths[0] for length in lengths)
 
-with open("/home/fz288/rds/hpc-work/PreFLMR/question_ids.pkl", 'rb') as f:
-    questions = pickle.load(f)
+# with open("/home/fz288/rds/hpc-work/PreFLMR/question_ids.pkl", 'rb') as f:
+#     questions = pickle.load(f)
 
-with open("current_batches.pkl", 'rb') as f:
+with open("upper_right.pkl", 'rb') as f:
     batch = pickle.load(f)
 
 

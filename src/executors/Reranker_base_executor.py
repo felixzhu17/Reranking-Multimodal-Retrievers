@@ -653,8 +653,8 @@ class RerankerBaseExecutor(BaseExecutor, MetricsProcessor):
         Ks = self.model_config.Ks
         max_K = max(Ks)
         assert (
-            self.config.model_config.docs_to_rerank >= max_K
-        ), "The number of retrieved documents must be greater than the maximum K."
+            self.config.model_config.docs_to_rerank == max_K
+        ), "The number of retrieved documents must be equal to the maximum K."
 
         print("Reranking the top retrieved documents...")
         batch_result = []
