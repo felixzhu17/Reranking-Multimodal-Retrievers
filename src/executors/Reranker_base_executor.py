@@ -67,7 +67,7 @@ import datasets
 def get_world_size():
     return dist.get_world_size()
 @register_executor
-class RerankerExecutor(BaseExecutor, MetricsProcessor):
+class RerankerBaseExecutor(BaseExecutor, MetricsProcessor):
     def __init__(self,
         data_pipeline_config: DataPipelineConfig,
         model_config: ModelConfig,
@@ -128,39 +128,39 @@ class RerankerExecutor(BaseExecutor, MetricsProcessor):
             model_config (dict): contains key-values for model configuration
         """
 
-        retriever_config = model_config.retriever_config
+        # retriever_config = model_config.retriever_config
 
-        ModelClass = globals()[retriever_config.ModelClass]
-        ConfigClass = globals()[retriever_config.ConfigClass]
-        ModelVersion = retriever_config.ModelVersion
+        # ModelClass = globals()[retriever_config.ModelClass]
+        # ConfigClass = globals()[retriever_config.ConfigClass]
+        # ModelVersion = retriever_config.ModelVersion
 
-        config = ConfigClass.from_pretrained(ModelVersion, trust_remote_code=True)
+        # config = ConfigClass.from_pretrained(ModelVersion, trust_remote_code=True)
 
-        config.load_cpu_extension = True
+        # config.load_cpu_extension = True
 
-        if retriever_config.ModelClass == "FLMRModelForRetrieval":
-            flmr_query_tokenizer = FLMRQueryEncoderTokenizer.from_pretrained(
-                ModelVersion, subfolder="query_tokenizer"
-            )
-            flmr_context_tokenizer = FLMRContextEncoderTokenizer.from_pretrained(
-                ModelVersion, subfolder="context_tokenizer"
-            )
+        # if retriever_config.ModelClass == "FLMRModelForRetrieval":
+        #     flmr_query_tokenizer = FLMRQueryEncoderTokenizer.from_pretrained(
+        #         ModelVersion, subfolder="query_tokenizer"
+        #     )
+        #     flmr_context_tokenizer = FLMRContextEncoderTokenizer.from_pretrained(
+        #         ModelVersion, subfolder="context_tokenizer"
+        #     )
 
-            self.retriever = ModelClass.from_pretrained(
-                ModelVersion,
-                config=config,
-                query_tokenizer=flmr_query_tokenizer,
-                context_tokenizer=flmr_context_tokenizer,
-                torch_dtype=self.use_dtype,
-                trust_remote_code=True,
-            )
+        #     self.retriever = ModelClass.from_pretrained(
+        #         ModelVersion,
+        #         config=config,
+        #         query_tokenizer=flmr_query_tokenizer,
+        #         context_tokenizer=flmr_context_tokenizer,
+        #         torch_dtype=self.use_dtype,
+        #         trust_remote_code=True,
+        #     )
             
-        else:
-            self.retriever = ModelClass.from_pretrained(ModelVersion, config=config, trust_remote_code=True)
+        # else:
+        #     self.retriever = ModelClass.from_pretrained(ModelVersion, config=config, trust_remote_code=True)
 
-        print("Freezing Retriever")
-        for name, param in self.retriever.named_parameters():
-            param.requires_grad = False
+        # print("Freezing Retriever")
+        # for name, param in self.retriever.named_parameters():
+        #     param.requires_grad = False
         
         reranker_config = model_config.reranker_config
         RerankerClass = globals()[reranker_config.RerankerClass]
@@ -382,8 +382,38 @@ class RerankerExecutor(BaseExecutor, MetricsProcessor):
             "num_negative_examples": self.model_config.num_negative_samples,
         }
     
-        batch_loss = self.reranker(**train_batch).loss
 
+        if "train_with_retrieved_docs" in self.model_config.modules:
+            context_input_ids, context_attention_masks = [], []
+            for question_id, pos_item_ids in zip(sample_batched['question_ids'], sample_batched['pos_item_ids']):
+                retrieved_docs = self.static_retrieve(question_id).retrieved_docs
+                pos_item_ids = set(pos_item_ids)
+                positive_docs = []
+                negative_docs = []
+
+                for doc in retrieved_docs:
+                    if doc['passage_id'] in pos_item_ids:
+                        positive_docs.append(doc)
+                    else:
+                        negative_docs.append(doc)
+
+                if len(positive_docs) == 0:
+                    passage_id = random.sample(pos_item_ids, 1)[0]
+                    positive_docs = [{
+                                'score': 10,
+                                'title': '',
+                                'content': self.passage_id2doc.get(passage_id, ""),
+                                'passage_id': passage_id,
+                            }]
+                retrieved_docs = random.sample(positive_docs, 1) + random.sample(negative_docs, self.model_config.num_negative_samples)
+                context_input_id, context_attention_mask = self.tokenize_retrieved_docs(retrieved_docs)
+                context_input_ids.append(context_input_id)
+                context_attention_masks.append(context_attention_mask)
+            train_batch['context_input_ids'] = torch.cat(context_input_ids, dim=0)
+            train_batch['context_attention_mask'] = torch.cat(context_attention_masks, dim=0)
+                
+        batch_loss = self.reranker(**train_batch).loss
+        
         # log the current learning rate from shedulers
         current_lrs = self.scheduler.get_last_lr()
         for index, current_lr in enumerate(current_lrs):
@@ -500,7 +530,6 @@ class RerankerExecutor(BaseExecutor, MetricsProcessor):
             questions.extend(step_output['questions'])
             
         for current_batch in current_batches:
-            # Split each tensor into smaller tensors of shape (1, YYY)
             split_input_ids = current_batch['query_input_ids'].split(1, dim=0)
             split_attention_masks = current_batch['query_attention_mask'].split(1, dim=0)
             split_pixel_values = current_batch['query_pixel_values'].split(1, dim=0)
@@ -514,8 +543,7 @@ class RerankerExecutor(BaseExecutor, MetricsProcessor):
 
         Ks = self.model_config.Ks
         max_K = max(Ks)
-        assert self.config.model_config.docs_to_rerank >= max_K
-        reranking_batch_size = self.model_config.reranking_batch_size
+        assert self.config.model_config.docs_to_rerank >= max_K, "The number of retrieved documents must be greater than the maximum K."
         
         print("Reranking the top retrieved documents...")
         batch_result = []
@@ -523,36 +551,18 @@ class RerankerExecutor(BaseExecutor, MetricsProcessor):
             print(f"Reranking question {question_id}")
             retrieved_docs = self.static_retrieve(question_id).retrieved_docs
             context_input_ids, context_attention_masks = self.tokenize_retrieved_docs(retrieved_docs)
-            
-            num_batches = len(context_input_ids) // reranking_batch_size + (len(context_input_ids) % reranking_batch_size > 0)
-            
-            batch_logits_list = []
 
-            for i in range(num_batches):
-                # Calculate start and end indices for each batch
-                start_idx = i * reranking_batch_size
-                end_idx = min((i + 1) * reranking_batch_size, len(context_input_ids))
+            all_logits = self.reranker(
+                query_input_ids=query_input_id,
+                query_attention_mask=query_attention_mask,
+                query_pixel_values=query_pixel_value,
+                context_input_ids=context_input_ids,
+                context_attention_mask=context_attention_masks,
+                num_negative_examples=context_input_ids.shape[0] - query_input_id.shape[0]
+            ).logits
 
-                # Extract batch data
-                batch_context_input_ids = context_input_ids[start_idx:end_idx]
-                batch_context_attention_masks = context_attention_masks[start_idx:end_idx]
-
-            
-                batch_logits = self.reranker(
-                    query_input_ids=query_input_id,
-                    query_attention_mask=query_attention_mask,
-                    query_pixel_values=query_pixel_value,
-                    context_input_ids=batch_context_input_ids,
-                    context_attention_mask=batch_context_attention_masks,
-                    num_negative_examples= batch_context_input_ids.shape[0] - query_input_id.shape[0]
-                ).logits
-                
-       
-
-                # Aggregate the logits from this batch
-                batch_logits_list.append(batch_logits.clone().detach())
-                
-            all_logits = torch.cat(batch_logits_list, dim=0)
+            # Detach and clone the logits to avoid modifying the computation graph
+            all_logits = all_logits.clone().detach()
             logits_list = all_logits.squeeze().tolist()
             assert len(retrieved_docs) == len(logits_list), "Length of retrieved_docs and all_logits must match."
             
@@ -640,8 +650,7 @@ class RerankerExecutor(BaseExecutor, MetricsProcessor):
         return log_dict
 
     def static_retrieve(self, 
-                    question_id, 
-                    pos_item_id=None):
+                    question_id):
 
         n_docs = self.config.model_config.docs_to_rerank
 
@@ -649,21 +658,7 @@ class RerankerExecutor(BaseExecutor, MetricsProcessor):
         if annotation is None:
             raise ValueError(f"Question {question_id} not found in the static retrieval results.")
         top_passages = annotation[:n_docs]
-        
-        # if 'use_gt_docs_for_training' in self.config.model_config.modules and pos_ids is not None:
-        #     annotation = []
-        #     for i in range(n_docs):
-        #         annotation.append(
-        #             {
-        #                 'score': 10,
-        #                 'title': '',
-        #                 'content': '',
-        #                 'passage_id': random.sample(pos_ids, 1)[0]
-        #             }
-        #         )
-        #     top_passages = annotation
-        
-        
+
         for p in top_passages:
             p['title'] = ''
             passage_id = p['passage_id']

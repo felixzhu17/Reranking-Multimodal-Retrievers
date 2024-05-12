@@ -319,6 +319,7 @@ class RerankModel(pl.LightningModule):
                       context_input_ids: torch.Tensor,
                       context_attention_mask: torch.Tensor,
                       num_negative_examples: int,
+                      preflmr_scores: Optional[torch.Tensor] = None,
                     ):
 
         batch_size = query_input_ids.shape[0]
@@ -330,37 +331,42 @@ class RerankModel(pl.LightningModule):
         query_input_ids = query_input_ids.repeat_interleave(num_negative_examples + 1, dim=0).contiguous()
         query_attention_mask = query_attention_mask.repeat_interleave(num_negative_examples + 1, dim=0).contiguous()
         query_pixel_values = query_pixel_values.repeat_interleave(num_negative_examples + 1, dim=0).contiguous()
+        query_text_size = query_input_ids.size(1)
+        context_text_size = context_input_ids.size(1)
+        assert context_text_size == self.model_config.max_decoder_source_length
         
+        left_truncate_context_size = 2
+        right_truncate_context_size = left_truncate_context_size - query_text_size
 
-        joint_query_input_ids = torch.cat([query_input_ids, context_input_ids[:, 2:]], dim=1)
-        joint_query_attention_mask = torch.cat([query_attention_mask, context_attention_mask[:, 2:]], dim=1)
+        joint_query_input_ids = torch.cat([query_input_ids, context_input_ids[:, left_truncate_context_size:right_truncate_context_size]], dim=1)
+        joint_query_attention_mask = torch.cat([query_attention_mask, context_attention_mask[:, left_truncate_context_size:right_truncate_context_size]], dim=1)
 
-        # Prune the input size when the appended documents are too long
-        if joint_query_input_ids.size(1) > self.max_position_embeddings:
-            joint_query_input_ids = joint_query_input_ids[:, :self.max_position_embeddings]
-            joint_query_attention_mask = joint_query_attention_mask[:, :self.max_position_embeddings]        
+
+        # # Prune the input size when the appended documents are too long
+        # if joint_query_input_ids.size(1) > self.max_position_embeddings:
+        #     joint_query_input_ids = joint_query_input_ids[:, :self.max_position_embeddings]
+        #     joint_query_attention_mask = joint_query_attention_mask[:, :self.max_position_embeddings]        
             
         query_outputs = self.query(joint_query_input_ids, joint_query_attention_mask, query_pixel_values, None, None, None)
         reranker_inputs = self.cross_encoder_input_mapping(query_outputs.late_interaction_output)
         
+        image_token_size = reranker_inputs.size(1) - joint_query_attention_mask.size(1)
+        
         # All vision embeddings should be used in the attention
-        expand_mask = torch.ones(joint_query_attention_mask.size(0), reranker_inputs.size(1) - joint_query_attention_mask.size(1), dtype=joint_query_attention_mask.dtype, device=joint_query_attention_mask.device)
-        reranker_attention_mask = torch.cat([joint_query_attention_mask, expand_mask], dim=1)
+        expand_mask = torch.ones(batch_size, image_token_size, dtype=joint_query_attention_mask.dtype, device=joint_query_attention_mask.device)
+        reranker_attention_mask = torch.cat([joint_query_attention_mask, expand_mask], dim=1) # torch.Size([80, 593])
         
+        # Reorder to Query, Image, Context
+        reranker_inputs = torch.cat((reranker_inputs[:,:query_text_size], reranker_inputs[:,context_text_size:], reranker_inputs[:,query_text_size:context_text_size]), dim=1)
+        reranker_attention_mask = torch.cat((reranker_attention_mask[:,:query_text_size], reranker_attention_mask[:,context_text_size:], reranker_attention_mask[:,query_text_size:context_text_size]), dim=1)
         
-        # # Save joint_query_input_ids, joint_query_attention_mask, reranker_inputs, reranker_attention_mask to a pkl file
-        # data = {
-        #     'joint_query_input_ids': joint_query_input_ids,
-        #     'joint_query_attention_mask': joint_query_attention_mask,
-        #     'reranker_inputs': reranker_inputs,
-        #     'reranker_attention_mask': reranker_attention_mask
-        # }
+        if preflmr_scores:
+            truncated_scores = preflmr_scores[:, left_truncate_context_size:right_truncate_context_size, :]
+            assert truncated_scores.shape == (batch_size, context_text_size - query_text_size, query_text_size + image_token_size)
+            query_mask = torch.ones((batch_size, query_text_size + image_token_size, query_text_size + image_token_size))
+            context_mask = torch.ones((batch_size, context_text_size - query_text_size, context_text_size - query_text_size))
+            reranker_attention_mask = torch.cat([torch.cat([query_mask, truncated_scores.transpose(0, 2, 1)], dim=2), torch.cat([truncated_scores, context_mask], dim=2)], dim=1)
 
-        # with open('joint_data.pkl', 'wb') as f:
-        #     pickle.dump(data, f)
-        
-        # raise ValueError
-        
         logits = self.reranker(reranker_inputs, reranker_attention_mask)
         
         # First document is the positive example, concatenate them all along the first dimension and use binary cross entropy
@@ -458,19 +464,14 @@ class RerankModel(pl.LightningModule):
             encoder_extended_attention_mask = self.invert_attention_mask(encoder_mask.squeeze(-1)) # torch.Size([80, 1, 1, 32])
 
 
-            try:
-                # Pass through the transformer mapping
-                transformer_mapping_outputs = self.transformer_mapping_network(
-                    transformer_mapping_input_features, # torch.Size([80, 49, 768])
-                    encoder_hidden_states=text_encoder_hidden_states, # torch.Size([80, 32, 768])
-                    encoder_attention_mask=encoder_extended_attention_mask, # torch.Size([80, 1, 1, 32]) 
-                )
-            except:
-                print(transformer_mapping_input_features.dtype)
-                print(text_encoder_hidden_states.dtype)
-                print(encoder_extended_attention_mask.dtype)
-                raise ValueError
-            
+     
+            # Pass through the transformer mapping
+            transformer_mapping_outputs = self.transformer_mapping_network(
+                transformer_mapping_input_features, # torch.Size([80, 49, 768])
+                encoder_hidden_states=text_encoder_hidden_states, # torch.Size([80, 32, 768])
+                encoder_attention_mask=encoder_extended_attention_mask, # torch.Size([80, 1, 1, 32]) 
+            )
+    
             
             
             transformer_mapping_output_features = transformer_mapping_outputs.last_hidden_state
@@ -478,8 +479,8 @@ class RerankModel(pl.LightningModule):
             transformer_mapping_output_features = self.transformer_mapping_output_linear(
                 transformer_mapping_output_features
             )
-            # Merge with the vision embeddings
-            vision_embeddings = torch.cat([vision_embeddings, transformer_mapping_output_features], dim=1) # torch.Size([80, 81, 128])
+            
+            vision_embeddings = torch.cat([vision_embeddings, transformer_mapping_output_features], dim=1) # 32, 49, torch.Size([80, 81, 128])
 
         Q = torch.cat([text_embeddings, vision_embeddings], dim=1)
 

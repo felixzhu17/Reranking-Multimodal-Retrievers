@@ -45,7 +45,7 @@ def colbert_score(Q, D_padded, D_mask, use_gpu=False):
     assert Q.size(0) in [1, D_padded.size(0)]
 
     scores = D_padded @ Q.to(dtype=D_padded.dtype).permute(0, 2, 1)
-
+    raise ValueError(f"{scores.shape}") # ValueError: torch.Size([80, 512, 113])
     return colbert_score_reduce(scores, D_mask)
 
 

@@ -857,6 +857,8 @@ class FLMRModelForRetrieval(FLMRPretrainedModelForRetrieval):
         # Repeat each query encoding for every corresponding document.
         Q_duplicated = Q.repeat_interleave(num_negative_examples + 1, dim=0).contiguous()
 
+        raise ValueError(Q_duplicated.shape, D.shape, D_mask.shape)
+
         scores = self.score(Q_duplicated, D, D_mask)
 
         # Use contrastive learning

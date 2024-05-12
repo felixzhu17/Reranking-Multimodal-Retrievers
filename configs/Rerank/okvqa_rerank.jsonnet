@@ -127,10 +127,11 @@ local data_pipeline = std.mergePatch(merge_data, data_loader);
         "num_negative_samples": 4,
         "max_source_length": 32,
         "max_decoder_source_length": 512,
-        "reranking_batch_size": 16,
+        "reranking_batch_size": 500,
         "pretrained": 1,
         "modules": [
             "separate_query_and_item_encoders",
+            "train_with_retrieved_docs",
         ],
         "index_files": index_files,
         "nbits": 8,
@@ -169,7 +170,7 @@ local data_pipeline = std.mergePatch(merge_data, data_loader);
         },
     },
     executor: {
-        ExecutorClass: 'RerankerExecutor',
+        ExecutorClass: 'RerankerBaseExecutor',
         init_kwargs: {
             "use_data_node": "output:PrepareDataloaders",
             "index_splits": ['train', 'valid', 'test'],
@@ -189,6 +190,7 @@ local data_pipeline = std.mergePatch(merge_data, data_loader);
             check_val_every_n_epoch: null,
             val_check_interval: 250,
             log_every_n_steps: 10,
+            limit_test_batches: 2,
         },
         model_checkpoint_callback_paras: {
             monitor: 'valid/OKVQADatasetForDPR.test/recall_at_5',
@@ -230,7 +232,7 @@ local data_pipeline = std.mergePatch(merge_data, data_loader);
             devices: 'auto',
             strategy: 'ddp_find_unused_parameters_true',
             precision: 'bf16',
-            limit_test_batches: 10,
+            limit_test_batches: 2,
         },
         batch_size: 16,
         num_dataloader_workers: 0,
