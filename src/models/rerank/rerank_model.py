@@ -392,6 +392,8 @@ class RerankModel(pl.LightningModule):
                 
             raise ValueError
             
+            
+            
             reranker_attention_adj = torch.cat(
                 [
                     torch.cat([upper_left, truncated_scores.permute(0, 2, 1)], dim=2),
