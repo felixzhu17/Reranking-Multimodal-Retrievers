@@ -155,7 +155,6 @@ class RerankerBaseExecutor(BaseExecutor, MetricsProcessor):
         reranker_config = model_config.reranker_config
         RerankerClass = globals()[reranker_config.RerankerClass]
         if "interaction_reranker" in self.model_config.modules:
-            raise NotImplementedError
             assert RerankerClass == InteractionRerankModel, "Only RerankModel supports interaction_reranker"
         self.prepared_data = self.dp.get_data([self.use_data_node], explode=True)
         self.reranker = RerankerClass(reranker_config)
