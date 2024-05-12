@@ -384,6 +384,8 @@ class RerankModel(pl.LightningModule):
             bottom_left = truncated_scores
             
             
+            
+            
             reranker_attention_adj = torch.cat(
                 [
                     torch.cat([upper_left, truncated_scores.permute(0, 2, 1)], dim=2),
