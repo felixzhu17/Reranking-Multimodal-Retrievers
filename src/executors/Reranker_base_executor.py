@@ -191,7 +191,7 @@ class RerankerBaseExecutor(BaseExecutor, MetricsProcessor):
         reranker_config = model_config.reranker_config
         RerankerClass = globals()[reranker_config.RerankerClass]
         self.prepared_data = self.dp.get_data([self.use_data_node], explode=True)
-        self.reranker = RerankerClass(reranker_config, self.prepared_data)
+        self.reranker = RerankerClass(reranker_config)
         print("Freezing Reranker vision encoders")
         for name, param in self.reranker.context_vision_encoder.named_parameters():
             param.requires_grad = False

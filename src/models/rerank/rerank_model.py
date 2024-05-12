@@ -119,14 +119,10 @@ class RerankModel(pl.LightningModule):
     Class for RAG, re-implementation
     """
 
-    def __init__(self, config: EasyDict, prepared_data) -> None:
+    def __init__(self, config: EasyDict) -> None:
         super().__init__()
 
         self.config = config
-        self.prepared_data = prepared_data
-        self.tokenizers = self.prepared_data["tokenizers"]
-        self.tokenizer = self.tokenizers["tokenizer"]
-        self.decoder_tokenizer = self.tokenizers["decoder_tokenizer"]
         self.init_model_base()
         self.init_reranker()
         self.loss_fn = nn.BCEWithLogitsLoss()
@@ -318,12 +314,12 @@ class RerankModel(pl.LightningModule):
             query_outputs.late_interaction_output
         )
 
-        image_token_size = reranker_inputs.size(1) - joint_query_attention_mask.size(1)
+        query_image_size = reranker_inputs.size(1) - joint_query_attention_mask.size(1)
 
         # All vision embeddings should be used in the attention
         expand_mask = torch.ones(
             expanded_batch_size,
-            image_token_size,
+            query_image_size,
             dtype=joint_query_attention_mask.dtype,
             device=joint_query_attention_mask.device,
         )
@@ -359,15 +355,15 @@ class RerankModel(pl.LightningModule):
             assert truncated_scores.shape == (
                 expanded_batch_size,
                 context_text_size - query_text_size,
-                query_text_size + image_token_size,
+                query_text_size + query_image_size,
             )
             
             # Query Self-Attention Mask
             upper_left = torch.zeros(
                 (
                     expanded_batch_size,
-                    query_text_size + image_token_size,
-                    query_text_size + image_token_size,
+                    query_text_size + query_image_size,
+                    query_text_size + query_image_size,
                 ), device = self.device
             )
             
@@ -655,3 +651,99 @@ class RerankModel(pl.LightningModule):
         ) * torch.finfo(self.dtype).min
 
         return encoder_extended_attention_mask
+
+class InteractionRerankModel(pl.LightningModule):
+    """
+    Class for RAG, re-implementation
+    """
+
+    def __init__(self, config: EasyDict) -> None:
+        super().__init__()
+
+        self.config = config
+        self.init_reranker()
+        self.loss_fn = nn.BCEWithLogitsLoss()
+
+    def init_reranker(self):
+        cross_encoder_config_base = self.config.cross_encoder_config_base
+        cross_encoder_config = BertConfig.from_pretrained(cross_encoder_config_base)
+        cross_encoder_config.num_hidden_layers = (
+            self.config.cross_encoder_num_hidden_layers
+        )
+        cross_encoder_config.max_position_embeddings = (
+            self.config.cross_encoder_max_position_embeddings
+        )
+        self.reranker = CrossEncoder(cross_encoder_config)
+        self.cross_encoder_input_mapping = nn.Linear(
+            self.late_interaction_embedding_size, cross_encoder_config.hidden_size
+        )
+
+    def forward(
+        self,
+        query_late_interaction: torch.Tensor,
+        context_late_interaction: torch.Tensor,
+        num_negative_examples: int,
+        preflmr_scores: Optional[torch.Tensor] = None,
+        fusion_multiplier: float = 1,
+    ):
+
+        expanded_batch_size = query_late_interaction.shape[0]
+        batch_size = expanded_batch_size // (num_negative_examples + 1)
+        assert expanded_batch_size % (num_negative_examples + 1) == 0
+        query_length = query_late_interaction.size(1)
+        context_length = context_late_interaction.size(1)
+
+        reranker_inputs = torch.cat((query_late_interaction, context_late_interaction), dim=1)
+        reranker_attention_mask = torch.ones((expanded_batch_size, query_length + context_length), device=self.device)
+
+        if preflmr_scores is not None:
+
+            # Query Self-Attention Mask
+            upper_left = torch.zeros(
+                (
+                    expanded_batch_size,
+                    query_length,
+                    query_length,
+                ), device = self.device
+            )
+            
+            # Context Self-Attention Mask
+            bottom_right = torch.zeros(
+                (
+                    expanded_batch_size,
+                    context_length,
+                    context_length,
+                ), device = self.device
+            )
+            
+            # Cross-Attention Fusion
+            upper_right = F.softmax(preflmr_scores.permute(0, 2, 1), dim=-1)
+            bottom_left = F.softmax(preflmr_scores, dim=-1)
+            
+      
+            reranker_attention_adj = torch.cat(
+                [
+                    torch.cat([upper_left, upper_right], dim=2),
+                    torch.cat([bottom_left, bottom_right], dim=2),
+                ],
+                dim=1,
+            ) * fusion_multiplier
+
+            
+        else:
+            reranker_attention_adj = None
+
+        logits = self.reranker(
+            reranker_inputs,
+            attention_mask=reranker_attention_mask,
+            attention_adj=reranker_attention_adj,
+        )
+
+        # First document is the positive example, concatenate them all along the first dimension and use binary cross entropy
+        labels = torch.zeros(num_negative_examples + 1, 1)
+        labels[0, 0] = 1
+        labels = labels.repeat(batch_size, 1)
+        labels = labels.to(logits.device)
+
+        loss = self.loss_fn(logits, labels)
+        return EasyDict(loss=loss, logits=logits)
