@@ -494,6 +494,7 @@ class RerankerBaseExecutor(BaseExecutor, MetricsProcessor):
 
         if "preflmr_attention_fusion" in self.model_config.modules:
             train_batch["preflmr_scores"] = self.retriever(**train_batch).scores_raw
+            train_batch["fusion_multiplier"] = self.model_config.fusion_multiplier
 
         batch_loss = self.reranker(**train_batch).loss
         raise ValueError
@@ -691,6 +692,7 @@ class RerankerBaseExecutor(BaseExecutor, MetricsProcessor):
             if "preflmr_attention_fusion" in self.model_config.modules:
                 preflmr_scores = self.retriever(**batch_input).scores_raw
                 batch_input["preflmr_scores"] = preflmr_scores
+                batch_input["fusion_multiplier"] = self.model_config.fusion_multiplier
 
 
             all_logits = self.reranker(

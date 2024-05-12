@@ -260,6 +260,7 @@ class RerankModel(pl.LightningModule):
         context_attention_mask: torch.Tensor,
         num_negative_examples: int,
         preflmr_scores: Optional[torch.Tensor] = None,
+        fusion_multiplier: float = 1,
     ):
 
         batch_size = query_input_ids.shape[0]
@@ -390,7 +391,7 @@ class RerankModel(pl.LightningModule):
                     torch.cat([bottom_left, bottom_right], dim=2),
                 ],
                 dim=1,
-            )
+            ) * fusion_multiplier
 
             
         else:
