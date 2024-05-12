@@ -23,7 +23,10 @@ from transformers.models.bert.tokenization_bert import BertTokenizer
 
 logger = logging.get_logger(__name__)
 
-VOCAB_FILES_NAMES = {"vocab_file": "vocab.txt", "tokenizer_file": "tokenizer_config.json"}
+VOCAB_FILES_NAMES = {
+    "vocab_file": "vocab.txt",
+    "tokenizer_file": "tokenizer_config.json",
+}
 
 CONTEXT_ENCODER_PRETRAINED_VOCAB_FILES_MAP = {
     "vocab_file": {
@@ -48,7 +51,9 @@ QUESTION_ENCODER_PRETRAINED_VOCAB_FILES_MAP = {
         "LinWeizheDragon/PreFLMR_ViT-L": (
             "https://huggingface.co/LinWeizheDragon/PreFLMR_ViT-L/resolve/main/query_tokenizer/vocab.txt"
         ),
-        "LinWeizheDragon/FLMR": ("https://huggingface.co/LinWeizheDragon/FLMR/resolve/main/query_tokenizer/vocab.txt"),
+        "LinWeizheDragon/FLMR": (
+            "https://huggingface.co/LinWeizheDragon/FLMR/resolve/main/query_tokenizer/vocab.txt"
+        ),
     },
     "tokenizer_file": {
         "LinWeizheDragon/PreFLMR_ViT-L": (
@@ -108,7 +113,9 @@ class FLMRContextEncoderTokenizer(BertTokenizer):
         )
 
         self.doc_maxlen = doc_maxlen
-        self.D_marker_token, self.D_marker_token_id = "[D]", self.convert_tokens_to_ids("[unused1]")
+        self.D_marker_token, self.D_marker_token_id = "[D]", self.convert_tokens_to_ids(
+            "[unused1]"
+        )
 
     def __call__(
         self,
@@ -188,10 +195,14 @@ class FLMRQueryEncoderTokenizer(BertTokenizer):
         )
 
         self.query_maxlen = query_maxlen
-        self.background_maxlen = 512 - self.query_maxlen + 1  # FIXME: Make this configurable
+        self.background_maxlen = (
+            512 - self.query_maxlen + 1
+        )  # FIXME: Make this configurable
         self.attend_to_mask_tokens = attend_to_mask_tokens
 
-        self.Q_marker_token, self.Q_marker_token_id = "[Q]", self.convert_tokens_to_ids("[unused0]")
+        self.Q_marker_token, self.Q_marker_token_id = "[Q]", self.convert_tokens_to_ids(
+            "[unused0]"
+        )
 
     def __call__(
         self,

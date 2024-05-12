@@ -13,8 +13,8 @@ from easydict import EasyDict
 from .retriever_dpr import RetrieverDPR
 
 import logging
-logger = logging.getLogger(__name__)
 
+logger = logging.getLogger(__name__)
 
 
 def get_rank():
@@ -51,11 +51,13 @@ class VisualDPRForPretraining(RetrieverDPR):
     def __init__(self, config):
         super().__init__(config)
         self.model_config = config.model_config
-        
-        self.mapping_network_prefix_length = self.model_config.mapping_network_prefix_length
+
+        self.mapping_network_prefix_length = (
+            self.model_config.mapping_network_prefix_length
+        )
         self.vision_embedding_size = self.model_config.vision_embedding_size
         self.lm_embedding_size = self.model_config.lm_embedding_size
-        
+
         self.vision_projection = MLP(
             (
                 self.vision_embedding_size,
@@ -63,21 +65,23 @@ class VisualDPRForPretraining(RetrieverDPR):
                 self.lm_embedding_size * self.mapping_network_prefix_length,
             )
         )
-        
-        if 'freeze_dpr_doc_encoder' in self.model_config.modules:
+
+        if "freeze_dpr_doc_encoder" in self.model_config.modules:
             # freeze the ColBERT model
-            logger.warning("freezing the DPR document encoder. If the query encoder is not separated, the query encoder is also frozen.")
+            logger.warning(
+                "freezing the DPR document encoder. If the query encoder is not separated, the query encoder is also frozen."
+            )
             for name, param in self.item_encoder.named_parameters():
                 # print(f"freezed: {name}")
                 param.requires_grad = False
-        
-        if 'freeze_mapping_network' in self.model_config.modules:
+
+        if "freeze_mapping_network" in self.model_config.modules:
             # freeze the ViT model
             logger.warning("freezing the mapping network.")
             for name, param in self.vision_projection.named_parameters():
                 # print(f"freezed: {name}")
                 param.requires_grad = False
-    
+
     def forward(
         self,
         input_ids=None,
@@ -87,7 +91,7 @@ class VisualDPRForPretraining(RetrieverDPR):
         image_features=None,
         labels=None,
         span_labels=None,
-        **kwargs
+        **kwargs,
     ):
         # query encoder
         # query_outputs = self.query_encoder(input_ids=input_ids,
@@ -102,9 +106,9 @@ class VisualDPRForPretraining(RetrieverDPR):
         image_features = image_features.to(self.device)
         last_hidden_states = image_features
         batch_size = last_hidden_states.shape[0]
-        
-        last_hidden_states = self.vision_projection(last_hidden_states) # bz x 32*128
-        
+
+        last_hidden_states = self.vision_projection(last_hidden_states)  # bz x 32*128
+
         last_hidden_states = last_hidden_states.view(
             batch_size, -1, self.lm_embedding_size
         )
@@ -113,29 +117,40 @@ class VisualDPRForPretraining(RetrieverDPR):
         query_embeddings = last_hidden_states.sum(1)
 
         # item encoder
-        item_outputs = self.item_encoder(input_ids=item_input_ids,
-                                            attention_mask=item_attention_mask)
+        item_outputs = self.item_encoder(
+            input_ids=item_input_ids, attention_mask=item_attention_mask
+        )
         item_embeddings = item_outputs.pooler_output
         if self.item_pooler is not None:
             item_embeddings = self.item_pooler(item_last_hidden_states)
         # item_embeddings = item_last_hidden_states
         # print('item_embeddings', item_embeddings.shape)
-        
+
         query_embeddings = query_embeddings.contiguous()
         item_embeddings = item_embeddings.contiguous()
-        
+
         ################## in-batch negative sampling ###############
-        if 'negative_samples_across_gpus' in self.config.model_config.modules:
+        if "negative_samples_across_gpus" in self.config.model_config.modules:
             # print("get rank", get_rank())
             # print("get world size", get_world_size())
             # Gather embeddings from other GPUs
             n_nodes = get_world_size()
-            
+
             # Create placeholder to hold embeddings passed from other ranks
-            global_query_embeddings_placeholder = [torch.zeros(*query_embeddings.shape).to(query_embeddings.device) for _ in range(n_nodes)]
-            global_item_embeddings_placeholder = [torch.zeros(*item_embeddings.shape).to(item_embeddings.device) for _ in range(n_nodes)]
-            dist.all_gather(global_query_embeddings_placeholder, query_embeddings.detach())
-            dist.all_gather(global_item_embeddings_placeholder, item_embeddings.detach())
+            global_query_embeddings_placeholder = [
+                torch.zeros(*query_embeddings.shape).to(query_embeddings.device)
+                for _ in range(n_nodes)
+            ]
+            global_item_embeddings_placeholder = [
+                torch.zeros(*item_embeddings.shape).to(item_embeddings.device)
+                for _ in range(n_nodes)
+            ]
+            dist.all_gather(
+                global_query_embeddings_placeholder, query_embeddings.detach()
+            )
+            dist.all_gather(
+                global_item_embeddings_placeholder, item_embeddings.detach()
+            )
 
             global_query_embeddings = []
             global_item_embeddings = []
@@ -143,14 +158,18 @@ class VisualDPRForPretraining(RetrieverDPR):
             # print(f"rank {get_rank()} global_item_embeddings", global_item_embeddings)
             # input()
             current_rank = get_rank()
-            for rank_index, remote_q_embeddings in enumerate(global_query_embeddings_placeholder):
+            for rank_index, remote_q_embeddings in enumerate(
+                global_query_embeddings_placeholder
+            ):
                 # We append the embeddings from other GPUs if this embedding does not require gradients
                 if rank_index != current_rank:
                     global_query_embeddings.append(remote_q_embeddings)
                 else:
                     global_query_embeddings.append(query_embeddings)
 
-            for rank_index, remote_item_embeddings in enumerate(global_item_embeddings_placeholder):
+            for rank_index, remote_item_embeddings in enumerate(
+                global_item_embeddings_placeholder
+            ):
                 # We append the embeddings from other GPUs if this embedding does not require gradients
                 if rank_index != current_rank:
                     global_item_embeddings.append(remote_item_embeddings)
@@ -160,20 +179,21 @@ class VisualDPRForPretraining(RetrieverDPR):
             # Replace the previous variables with gathered tensors
             query_embeddings = torch.cat(global_query_embeddings)
             item_embeddings = torch.cat(global_item_embeddings)
-            
 
         batch_size = query_embeddings.shape[0]
         batch_size_with_pos_and_neg = item_embeddings.shape[0]
         num_pos_and_neg = batch_size_with_pos_and_neg // batch_size
         num_pos = 1
         num_neg = num_pos_and_neg - num_pos
-        
-        # batch_size x dim  matmul  dim x (num_pos+num_neg)*batch_size  
+
+        # batch_size x dim  matmul  dim x (num_pos+num_neg)*batch_size
         # -->  batch_size x (num_pos+num_neg)*batch_size
-        in_batch_labels = torch.zeros(batch_size, batch_size_with_pos_and_neg).to(labels.device)
+        in_batch_labels = torch.zeros(batch_size, batch_size_with_pos_and_neg).to(
+            labels.device
+        )
         step = num_pos_and_neg
         for i in range(batch_size):
-            in_batch_labels[i, step*i] = 1
+            in_batch_labels[i, step * i] = 1
         # print('in_batch_labels', in_batch_labels)
         in_batch_labels = torch.argmax(in_batch_labels, dim=1)
         # print('in_batch_labels', in_batch_labels)
@@ -181,9 +201,11 @@ class VisualDPRForPretraining(RetrieverDPR):
         in_batch_scores = torch.matmul(query_embeddings, item_embeddings.T)
         loss = self.loss_fn(in_batch_scores, in_batch_labels)
 
-        return EasyDict({
-            'loss': loss,
-        })
+        return EasyDict(
+            {
+                "loss": loss,
+            }
+        )
 
     def generate_query_embeddings(
         self,
@@ -203,9 +225,9 @@ class VisualDPRForPretraining(RetrieverDPR):
         image_features = image_features.to(self.device)
         last_hidden_states = image_features
         batch_size = last_hidden_states.shape[0]
-        
-        last_hidden_states = self.vision_projection(last_hidden_states) # bz x 32*128
-        
+
+        last_hidden_states = self.vision_projection(last_hidden_states)  # bz x 32*128
+
         last_hidden_states = last_hidden_states.view(
             batch_size, -1, self.lm_embedding_size
         )
@@ -216,9 +238,7 @@ class VisualDPRForPretraining(RetrieverDPR):
         # print('query_embeddings', query_embeddings.shape)
         # input()
 
-        
         return query_embeddings
-
 
 
 class VisualDPRForRetrieval(RetrieverDPR):
@@ -229,11 +249,13 @@ class VisualDPRForRetrieval(RetrieverDPR):
     def __init__(self, config):
         super().__init__(config)
         self.model_config = config.model_config
-        
-        self.mapping_network_prefix_length = self.model_config.mapping_network_prefix_length
+
+        self.mapping_network_prefix_length = (
+            self.model_config.mapping_network_prefix_length
+        )
         self.vision_embedding_size = self.model_config.vision_embedding_size
         self.lm_embedding_size = self.model_config.lm_embedding_size
-        
+
         self.vision_projection = MLP(
             (
                 self.vision_embedding_size,
@@ -241,21 +263,23 @@ class VisualDPRForRetrieval(RetrieverDPR):
                 self.lm_embedding_size * self.mapping_network_prefix_length,
             )
         )
-        
-        if 'freeze_dpr_doc_encoder' in self.model_config.modules:
+
+        if "freeze_dpr_doc_encoder" in self.model_config.modules:
             # freeze the ColBERT model
-            logger.warning("freezing the DPR document encoder. If the query encoder is not separated, the query encoder is also frozen.")
+            logger.warning(
+                "freezing the DPR document encoder. If the query encoder is not separated, the query encoder is also frozen."
+            )
             for name, param in self.item_encoder.named_parameters():
                 # print(f"freezed: {name}")
                 param.requires_grad = False
-        
-        if 'freeze_mapping_network' in self.model_config.modules:
+
+        if "freeze_mapping_network" in self.model_config.modules:
             # freeze the ViT model
             logger.warning("freezing the mapping network.")
             for name, param in self.vision_projection.named_parameters():
                 # print(f"freezed: {name}")
                 param.requires_grad = False
-    
+
     def forward(
         self,
         input_ids=None,
@@ -265,11 +289,12 @@ class VisualDPRForRetrieval(RetrieverDPR):
         image_features=None,
         labels=None,
         span_labels=None,
-        **kwargs
+        **kwargs,
     ):
         # query encoder
-        query_outputs = self.query_encoder(input_ids=input_ids,
-                                            attention_mask=attention_mask)
+        query_outputs = self.query_encoder(
+            input_ids=input_ids, attention_mask=attention_mask
+        )
         query_embeddings = query_outputs.pooler_output
         if self.query_pooler is not None:
             query_embeddings = self.query_pooler(query_embeddings)
@@ -279,9 +304,9 @@ class VisualDPRForRetrieval(RetrieverDPR):
         image_features = image_features.to(self.device)
         last_hidden_states = image_features
         batch_size = last_hidden_states.shape[0]
-        
-        last_hidden_states = self.vision_projection(last_hidden_states) # bz x 32*128
-        
+
+        last_hidden_states = self.vision_projection(last_hidden_states)  # bz x 32*128
+
         last_hidden_states = last_hidden_states.view(
             batch_size, -1, self.lm_embedding_size
         )
@@ -291,29 +316,40 @@ class VisualDPRForRetrieval(RetrieverDPR):
         query_embeddings = query_embeddings + last_hidden_states.sum(1)
 
         # item encoder
-        item_outputs = self.item_encoder(input_ids=item_input_ids,
-                                            attention_mask=item_attention_mask)
+        item_outputs = self.item_encoder(
+            input_ids=item_input_ids, attention_mask=item_attention_mask
+        )
         item_embeddings = item_outputs.pooler_output
         if self.item_pooler is not None:
             item_embeddings = self.item_pooler(item_last_hidden_states)
         # item_embeddings = item_last_hidden_states
         # print('item_embeddings', item_embeddings.shape)
-        
+
         query_embeddings = query_embeddings.contiguous()
         item_embeddings = item_embeddings.contiguous()
-        
+
         ################## in-batch negative sampling ###############
-        if 'negative_samples_across_gpus' in self.config.model_config.modules:
+        if "negative_samples_across_gpus" in self.config.model_config.modules:
             # print("get rank", get_rank())
             # print("get world size", get_world_size())
             # Gather embeddings from other GPUs
             n_nodes = get_world_size()
-            
+
             # Create placeholder to hold embeddings passed from other ranks
-            global_query_embeddings_placeholder = [torch.zeros(*query_embeddings.shape).to(query_embeddings.device) for _ in range(n_nodes)]
-            global_item_embeddings_placeholder = [torch.zeros(*item_embeddings.shape).to(item_embeddings.device) for _ in range(n_nodes)]
-            dist.all_gather(global_query_embeddings_placeholder, query_embeddings.detach())
-            dist.all_gather(global_item_embeddings_placeholder, item_embeddings.detach())
+            global_query_embeddings_placeholder = [
+                torch.zeros(*query_embeddings.shape).to(query_embeddings.device)
+                for _ in range(n_nodes)
+            ]
+            global_item_embeddings_placeholder = [
+                torch.zeros(*item_embeddings.shape).to(item_embeddings.device)
+                for _ in range(n_nodes)
+            ]
+            dist.all_gather(
+                global_query_embeddings_placeholder, query_embeddings.detach()
+            )
+            dist.all_gather(
+                global_item_embeddings_placeholder, item_embeddings.detach()
+            )
 
             global_query_embeddings = []
             global_item_embeddings = []
@@ -321,14 +357,18 @@ class VisualDPRForRetrieval(RetrieverDPR):
             # print(f"rank {get_rank()} global_item_embeddings", global_item_embeddings)
             # input()
             current_rank = get_rank()
-            for rank_index, remote_q_embeddings in enumerate(global_query_embeddings_placeholder):
+            for rank_index, remote_q_embeddings in enumerate(
+                global_query_embeddings_placeholder
+            ):
                 # We append the embeddings from other GPUs if this embedding does not require gradients
                 if rank_index != current_rank:
                     global_query_embeddings.append(remote_q_embeddings)
                 else:
                     global_query_embeddings.append(query_embeddings)
 
-            for rank_index, remote_item_embeddings in enumerate(global_item_embeddings_placeholder):
+            for rank_index, remote_item_embeddings in enumerate(
+                global_item_embeddings_placeholder
+            ):
                 # We append the embeddings from other GPUs if this embedding does not require gradients
                 if rank_index != current_rank:
                     global_item_embeddings.append(remote_item_embeddings)
@@ -338,20 +378,21 @@ class VisualDPRForRetrieval(RetrieverDPR):
             # Replace the previous variables with gathered tensors
             query_embeddings = torch.cat(global_query_embeddings)
             item_embeddings = torch.cat(global_item_embeddings)
-            
 
         batch_size = query_embeddings.shape[0]
         batch_size_with_pos_and_neg = item_embeddings.shape[0]
         num_pos_and_neg = batch_size_with_pos_and_neg // batch_size
         num_pos = 1
         num_neg = num_pos_and_neg - num_pos
-        
-        # batch_size x dim  matmul  dim x (num_pos+num_neg)*batch_size  
+
+        # batch_size x dim  matmul  dim x (num_pos+num_neg)*batch_size
         # -->  batch_size x (num_pos+num_neg)*batch_size
-        in_batch_labels = torch.zeros(batch_size, batch_size_with_pos_and_neg).to(labels.device)
+        in_batch_labels = torch.zeros(batch_size, batch_size_with_pos_and_neg).to(
+            labels.device
+        )
         step = num_pos_and_neg
         for i in range(batch_size):
-            in_batch_labels[i, step*i] = 1
+            in_batch_labels[i, step * i] = 1
         # print('in_batch_labels', in_batch_labels)
         in_batch_labels = torch.argmax(in_batch_labels, dim=1)
         # print('in_batch_labels', in_batch_labels)
@@ -359,9 +400,11 @@ class VisualDPRForRetrieval(RetrieverDPR):
         in_batch_scores = torch.matmul(query_embeddings, item_embeddings.T)
         loss = self.loss_fn(in_batch_scores, in_batch_labels)
 
-        return EasyDict({
-            'loss': loss,
-        })
+        return EasyDict(
+            {
+                "loss": loss,
+            }
+        )
 
     def generate_query_embeddings(
         self,
@@ -370,8 +413,9 @@ class VisualDPRForRetrieval(RetrieverDPR):
         image_features=None,
     ):
         # query encoder
-        query_outputs = self.query_encoder(input_ids=input_ids,
-                                            attention_mask=attention_mask)
+        query_outputs = self.query_encoder(
+            input_ids=input_ids, attention_mask=attention_mask
+        )
         query_last_hidden_states = query_outputs.pooler_output
         if self.query_pooler is not None:
             query_last_hidden_states = self.query_pooler(query_last_hidden_states)
@@ -381,9 +425,9 @@ class VisualDPRForRetrieval(RetrieverDPR):
         image_features = image_features.to(self.device)
         last_hidden_states = image_features
         batch_size = last_hidden_states.shape[0]
-        
-        last_hidden_states = self.vision_projection(last_hidden_states) # bz x 32*128
-        
+
+        last_hidden_states = self.vision_projection(last_hidden_states)  # bz x 32*128
+
         last_hidden_states = last_hidden_states.view(
             batch_size, -1, self.lm_embedding_size
         )
@@ -394,12 +438,9 @@ class VisualDPRForRetrieval(RetrieverDPR):
         # print('query_embeddings', query_embeddings.shape)
         # input()
 
-        
         return query_embeddings
 
 
-
-    
 class VisualDPRWithMultiModalDocs(VisualDPRForRetrieval):
     """
     Class of DPR with Vision Input
@@ -408,11 +449,13 @@ class VisualDPRWithMultiModalDocs(VisualDPRForRetrieval):
     def __init__(self, config):
         super().__init__(config)
         self.model_config = config.model_config
-        
-        self.mapping_network_prefix_length = self.model_config.mapping_network_prefix_length
+
+        self.mapping_network_prefix_length = (
+            self.model_config.mapping_network_prefix_length
+        )
         self.vision_embedding_size = self.model_config.vision_embedding_size
         self.lm_embedding_size = self.model_config.lm_embedding_size
-        
+
         self.vision_projection = MLP(
             (
                 self.vision_embedding_size,
@@ -428,31 +471,32 @@ class VisualDPRWithMultiModalDocs(VisualDPRForRetrieval):
                 self.lm_embedding_size * self.mapping_network_prefix_length,
             )
         )
-        
-        if 'freeze_dpr_doc_encoder' in self.model_config.modules:
+
+        if "freeze_dpr_doc_encoder" in self.model_config.modules:
             # freeze the ColBERT model
-            logger.warning("freezing the DPR document encoder. If the query encoder is not separated, the query encoder is also frozen.")
+            logger.warning(
+                "freezing the DPR document encoder. If the query encoder is not separated, the query encoder is also frozen."
+            )
             for name, param in self.item_encoder.named_parameters():
                 # print(f"freezed: {name}")
                 param.requires_grad = False
-        
-        if 'freeze_mapping_network' in self.model_config.modules:
+
+        if "freeze_mapping_network" in self.model_config.modules:
             # freeze the ViT model
             logger.warning("freezing the mapping network.")
             for name, param in self.vision_projection.named_parameters():
                 # print(f"freezed: {name}")
                 param.requires_grad = False
 
-        if 'freeze_doc_encoder_mapping_network' in self.model_config.modules:
+        if "freeze_doc_encoder_mapping_network" in self.model_config.modules:
             # freeze the ViT model
             logger.warning("freezing the mapping network in the document encoder.")
             for name, param in self.doc_vision_projection.named_parameters():
                 # print(f"freezed: {name}")
                 param.requires_grad = False
-        
+
         self.multimodal_docs = self.model_config.get("multimodal_docs", False)
 
-    
     def forward(
         self,
         input_ids=None,
@@ -463,11 +507,12 @@ class VisualDPRWithMultiModalDocs(VisualDPRForRetrieval):
         item_image_features=None,
         labels=None,
         span_labels=None,
-        **kwargs
+        **kwargs,
     ):
         # query encoder
-        query_outputs = self.query_encoder(input_ids=input_ids,
-                                            attention_mask=attention_mask)
+        query_outputs = self.query_encoder(
+            input_ids=input_ids, attention_mask=attention_mask
+        )
         query_embeddings = query_outputs.pooler_output
         if self.query_pooler is not None:
             query_embeddings = self.query_pooler(query_embeddings)
@@ -478,9 +523,11 @@ class VisualDPRWithMultiModalDocs(VisualDPRForRetrieval):
             image_features = image_features.to(self.device)
             last_hidden_states = image_features
             batch_size = last_hidden_states.shape[0]
-            
-            last_hidden_states = self.vision_projection(last_hidden_states) # bz x 32*128
-            
+
+            last_hidden_states = self.vision_projection(
+                last_hidden_states
+            )  # bz x 32*128
+
             last_hidden_states = last_hidden_states.view(
                 batch_size, -1, self.lm_embedding_size
             )
@@ -490,8 +537,9 @@ class VisualDPRWithMultiModalDocs(VisualDPRForRetrieval):
             query_embeddings = query_embeddings + last_hidden_states.sum(1)
 
         # item encoder
-        item_outputs = self.item_encoder(input_ids=item_input_ids,
-                                            attention_mask=item_attention_mask)
+        item_outputs = self.item_encoder(
+            input_ids=item_input_ids, attention_mask=item_attention_mask
+        )
         item_embeddings = item_outputs.pooler_output
         if self.item_pooler is not None:
             item_embeddings = self.item_pooler(item_embeddings)
@@ -502,9 +550,11 @@ class VisualDPRWithMultiModalDocs(VisualDPRForRetrieval):
             item_image_features = item_image_features.to(self.device)
             item_last_hidden_states = item_image_features
             batch_size = item_last_hidden_states.shape[0]
-            
-            item_last_hidden_states = self.doc_vision_projection(item_last_hidden_states) # bz x 32*128
-            
+
+            item_last_hidden_states = self.doc_vision_projection(
+                item_last_hidden_states
+            )  # bz x 32*128
+
             item_last_hidden_states = item_last_hidden_states.view(
                 batch_size, -1, self.lm_embedding_size
             )
@@ -516,22 +566,31 @@ class VisualDPRWithMultiModalDocs(VisualDPRForRetrieval):
 
             # print('item_embeddings', item_embeddings.shape)
 
-
         query_embeddings = query_embeddings.contiguous()
         item_embeddings = item_embeddings.contiguous()
-        
+
         ################## in-batch negative sampling ###############
-        if 'negative_samples_across_gpus' in self.config.model_config.modules:
+        if "negative_samples_across_gpus" in self.config.model_config.modules:
             # print("get rank", get_rank())
             # print("get world size", get_world_size())
             # Gather embeddings from other GPUs
             n_nodes = get_world_size()
-            
+
             # Create placeholder to hold embeddings passed from other ranks
-            global_query_embeddings_placeholder = [torch.zeros(*query_embeddings.shape).to(query_embeddings.device) for _ in range(n_nodes)]
-            global_item_embeddings_placeholder = [torch.zeros(*item_embeddings.shape).to(item_embeddings.device) for _ in range(n_nodes)]
-            dist.all_gather(global_query_embeddings_placeholder, query_embeddings.detach())
-            dist.all_gather(global_item_embeddings_placeholder, item_embeddings.detach())
+            global_query_embeddings_placeholder = [
+                torch.zeros(*query_embeddings.shape).to(query_embeddings.device)
+                for _ in range(n_nodes)
+            ]
+            global_item_embeddings_placeholder = [
+                torch.zeros(*item_embeddings.shape).to(item_embeddings.device)
+                for _ in range(n_nodes)
+            ]
+            dist.all_gather(
+                global_query_embeddings_placeholder, query_embeddings.detach()
+            )
+            dist.all_gather(
+                global_item_embeddings_placeholder, item_embeddings.detach()
+            )
 
             global_query_embeddings = []
             global_item_embeddings = []
@@ -539,14 +598,18 @@ class VisualDPRWithMultiModalDocs(VisualDPRForRetrieval):
             # print(f"rank {get_rank()} global_item_embeddings", global_item_embeddings)
             # input()
             current_rank = get_rank()
-            for rank_index, remote_q_embeddings in enumerate(global_query_embeddings_placeholder):
+            for rank_index, remote_q_embeddings in enumerate(
+                global_query_embeddings_placeholder
+            ):
                 # We append the embeddings from other GPUs if this embedding does not require gradients
                 if rank_index != current_rank:
                     global_query_embeddings.append(remote_q_embeddings)
                 else:
                     global_query_embeddings.append(query_embeddings)
 
-            for rank_index, remote_item_embeddings in enumerate(global_item_embeddings_placeholder):
+            for rank_index, remote_item_embeddings in enumerate(
+                global_item_embeddings_placeholder
+            ):
                 # We append the embeddings from other GPUs if this embedding does not require gradients
                 if rank_index != current_rank:
                     global_item_embeddings.append(remote_item_embeddings)
@@ -556,20 +619,21 @@ class VisualDPRWithMultiModalDocs(VisualDPRForRetrieval):
             # Replace the previous variables with gathered tensors
             query_embeddings = torch.cat(global_query_embeddings)
             item_embeddings = torch.cat(global_item_embeddings)
-            
 
         batch_size = query_embeddings.shape[0]
         batch_size_with_pos_and_neg = item_embeddings.shape[0]
         num_pos_and_neg = batch_size_with_pos_and_neg // batch_size
         num_pos = 1
         num_neg = num_pos_and_neg - num_pos
-        
-        # batch_size x dim  matmul  dim x (num_pos+num_neg)*batch_size  
+
+        # batch_size x dim  matmul  dim x (num_pos+num_neg)*batch_size
         # -->  batch_size x (num_pos+num_neg)*batch_size
-        in_batch_labels = torch.zeros(batch_size, batch_size_with_pos_and_neg).to(labels.device)
+        in_batch_labels = torch.zeros(batch_size, batch_size_with_pos_and_neg).to(
+            labels.device
+        )
         step = num_pos_and_neg
         for i in range(batch_size):
-            in_batch_labels[i, step*i] = 1
+            in_batch_labels[i, step * i] = 1
         # print('in_batch_labels', in_batch_labels)
         in_batch_labels = torch.argmax(in_batch_labels, dim=1)
         # print('in_batch_labels', in_batch_labels)
@@ -577,9 +641,11 @@ class VisualDPRWithMultiModalDocs(VisualDPRForRetrieval):
         in_batch_scores = torch.matmul(query_embeddings, item_embeddings.T)
         loss = self.loss_fn(in_batch_scores, in_batch_labels)
 
-        return EasyDict({
-            'loss': loss,
-        })
+        return EasyDict(
+            {
+                "loss": loss,
+            }
+        )
 
     def generate_query_embeddings(
         self,
@@ -588,8 +654,9 @@ class VisualDPRWithMultiModalDocs(VisualDPRForRetrieval):
         image_features=None,
     ):
         # query encoder
-        query_outputs = self.query_encoder(input_ids=input_ids,
-                                            attention_mask=attention_mask)
+        query_outputs = self.query_encoder(
+            input_ids=input_ids, attention_mask=attention_mask
+        )
         query_last_hidden_states = query_outputs.pooler_output
         if self.query_pooler is not None:
             query_last_hidden_states = self.query_pooler(query_last_hidden_states)
@@ -600,9 +667,11 @@ class VisualDPRWithMultiModalDocs(VisualDPRForRetrieval):
             image_features = image_features.to(self.device)
             last_hidden_states = image_features
             batch_size = last_hidden_states.shape[0]
-            
-            last_hidden_states = self.vision_projection(last_hidden_states) # bz x 32*128
-            
+
+            last_hidden_states = self.vision_projection(
+                last_hidden_states
+            )  # bz x 32*128
+
             last_hidden_states = last_hidden_states.view(
                 batch_size, -1, self.lm_embedding_size
             )
@@ -613,7 +682,6 @@ class VisualDPRWithMultiModalDocs(VisualDPRForRetrieval):
             # print('query_embeddings', query_embeddings.shape)
             # input()
 
-        
         return query_embeddings
 
     def generate_item_embeddings(
@@ -623,8 +691,9 @@ class VisualDPRWithMultiModalDocs(VisualDPRForRetrieval):
         item_image_features=None,
     ):
         # item encoder
-        item_outputs = self.item_encoder(input_ids=input_ids,
-                                            attention_mask=attention_mask)
+        item_outputs = self.item_encoder(
+            input_ids=input_ids, attention_mask=attention_mask
+        )
         item_last_hidden_states = item_outputs.pooler_output
         if self.item_pooler is not None:
             item_last_hidden_states = self.item_pooler(item_last_hidden_states)
@@ -635,9 +704,11 @@ class VisualDPRWithMultiModalDocs(VisualDPRForRetrieval):
             item_image_features = item_image_features.to(self.device)
             item_last_hidden_states = item_image_features
             batch_size = item_last_hidden_states.shape[0]
-            
-            item_last_hidden_states = self.doc_vision_projection(item_last_hidden_states) # bz x 6*768
-            
+
+            item_last_hidden_states = self.doc_vision_projection(
+                item_last_hidden_states
+            )  # bz x 6*768
+
             item_last_hidden_states = item_last_hidden_states.view(
                 batch_size, -1, self.lm_embedding_size
             )
@@ -652,10 +723,6 @@ class VisualDPRWithMultiModalDocs(VisualDPRForRetrieval):
         return item_embeddings
 
 
-
-
-
-    
 class VisualDPRWithMultiModalDocsWithOnlyImages(VisualDPRForRetrieval):
     """
     Class of DPR with Vision Input
@@ -664,11 +731,13 @@ class VisualDPRWithMultiModalDocsWithOnlyImages(VisualDPRForRetrieval):
     def __init__(self, config):
         super().__init__(config)
         self.model_config = config.model_config
-        
-        self.mapping_network_prefix_length = self.model_config.mapping_network_prefix_length
+
+        self.mapping_network_prefix_length = (
+            self.model_config.mapping_network_prefix_length
+        )
         self.vision_embedding_size = self.model_config.vision_embedding_size
         self.lm_embedding_size = self.model_config.lm_embedding_size
-        
+
         self.vision_projection = MLP(
             (
                 self.vision_embedding_size,
@@ -684,31 +753,32 @@ class VisualDPRWithMultiModalDocsWithOnlyImages(VisualDPRForRetrieval):
                 self.lm_embedding_size * self.mapping_network_prefix_length,
             )
         )
-        
-        if 'freeze_dpr_doc_encoder' in self.model_config.modules:
+
+        if "freeze_dpr_doc_encoder" in self.model_config.modules:
             # freeze the ColBERT model
-            logger.warning("freezing the DPR document encoder. If the query encoder is not separated, the query encoder is also frozen.")
+            logger.warning(
+                "freezing the DPR document encoder. If the query encoder is not separated, the query encoder is also frozen."
+            )
             for name, param in self.item_encoder.named_parameters():
                 # print(f"freezed: {name}")
                 param.requires_grad = False
-        
-        if 'freeze_mapping_network' in self.model_config.modules:
+
+        if "freeze_mapping_network" in self.model_config.modules:
             # freeze the ViT model
             logger.warning("freezing the mapping network.")
             for name, param in self.vision_projection.named_parameters():
                 # print(f"freezed: {name}")
                 param.requires_grad = False
 
-        if 'freeze_doc_encoder_mapping_network' in self.model_config.modules:
+        if "freeze_doc_encoder_mapping_network" in self.model_config.modules:
             # freeze the ViT model
             logger.warning("freezing the mapping network in the document encoder.")
             for name, param in self.doc_vision_projection.named_parameters():
                 # print(f"freezed: {name}")
                 param.requires_grad = False
-        
+
         self.multimodal_docs = self.model_config.get("multimodal_docs", False)
 
-    
     def forward(
         self,
         input_ids=None,
@@ -719,11 +789,12 @@ class VisualDPRWithMultiModalDocsWithOnlyImages(VisualDPRForRetrieval):
         item_image_features=None,
         labels=None,
         span_labels=None,
-        **kwargs
+        **kwargs,
     ):
         # query encoder
-        query_outputs = self.query_encoder(input_ids=input_ids,
-                                            attention_mask=attention_mask)
+        query_outputs = self.query_encoder(
+            input_ids=input_ids, attention_mask=attention_mask
+        )
         query_embeddings = query_outputs.pooler_output
         if self.query_pooler is not None:
             query_embeddings = self.query_pooler(query_embeddings)
@@ -734,9 +805,11 @@ class VisualDPRWithMultiModalDocsWithOnlyImages(VisualDPRForRetrieval):
             image_features = image_features.to(self.device)
             last_hidden_states = image_features
             batch_size = last_hidden_states.shape[0]
-            
-            last_hidden_states = self.vision_projection(last_hidden_states) # bz x 32*128
-            
+
+            last_hidden_states = self.vision_projection(
+                last_hidden_states
+            )  # bz x 32*128
+
             last_hidden_states = last_hidden_states.view(
                 batch_size, -1, self.lm_embedding_size
             )
@@ -746,8 +819,9 @@ class VisualDPRWithMultiModalDocsWithOnlyImages(VisualDPRForRetrieval):
             query_embeddings = query_embeddings + last_hidden_states.sum(1)
 
         # item encoder
-        item_outputs = self.item_encoder(input_ids=item_input_ids,
-                                            attention_mask=item_attention_mask)
+        item_outputs = self.item_encoder(
+            input_ids=item_input_ids, attention_mask=item_attention_mask
+        )
         item_embeddings = item_outputs.pooler_output
         if self.item_pooler is not None:
             item_embeddings = self.item_pooler(item_embeddings)
@@ -758,9 +832,11 @@ class VisualDPRWithMultiModalDocsWithOnlyImages(VisualDPRForRetrieval):
             item_image_features = item_image_features.to(self.device)
             item_last_hidden_states = item_image_features
             batch_size = item_last_hidden_states.shape[0]
-            
-            item_last_hidden_states = self.doc_vision_projection(item_last_hidden_states) # bz x 32*128
-            
+
+            item_last_hidden_states = self.doc_vision_projection(
+                item_last_hidden_states
+            )  # bz x 32*128
+
             item_last_hidden_states = item_last_hidden_states.view(
                 batch_size, -1, self.lm_embedding_size
             )
@@ -772,22 +848,31 @@ class VisualDPRWithMultiModalDocsWithOnlyImages(VisualDPRForRetrieval):
 
             # print('item_embeddings', item_embeddings.shape)
 
-
         query_embeddings = query_embeddings.contiguous()
         item_embeddings = item_embeddings.contiguous()
-        
+
         ################## in-batch negative sampling ###############
-        if 'negative_samples_across_gpus' in self.config.model_config.modules:
+        if "negative_samples_across_gpus" in self.config.model_config.modules:
             # print("get rank", get_rank())
             # print("get world size", get_world_size())
             # Gather embeddings from other GPUs
             n_nodes = get_world_size()
-            
+
             # Create placeholder to hold embeddings passed from other ranks
-            global_query_embeddings_placeholder = [torch.zeros(*query_embeddings.shape).to(query_embeddings.device) for _ in range(n_nodes)]
-            global_item_embeddings_placeholder = [torch.zeros(*item_embeddings.shape).to(item_embeddings.device) for _ in range(n_nodes)]
-            dist.all_gather(global_query_embeddings_placeholder, query_embeddings.detach())
-            dist.all_gather(global_item_embeddings_placeholder, item_embeddings.detach())
+            global_query_embeddings_placeholder = [
+                torch.zeros(*query_embeddings.shape).to(query_embeddings.device)
+                for _ in range(n_nodes)
+            ]
+            global_item_embeddings_placeholder = [
+                torch.zeros(*item_embeddings.shape).to(item_embeddings.device)
+                for _ in range(n_nodes)
+            ]
+            dist.all_gather(
+                global_query_embeddings_placeholder, query_embeddings.detach()
+            )
+            dist.all_gather(
+                global_item_embeddings_placeholder, item_embeddings.detach()
+            )
 
             global_query_embeddings = []
             global_item_embeddings = []
@@ -795,14 +880,18 @@ class VisualDPRWithMultiModalDocsWithOnlyImages(VisualDPRForRetrieval):
             # print(f"rank {get_rank()} global_item_embeddings", global_item_embeddings)
             # input()
             current_rank = get_rank()
-            for rank_index, remote_q_embeddings in enumerate(global_query_embeddings_placeholder):
+            for rank_index, remote_q_embeddings in enumerate(
+                global_query_embeddings_placeholder
+            ):
                 # We append the embeddings from other GPUs if this embedding does not require gradients
                 if rank_index != current_rank:
                     global_query_embeddings.append(remote_q_embeddings)
                 else:
                     global_query_embeddings.append(query_embeddings)
 
-            for rank_index, remote_item_embeddings in enumerate(global_item_embeddings_placeholder):
+            for rank_index, remote_item_embeddings in enumerate(
+                global_item_embeddings_placeholder
+            ):
                 # We append the embeddings from other GPUs if this embedding does not require gradients
                 if rank_index != current_rank:
                     global_item_embeddings.append(remote_item_embeddings)
@@ -812,20 +901,21 @@ class VisualDPRWithMultiModalDocsWithOnlyImages(VisualDPRForRetrieval):
             # Replace the previous variables with gathered tensors
             query_embeddings = torch.cat(global_query_embeddings)
             item_embeddings = torch.cat(global_item_embeddings)
-            
 
         batch_size = query_embeddings.shape[0]
         batch_size_with_pos_and_neg = item_embeddings.shape[0]
         num_pos_and_neg = batch_size_with_pos_and_neg // batch_size
         num_pos = 1
         num_neg = num_pos_and_neg - num_pos
-        
-        # batch_size x dim  matmul  dim x (num_pos+num_neg)*batch_size  
+
+        # batch_size x dim  matmul  dim x (num_pos+num_neg)*batch_size
         # -->  batch_size x (num_pos+num_neg)*batch_size
-        in_batch_labels = torch.zeros(batch_size, batch_size_with_pos_and_neg).to(labels.device)
+        in_batch_labels = torch.zeros(batch_size, batch_size_with_pos_and_neg).to(
+            labels.device
+        )
         step = num_pos_and_neg
         for i in range(batch_size):
-            in_batch_labels[i, step*i] = 1
+            in_batch_labels[i, step * i] = 1
         # print('in_batch_labels', in_batch_labels)
         in_batch_labels = torch.argmax(in_batch_labels, dim=1)
         # print('in_batch_labels', in_batch_labels)
@@ -833,9 +923,11 @@ class VisualDPRWithMultiModalDocsWithOnlyImages(VisualDPRForRetrieval):
         in_batch_scores = torch.matmul(query_embeddings, item_embeddings.T)
         loss = self.loss_fn(in_batch_scores, in_batch_labels)
 
-        return EasyDict({
-            'loss': loss,
-        })
+        return EasyDict(
+            {
+                "loss": loss,
+            }
+        )
 
     def generate_query_embeddings(
         self,
@@ -844,8 +936,9 @@ class VisualDPRWithMultiModalDocsWithOnlyImages(VisualDPRForRetrieval):
         image_features=None,
     ):
         # query encoder
-        query_outputs = self.query_encoder(input_ids=input_ids,
-                                            attention_mask=attention_mask)
+        query_outputs = self.query_encoder(
+            input_ids=input_ids, attention_mask=attention_mask
+        )
         query_last_hidden_states = query_outputs.pooler_output
         if self.query_pooler is not None:
             query_last_hidden_states = self.query_pooler(query_last_hidden_states)
@@ -856,9 +949,11 @@ class VisualDPRWithMultiModalDocsWithOnlyImages(VisualDPRForRetrieval):
             image_features = image_features.to(self.device)
             last_hidden_states = image_features
             batch_size = last_hidden_states.shape[0]
-            
-            last_hidden_states = self.vision_projection(last_hidden_states) # bz x 32*128
-            
+
+            last_hidden_states = self.vision_projection(
+                last_hidden_states
+            )  # bz x 32*128
+
             last_hidden_states = last_hidden_states.view(
                 batch_size, -1, self.lm_embedding_size
             )
@@ -869,7 +964,6 @@ class VisualDPRWithMultiModalDocsWithOnlyImages(VisualDPRForRetrieval):
             # print('query_embeddings', query_embeddings.shape)
             # input()
 
-        
         return query_embeddings
 
     def generate_item_embeddings(
@@ -879,8 +973,9 @@ class VisualDPRWithMultiModalDocsWithOnlyImages(VisualDPRForRetrieval):
         item_image_features=None,
     ):
         # item encoder
-        item_outputs = self.item_encoder(input_ids=input_ids,
-                                            attention_mask=attention_mask)
+        item_outputs = self.item_encoder(
+            input_ids=input_ids, attention_mask=attention_mask
+        )
         item_last_hidden_states = item_outputs.pooler_output
         if self.item_pooler is not None:
             item_last_hidden_states = self.item_pooler(item_last_hidden_states)
@@ -891,9 +986,11 @@ class VisualDPRWithMultiModalDocsWithOnlyImages(VisualDPRForRetrieval):
             item_image_features = item_image_features.to(self.device)
             item_last_hidden_states = item_image_features
             batch_size = item_last_hidden_states.shape[0]
-            
-            item_last_hidden_states = self.doc_vision_projection(item_last_hidden_states) # bz x 6*768
-            
+
+            item_last_hidden_states = self.doc_vision_projection(
+                item_last_hidden_states
+            )  # bz x 6*768
+
             item_last_hidden_states = item_last_hidden_states.view(
                 batch_size, -1, self.lm_embedding_size
             )
@@ -919,22 +1016,35 @@ class VisualDPRForRAG(pl.LightningModule):
         self.config = config
 
         QueryEncoderModelClass = DPRQuestionEncoder
-        
+
         if "$" in self.config.model_config.QueryEncoderModelVersion:
-                self.config.model_config.QueryEncoderModelVersion = os.path.join(self.config.root_exp_dir, self.config.model_config.QueryEncoderModelVersion.replace('$', ''))
-        
-        QueryEncoderConfigClass = globals()[self.config.model_config.QueryEncoderConfigClass]
-        query_model_config = QueryEncoderConfigClass.from_pretrained(self.config.model_config.QueryEncoderModelVersion)
+            self.config.model_config.QueryEncoderModelVersion = os.path.join(
+                self.config.root_exp_dir,
+                self.config.model_config.QueryEncoderModelVersion.replace("$", ""),
+            )
+
+        QueryEncoderConfigClass = globals()[
+            self.config.model_config.QueryEncoderConfigClass
+        ]
+        query_model_config = QueryEncoderConfigClass.from_pretrained(
+            self.config.model_config.QueryEncoderModelVersion
+        )
         # if query_model_config.model_type == 'clip_text_model':
         #     query_model_config.max_position_embeddings = 512
-        self.query_encoder = QueryEncoderModelClass.from_pretrained(self.config.model_config.QueryEncoderModelVersion, config=query_model_config, ignore_mismatched_sizes=True)
-        
+        self.query_encoder = QueryEncoderModelClass.from_pretrained(
+            self.config.model_config.QueryEncoderModelVersion,
+            config=query_model_config,
+            ignore_mismatched_sizes=True,
+        )
+
         self.model_config = config.model_config
-        
-        self.mapping_network_prefix_length = self.model_config.mapping_network_prefix_length
+
+        self.mapping_network_prefix_length = (
+            self.model_config.mapping_network_prefix_length
+        )
         self.vision_embedding_size = self.model_config.vision_embedding_size
         self.lm_embedding_size = self.model_config.lm_embedding_size
-        
+
         self.vision_projection = MLP(
             (
                 self.vision_embedding_size,
@@ -942,54 +1052,68 @@ class VisualDPRForRAG(pl.LightningModule):
                 self.lm_embedding_size * self.mapping_network_prefix_length,
             )
         )
-        
+
         # Load vision mapping network from an existing checkpoint
         # TODO: save the mapping network separately in DPR testing
 
         if "$" in self.config.model_config.QueryEncoderVisionMappingPath:
-            self.config.model_config.QueryEncoderVisionMappingPath = os.path.join(self.config.root_exp_dir, self.config.model_config.QueryEncoderVisionMappingPath.replace('$', ''))
+            self.config.model_config.QueryEncoderVisionMappingPath = os.path.join(
+                self.config.root_exp_dir,
+                self.config.model_config.QueryEncoderVisionMappingPath.replace("$", ""),
+            )
         checkpoint_to_load = self.config.model_config.QueryEncoderVisionMappingPath
-        if not checkpoint_to_load or checkpoint_to_load == '':
+        if not checkpoint_to_load or checkpoint_to_load == "":
             print("No checkpoint found.")
         else:
             # We manually load the state dict
             print(f"Loading from {checkpoint_to_load}")
-            state_dict_from_ckpt = torch.load(checkpoint_to_load, map_location=self.device)["state_dict"]
+            state_dict_from_ckpt = torch.load(
+                checkpoint_to_load, map_location=self.device
+            )["state_dict"]
             state_dict_from_model = self.state_dict()
             # Only load parameters with "vision_projection"
-            state_dict_from_ckpt = {k.replace("model.vision_projection", "vision_projection"): v for k, v in state_dict_from_ckpt.items() if "vision_projection" in k}
+            state_dict_from_ckpt = {
+                k.replace("model.vision_projection", "vision_projection"): v
+                for k, v in state_dict_from_ckpt.items()
+                if "vision_projection" in k
+            }
             state_dict_from_model.update(state_dict_from_ckpt)
             self.load_state_dict(state_dict_from_model)
-            print(f"Load the following parameters to vision_projection from the given checkpoint: {state_dict_from_ckpt.keys()}")
-        
-        if 'freeze_dpr_doc_encoder' in self.model_config.modules:
+            print(
+                f"Load the following parameters to vision_projection from the given checkpoint: {state_dict_from_ckpt.keys()}"
+            )
+
+        if "freeze_dpr_doc_encoder" in self.model_config.modules:
             # freeze the ColBERT model
-            logger.warning("freezing the DPR document encoder. If the query encoder is not separated, the query encoder is also frozen.")
+            logger.warning(
+                "freezing the DPR document encoder. If the query encoder is not separated, the query encoder is also frozen."
+            )
             for name, param in self.item_encoder.named_parameters():
                 # print(f"freezed: {name}")
                 param.requires_grad = False
-        
-        if 'freeze_mapping_network' in self.model_config.modules:
+
+        if "freeze_mapping_network" in self.model_config.modules:
             # freeze the ViT model
             logger.warning("freezing the mapping network.")
             for name, param in self.vision_projection.named_parameters():
                 # print(f"freezed: {name}")
                 param.requires_grad = False
-    
+
     def resize_token_embeddings(self, dim, decoder_dim=None):
         self.query_encoder.resize_token_embeddings(dim)
-    
+
     def forward(
         self,
         input_ids=None,
         attention_mask=None,
         image_features=None,
         labels=None,
-        **kwargs
+        **kwargs,
     ):
         # query encoder
-        query_outputs = self.query_encoder(input_ids=input_ids,
-                                            attention_mask=attention_mask)
+        query_outputs = self.query_encoder(
+            input_ids=input_ids, attention_mask=attention_mask
+        )
         query_embeddings = query_outputs.pooler_output
         # query_embeddings = query_last_hidden_states
 
@@ -997,9 +1121,9 @@ class VisualDPRForRAG(pl.LightningModule):
         image_features = image_features.to(self.device)
         last_hidden_states = image_features
         batch_size = last_hidden_states.shape[0]
-        
-        last_hidden_states = self.vision_projection(last_hidden_states) # bz x 32*128
-        
+
+        last_hidden_states = self.vision_projection(last_hidden_states)  # bz x 32*128
+
         last_hidden_states = last_hidden_states.view(
             batch_size, -1, self.lm_embedding_size
         )
@@ -1008,6 +1132,8 @@ class VisualDPRForRAG(pl.LightningModule):
         # batch_size x lm_embeddding_size + batch_size x lm_embeddding_size
         query_embeddings = query_embeddings + last_hidden_states.sum(1)
 
-        return EasyDict({
-            'pooler_output': query_embeddings,
-        })
+        return EasyDict(
+            {
+                "pooler_output": query_embeddings,
+            }
+        )

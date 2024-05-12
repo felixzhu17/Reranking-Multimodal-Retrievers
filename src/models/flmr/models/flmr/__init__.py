@@ -1,5 +1,9 @@
-
-from .configuration_flmr import FLMR_PRETRAINED_CONFIG_ARCHIVE_MAP, FLMRConfig, FLMRTextConfig, FLMRVisionConfig
+from .configuration_flmr import (
+    FLMR_PRETRAINED_CONFIG_ARCHIVE_MAP,
+    FLMRConfig,
+    FLMRTextConfig,
+    FLMRVisionConfig,
+)
 from .tokenization_flmr import (
     FLMRContextEncoderTokenizer,
     FLMRQueryEncoderTokenizer,

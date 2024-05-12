@@ -40,7 +40,10 @@ from transformers.models.bert.modeling_bert import BertModel
 from transformers.models.clip import CLIPVisionModel
 from .configuration_flmr import FLMRConfig, FLMRTextConfig, FLMRVisionConfig
 from .tokenization_flmr import FLMRQueryEncoderTokenizer, FLMRContextEncoderTokenizer
-from .tokenization_flmr_fast import FLMRQueryEncoderTokenizerFast, FLMRContextEncoderTokenizerFast
+from .tokenization_flmr_fast import (
+    FLMRQueryEncoderTokenizerFast,
+    FLMRContextEncoderTokenizerFast,
+)
 from .flmr_utils import (
     colbert_score,
     colbert_score_reduce,
@@ -548,21 +551,27 @@ class FLMRMultiLayerPerceptron(nn.Module):
 class FLMRModelForRetrieval(FLMRPretrainedModelForRetrieval):
     _keys_to_ignore_on_load_unexpected = [r"cls"]
     main_input_name = "query_input_ids"
-    _tied_weights_keys = []  # Added dynamically at initialization depending on the architecture
+    _tied_weights_keys = (
+        []
+    )  # Added dynamically at initialization depending on the architecture
 
-    def __init__(self, config: FLMRConfig, query_tokenizer=None, context_tokenizer=None):
-        
+    def __init__(
+        self, config: FLMRConfig, query_tokenizer=None, context_tokenizer=None
+    ):
+
         super().__init__(config)
         self.config = config
         # import pickle
         # with open("PreFLMR_config.pkl", "wb") as f:
         #     pickle.dump(self.config, f)
         # raise ValueError
-        
+
         self.vision_model_version = config.vision_model_version
 
         self.context_text_encoder = FLMRTextModel(config.text_config)
-        self.context_text_encoder_linear = nn.Linear(config.text_config.hidden_size, config.dim, bias=False)
+        self.context_text_encoder_linear = nn.Linear(
+            config.text_config.hidden_size, config.dim, bias=False
+        )
 
         self.query_tokenizer = query_tokenizer
         self.context_tokenizer = context_tokenizer
@@ -573,7 +582,9 @@ class FLMRModelForRetrieval(FLMRPretrainedModelForRetrieval):
             )
 
             # initialize a FLMRQueryEncoderTokenizer
-            self.query_tokenizer = FLMRQueryEncoderTokenizer.from_pretrained("bert-base-uncased")
+            self.query_tokenizer = FLMRQueryEncoderTokenizer.from_pretrained(
+                "bert-base-uncased"
+            )
 
         if self.context_tokenizer is None:
             logger.warning(
@@ -581,7 +592,9 @@ class FLMRModelForRetrieval(FLMRPretrainedModelForRetrieval):
             )
 
             # initialize a FLMRContextEncoderTokenizer
-            self.context_tokenizer = FLMRContextEncoderTokenizer.from_pretrained("bert-base-uncased")
+            self.context_tokenizer = FLMRContextEncoderTokenizer.from_pretrained(
+                "bert-base-uncased"
+            )
 
         self.mapping_network_prefix_length = self.config.mapping_network_prefix_length
         self.vision_encoder_embedding_size = self.config.vision_config.hidden_size
@@ -592,8 +605,13 @@ class FLMRModelForRetrieval(FLMRPretrainedModelForRetrieval):
             self.context_vision_projection = FLMRMultiLayerPerceptron(
                 (
                     self.vision_encoder_embedding_size,
-                    (self.late_interaction_embedding_size * self.mapping_network_prefix_length) // 2,
-                    self.late_interaction_embedding_size * self.mapping_network_prefix_length,
+                    (
+                        self.late_interaction_embedding_size
+                        * self.mapping_network_prefix_length
+                    )
+                    // 2,
+                    self.late_interaction_embedding_size
+                    * self.mapping_network_prefix_length,
                 )
             )
 
@@ -602,67 +620,94 @@ class FLMRModelForRetrieval(FLMRPretrainedModelForRetrieval):
 
             if self.config.use_transformer_mapping_network:
                 # This is a PreFLMR style model
-                transformer_mapping_config_base = self.config.transformer_mapping_config_base
+                transformer_mapping_config_base = (
+                    self.config.transformer_mapping_config_base
+                )
                 try:
                     from transformers import BertConfig
                     from transformers.models.bert.modeling_bert import BertEncoder
 
-
                 except Exception as e:
-                    raise ImportError(f"Failed to import BertConfig and BertEncoder from transformers. {e}")
+                    raise ImportError(
+                        f"Failed to import BertConfig and BertEncoder from transformers. {e}"
+                    )
 
-                transformer_mapping_config = BertConfig.from_pretrained(transformer_mapping_config_base)
+                transformer_mapping_config = BertConfig.from_pretrained(
+                    transformer_mapping_config_base
+                )
 
                 assert (
-                    self.config.text_config.hidden_size == transformer_mapping_config.hidden_size
+                    self.config.text_config.hidden_size
+                    == transformer_mapping_config.hidden_size
                 ), f"hidden_size {self.config.text_config.hidden_size} != transformer_mapping_config.hidden_size {transformer_mapping_config.hidden_size}. To use cross attention, the dimensions must match."
                 # shallow transformer
-                transformer_mapping_config.num_hidden_layers = self.config.transformer_mapping_num_hidden_layers
+                transformer_mapping_config.num_hidden_layers = (
+                    self.config.transformer_mapping_num_hidden_layers
+                )
                 # add cross attention
                 transformer_mapping_config.is_decoder = True
                 transformer_mapping_config.add_cross_attention = True
 
                 # The linear layer from vision encoder to transformer input
                 self.transformer_mapping_input_linear = nn.Linear(
-                    self.vision_encoder_embedding_size, transformer_mapping_config.hidden_size
+                    self.vision_encoder_embedding_size,
+                    transformer_mapping_config.hidden_size,
                 )
 
                 # The transformer encoder
-                self.transformer_mapping_network = BertEncoder(transformer_mapping_config)
+                self.transformer_mapping_network = BertEncoder(
+                    transformer_mapping_config
+                )
 
                 # The linear layer from transformer output to FLMR dim
                 self.transformer_mapping_output_linear = nn.Linear(
-                    transformer_mapping_config.hidden_size, self.late_interaction_embedding_size
+                    transformer_mapping_config.hidden_size,
+                    self.late_interaction_embedding_size,
                 )
 
         if self.config.separate_query_and_context_text_encoder:
             self.query_text_encoder = copy.deepcopy(self.context_text_encoder)
-            self.query_text_encoder_linear = copy.deepcopy(self.context_text_encoder_linear)
+            self.query_text_encoder_linear = copy.deepcopy(
+                self.context_text_encoder_linear
+            )
         else:
             self.query_text_encoder = self.context_text_encoder
             self.query_text_encoder_linear = self.context_text_encoder_linear
-            self._tied_weights_keys += ["context_text_encoder", "context_text_encoder_linear"]
+            self._tied_weights_keys += [
+                "context_text_encoder",
+                "context_text_encoder_linear",
+            ]
 
         if self.config.use_vision_encoder:
             if self.config.separate_query_and_context_vision_encoder:
                 self.query_vision_encoder = copy.deepcopy(self.context_vision_encoder)
-                self.query_vision_projection = copy.deepcopy(self.context_vision_projection)
+                self.query_vision_projection = copy.deepcopy(
+                    self.context_vision_projection
+                )
             else:
                 self.query_vision_encoder = self.context_vision_encoder
                 self.query_vision_projection = self.context_vision_projection
-                self._tied_weights_keys += ["context_vision_encoder", "context_vision_projection"]
+                self._tied_weights_keys += [
+                    "context_vision_encoder",
+                    "context_vision_projection",
+                ]
 
         if self.config.load_cpu_extension:
             try:
                 FLMRModelForRetrieval.try_load_torch_extensions()
             except Exception as e:
-                raise ValueError(f"Unable to load `segmented_maxsim.cpp`. hf-hub does not download this file automatically. Please download it manually from `https://huggingface.co/LinWeizheDragon/PreFLMR_ViT-L/blob/main/segmented_maxsim.cpp` and put it under the same folder as the model file.\n {e}")
+                raise ValueError(
+                    f"Unable to load `segmented_maxsim.cpp`. hf-hub does not download this file automatically. Please download it manually from `https://huggingface.co/LinWeizheDragon/PreFLMR_ViT-L/blob/main/segmented_maxsim.cpp` and put it under the same folder as the model file.\n {e}"
+                )
 
         if self.config.mask_punctuation:
             self.skiplist = {
                 w: True
                 for symbol in string.punctuation
-                for w in [symbol, self.context_tokenizer.encode(symbol, add_special_tokens=False)[0]]
+                for w in [
+                    symbol,
+                    self.context_tokenizer.encode(symbol, add_special_tokens=False)[0],
+                ]
             }
 
         if self.config.mask_instruction_token is not None:
@@ -700,10 +745,13 @@ class FLMRModelForRetrieval(FLMRPretrainedModelForRetrieval):
         segmented_maxsim_cpp = load(
             name="segmented_maxsim_cpp",
             sources=[
-                os.path.join(pathlib.Path(__file__).parent.resolve(), "segmented_maxsim.cpp"),
+                os.path.join(
+                    pathlib.Path(__file__).parent.resolve(), "segmented_maxsim.cpp"
+                ),
             ],
             extra_cflags=["-O3"],
-            verbose=os.getenv("COLBERT_LOAD_TORCH_EXTENSION_VERBOSE", "False") == "True",
+            verbose=os.getenv("COLBERT_LOAD_TORCH_EXTENSION_VERBOSE", "False")
+            == "True",
         )
         cls.segmented_maxsim = segmented_maxsim_cpp.segmented_maxsim_cpp
 
@@ -721,10 +769,14 @@ class FLMRModelForRetrieval(FLMRPretrainedModelForRetrieval):
         for i, x in enumerate(sep_positions):
             if x < 1:
                 sep_positions[i] = 1
-                logger.error(f"can not find the separator in the input_ids: {input_ids[i].tolist()}")
+                logger.error(
+                    f"can not find the separator in the input_ids: {input_ids[i].tolist()}"
+                )
         mask = [
             [
-                (x not in skiplist) and (x != 0) and (index > sep_positions[seq_index] or index < 2)
+                (x not in skiplist)
+                and (x != 0)
+                and (index > sep_positions[seq_index] or index < 2)
                 for index, x in enumerate(d)
             ]
             for seq_index, d in enumerate(input_ids.cpu().tolist())
@@ -732,7 +784,9 @@ class FLMRModelForRetrieval(FLMRPretrainedModelForRetrieval):
         return mask
 
     @add_start_docstrings_to_model_forward(FLMR_MODEL_INPUTS_DOCSTRING)
-    @replace_return_docstrings(output_type=FLMRModelForRetrievalOutput, config_class=_CONFIG_FOR_DOC)
+    @replace_return_docstrings(
+        output_type=FLMRModelForRetrievalOutput, config_class=_CONFIG_FOR_DOC
+    )
     def forward(
         self,
         query_input_ids: Optional[torch.Tensor] = None,
@@ -796,22 +850,38 @@ class FLMRModelForRetrieval(FLMRPretrainedModelForRetrieval):
         """
 
         if query_concat_output_from_vision_encoder is None:
-            query_concat_output_from_vision_encoder = self.config.query_concat_output_from_vision_encoder
+            query_concat_output_from_vision_encoder = (
+                self.config.query_concat_output_from_vision_encoder
+            )
 
         if query_concat_output_from_text_encoder is None:
-            query_concat_output_from_text_encoder = self.config.query_concat_output_from_text_encoder
+            query_concat_output_from_text_encoder = (
+                self.config.query_concat_output_from_text_encoder
+            )
 
         if context_concat_output_from_vision_encoder is None:
-            context_concat_output_from_vision_encoder = self.config.context_concat_output_from_vision_encoder
+            context_concat_output_from_vision_encoder = (
+                self.config.context_concat_output_from_vision_encoder
+            )
 
         if context_concat_output_from_text_encoder is None:
-            context_concat_output_from_text_encoder = self.config.context_concat_output_from_text_encoder
+            context_concat_output_from_text_encoder = (
+                self.config.context_concat_output_from_text_encoder
+            )
 
-        output_attentions = output_attentions if output_attentions is not None else self.config.output_attentions
-        output_hidden_states = (
-            output_hidden_states if output_hidden_states is not None else self.config.output_hidden_states
+        output_attentions = (
+            output_attentions
+            if output_attentions is not None
+            else self.config.output_attentions
         )
-        return_dict = return_dict if return_dict is not None else self.config.use_return_dict
+        output_hidden_states = (
+            output_hidden_states
+            if output_hidden_states is not None
+            else self.config.output_hidden_states
+        )
+        return_dict = (
+            return_dict if return_dict is not None else self.config.use_return_dict
+        )
 
         query_outputs = self.query(
             input_ids=query_input_ids,
@@ -837,25 +907,33 @@ class FLMRModelForRetrieval(FLMRPretrainedModelForRetrieval):
             output_attentions=output_attentions,
             output_hidden_states=output_hidden_states,
         )
-        D, D_mask = context_outputs.late_interaction_output, context_outputs.context_mask
-
+        D, D_mask = (
+            context_outputs.late_interaction_output,
+            context_outputs.context_mask,
+        )
 
         # Gather tensors from other GPUs
         if in_batch_negatives_from_all_gpus:
             Q, D, D_mask = self.gather_tensors_from_other_gpus(Q, D, D_mask)
-            
+
         if torch.isnan(Q).any():
             print("Failed Inputs")
-            print(dict( input_ids=query_input_ids,
-            attention_mask=query_attention_mask,
-            pixel_values_shape=query_pixel_values,))
+            print(
+                dict(
+                    input_ids=query_input_ids,
+                    attention_mask=query_attention_mask,
+                    pixel_values_shape=query_pixel_values,
+                )
+            )
             print("Failed Outputs")
             print(query_outputs)
             raise ValueError("Query - NaN values found in late interaction outputs")
         if torch.isnan(D).any():
             raise ValueError("Context - NaN values found in late interaction outputs")
         # Repeat each query encoding for every corresponding document.
-        Q_duplicated = Q.repeat_interleave(num_negative_examples + 1, dim=0).contiguous()
+        Q_duplicated = Q.repeat_interleave(
+            num_negative_examples + 1, dim=0
+        ).contiguous()
 
         raise ValueError(Q_duplicated.shape, D.shape, D_mask.shape)
 
@@ -874,24 +952,39 @@ class FLMRModelForRetrieval(FLMRPretrainedModelForRetrieval):
 
         if output_attentions:
             query_attentions = (
-                query_outputs.text_encoder_attentions if query_outputs.text_encoder_attentions is not None else None,
-                query_outputs.vision_encoder_attentions
-                if query_outputs.vision_encoder_attentions is not None
-                else None,
-                query_outputs.transformer_mapping_network_attentions
-                if query_outputs.transformer_mapping_network_attentions is not None
-                else None,
+                (
+                    query_outputs.text_encoder_attentions
+                    if query_outputs.text_encoder_attentions is not None
+                    else None
+                ),
+                (
+                    query_outputs.vision_encoder_attentions
+                    if query_outputs.vision_encoder_attentions is not None
+                    else None
+                ),
+                (
+                    query_outputs.transformer_mapping_network_attentions
+                    if query_outputs.transformer_mapping_network_attentions is not None
+                    else None
+                ),
             )
             context_attentions = (
-                context_outputs.text_encoder_attentions
-                if context_outputs.text_encoder_attentions is not None
-                else None,
-                context_outputs.vision_encoder_attentions
-                if context_outputs.vision_encoder_attentions is not None
-                else None,
-                context_outputs.transformer_mapping_network_attentions
-                if context_outputs.transformer_mapping_network_attentions is not None
-                else None,
+                (
+                    context_outputs.text_encoder_attentions
+                    if context_outputs.text_encoder_attentions is not None
+                    else None
+                ),
+                (
+                    context_outputs.vision_encoder_attentions
+                    if context_outputs.vision_encoder_attentions is not None
+                    else None
+                ),
+                (
+                    context_outputs.transformer_mapping_network_attentions
+                    if context_outputs.transformer_mapping_network_attentions
+                    is not None
+                    else None
+                ),
             )
         else:
             query_attentions = None
@@ -899,26 +992,40 @@ class FLMRModelForRetrieval(FLMRPretrainedModelForRetrieval):
 
         if output_hidden_states:
             query_hidden_states = (
-                query_outputs.text_encoder_hidden_states
-                if query_outputs.text_encoder_hidden_states is not None
-                else None,
-                query_outputs.vision_encoder_hidden_states
-                if query_outputs.vision_encoder_hidden_states is not None
-                else None,
-                query_outputs.transformer_mapping_network_hidden_states
-                if query_outputs.transformer_mapping_network_hidden_states is not None
-                else None,
+                (
+                    query_outputs.text_encoder_hidden_states
+                    if query_outputs.text_encoder_hidden_states is not None
+                    else None
+                ),
+                (
+                    query_outputs.vision_encoder_hidden_states
+                    if query_outputs.vision_encoder_hidden_states is not None
+                    else None
+                ),
+                (
+                    query_outputs.transformer_mapping_network_hidden_states
+                    if query_outputs.transformer_mapping_network_hidden_states
+                    is not None
+                    else None
+                ),
             )
             context_hidden_states = (
-                context_outputs.text_encoder_hidden_states
-                if context_outputs.text_encoder_hidden_states is not None
-                else None,
-                context_outputs.vision_encoder_hidden_states
-                if context_outputs.vision_encoder_hidden_states is not None
-                else None,
-                context_outputs.transformer_mapping_network_hidden_states
-                if context_outputs.transformer_mapping_network_hidden_states is not None
-                else None,
+                (
+                    context_outputs.text_encoder_hidden_states
+                    if context_outputs.text_encoder_hidden_states is not None
+                    else None
+                ),
+                (
+                    context_outputs.vision_encoder_hidden_states
+                    if context_outputs.vision_encoder_hidden_states is not None
+                    else None
+                ),
+                (
+                    context_outputs.transformer_mapping_network_hidden_states
+                    if context_outputs.transformer_mapping_network_hidden_states
+                    is not None
+                    else None
+                ),
             )
         else:
             query_hidden_states = None
@@ -975,17 +1082,23 @@ class FLMRModelForRetrieval(FLMRPretrainedModelForRetrieval):
             query_attentions=query_attentions if output_attentions else None,
             query_hidden_states=query_hidden_states if output_hidden_states else None,
             context_attentions=context_attentions if output_attentions else None,
-            context_hidden_states=context_hidden_states if output_hidden_states else None,
+            context_hidden_states=(
+                context_hidden_states if output_hidden_states else None
+            ),
         )
 
-    def compute_ib_loss_new(self, Q: torch.Tensor, D: torch.Tensor, D_mask: torch.Tensor) -> torch.Tensor:
+    def compute_ib_loss_new(
+        self, Q: torch.Tensor, D: torch.Tensor, D_mask: torch.Tensor
+    ) -> torch.Tensor:
         # Q: batch_size x q_len x dim
         # D: batch_size*n_docs x i_len x dim
         # D_mask: batch_size*n_docs x i_len x dim
         # 1 x batch_size*n_docs x i_len x dim matmul batch_size x 1 x q_len x dim
         # = batch_size x batch_size*n_docs x i_len x q_len
 
-        scores = (D.float().unsqueeze(0) @ Q.float().permute(0, 2, 1).unsqueeze(1)).flatten(
+        scores = (
+            D.float().unsqueeze(0) @ Q.float().permute(0, 2, 1).unsqueeze(1)
+        ).flatten(
             0, 1
         )  # query-major unsqueeze
         scores = colbert_score_reduce(scores, D_mask.repeat(Q.size(0), 1, 1))
@@ -998,7 +1111,9 @@ class FLMRModelForRetrieval(FLMRPretrainedModelForRetrieval):
 
         # batch_size x dim  matmul  dim x (num_pos+num_neg)*batch_size
         # -->  batch_size x (num_pos+num_neg)*batch_size
-        in_batch_labels = torch.zeros(batch_size, batch_size_with_pos_and_neg).to(scores.device)
+        in_batch_labels = torch.zeros(batch_size, batch_size_with_pos_and_neg).to(
+            scores.device
+        )
         step = num_pos_and_neg
         for i in range(batch_size):
             in_batch_labels[i, step * i] = 1
@@ -1010,7 +1125,9 @@ class FLMRModelForRetrieval(FLMRPretrainedModelForRetrieval):
 
         return loss
 
-    def gather_tensors_from_other_gpus(self, query_embeddings, item_embeddings, item_mask):
+    def gather_tensors_from_other_gpus(
+        self, query_embeddings, item_embeddings, item_mask
+    ):
         # print("get rank", get_rank())
         # print("get world size", get_world_size())
         # Gather embeddings from other GPUs
@@ -1019,15 +1136,20 @@ class FLMRModelForRetrieval(FLMRPretrainedModelForRetrieval):
             return query_embeddings, item_embeddings, item_mask
         # Create placeholder to hold embeddings passed from other ranks
         global_query_embeddings_placeholder = [
-            torch.zeros(*query_embeddings.shape, dtype=query_embeddings.dtype).to(query_embeddings.device)
+            torch.zeros(*query_embeddings.shape, dtype=query_embeddings.dtype).to(
+                query_embeddings.device
+            )
             for _ in range(n_nodes)
         ]
         global_item_embeddings_placeholder = [
-            torch.zeros(*item_embeddings.shape, dtype=item_embeddings.dtype).to(item_embeddings.device)
+            torch.zeros(*item_embeddings.shape, dtype=item_embeddings.dtype).to(
+                item_embeddings.device
+            )
             for _ in range(n_nodes)
         ]
         global_item_mask_placeholder = [
-            torch.zeros(*item_mask.shape, dtype=item_mask.dtype).to(item_mask.device) for _ in range(n_nodes)
+            torch.zeros(*item_mask.shape, dtype=item_mask.dtype).to(item_mask.device)
+            for _ in range(n_nodes)
         ]
         dist.all_gather(global_query_embeddings_placeholder, query_embeddings.detach())
         dist.all_gather(global_item_embeddings_placeholder, item_embeddings.detach())
@@ -1040,14 +1162,18 @@ class FLMRModelForRetrieval(FLMRPretrainedModelForRetrieval):
         # print(f"rank {get_rank()} global_item_embeddings", global_item_embeddings)
         # input()
         current_rank = get_rank()
-        for rank_index, remote_q_embeddings in enumerate(global_query_embeddings_placeholder):
+        for rank_index, remote_q_embeddings in enumerate(
+            global_query_embeddings_placeholder
+        ):
             # We append the embeddings from other GPUs if this embedding does not require gradients
             if rank_index != current_rank:
                 global_query_embeddings.append(remote_q_embeddings)
             else:
                 global_query_embeddings.append(query_embeddings)
 
-        for rank_index, remote_item_embeddings in enumerate(global_item_embeddings_placeholder):
+        for rank_index, remote_item_embeddings in enumerate(
+            global_item_embeddings_placeholder
+        ):
             # We append the embeddings from other GPUs if this embedding does not require gradients
             if rank_index != current_rank:
                 global_item_embeddings.append(remote_item_embeddings)
@@ -1069,7 +1195,9 @@ class FLMRModelForRetrieval(FLMRPretrainedModelForRetrieval):
         return query_embeddings, item_embeddings, item_mask
 
     @add_start_docstrings_to_model_forward(FLMR_MODEL_QUERY_INPUTS_DOCSTRING)
-    @replace_return_docstrings(output_type=FLMRQueryEncoderOutput, config_class=_CONFIG_FOR_DOC)
+    @replace_return_docstrings(
+        output_type=FLMRQueryEncoderOutput, config_class=_CONFIG_FOR_DOC
+    )
     def query(
         self,
         input_ids: torch.Tensor,
@@ -1087,14 +1215,24 @@ class FLMRModelForRetrieval(FLMRPretrainedModelForRetrieval):
         """
 
         if concat_output_from_vision_encoder is None:
-            concat_output_from_vision_encoder = self.config.query_concat_output_from_vision_encoder
+            concat_output_from_vision_encoder = (
+                self.config.query_concat_output_from_vision_encoder
+            )
 
         if concat_output_from_text_encoder is None:
-            concat_output_from_text_encoder = self.config.query_concat_output_from_text_encoder
+            concat_output_from_text_encoder = (
+                self.config.query_concat_output_from_text_encoder
+            )
 
-        output_attentions = output_attentions if output_attentions is not None else self.config.output_attentions
+        output_attentions = (
+            output_attentions
+            if output_attentions is not None
+            else self.config.output_attentions
+        )
         output_hidden_states = (
-            output_hidden_states if output_hidden_states is not None else self.config.output_hidden_states
+            output_hidden_states
+            if output_hidden_states is not None
+            else self.config.output_hidden_states
         )
 
         input_modality = []
@@ -1120,11 +1258,21 @@ class FLMRModelForRetrieval(FLMRPretrainedModelForRetrieval):
                 input_ids is not None and attention_mask is not None
             ), "input_ids and attention_mask must be provided if text modality is used"
             # Forward the text encoder
-            input_ids, attention_mask = input_ids.to(self.device), attention_mask.to(self.device)
-            text_encoder_outputs = self.query_text_encoder(input_ids, attention_mask=attention_mask)
+            input_ids, attention_mask = input_ids.to(self.device), attention_mask.to(
+                self.device
+            )
+            text_encoder_outputs = self.query_text_encoder(
+                input_ids, attention_mask=attention_mask
+            )
             text_encoder_hidden_states = text_encoder_outputs[0]
             text_embeddings = self.query_text_encoder_linear(text_encoder_hidden_states)
-            mask = torch.tensor(self.query_mask(input_ids, skiplist=[]), device=self.device).unsqueeze(2).float()
+            mask = (
+                torch.tensor(
+                    self.query_mask(input_ids, skiplist=[]), device=self.device
+                )
+                .unsqueeze(2)
+                .float()
+            )
 
             text_embeddings = text_embeddings * mask
 
@@ -1137,9 +1285,14 @@ class FLMRModelForRetrieval(FLMRPretrainedModelForRetrieval):
                     # Multiple ROIs are provided
                     # merge the first two dimensions
                     pixel_values = pixel_values.reshape(
-                        -1, pixel_values.shape[2], pixel_values.shape[3], pixel_values.shape[4]
+                        -1,
+                        pixel_values.shape[2],
+                        pixel_values.shape[3],
+                        pixel_values.shape[4],
                     )
-                vision_encoder_outputs = self.query_vision_encoder(pixel_values, output_hidden_states=True)
+                vision_encoder_outputs = self.query_vision_encoder(
+                    pixel_values, output_hidden_states=True
+                )
                 vision_embeddings = vision_encoder_outputs.last_hidden_state[:, 0]
 
             if image_features is not None:
@@ -1148,38 +1301,56 @@ class FLMRModelForRetrieval(FLMRPretrainedModelForRetrieval):
 
             # Forward the vision projection / mapping network
             vision_embeddings = self.query_vision_projection(vision_embeddings)
-            vision_embeddings = vision_embeddings.view(batch_size, -1, self.late_interaction_embedding_size)
+            vision_embeddings = vision_embeddings.view(
+                batch_size, -1, self.late_interaction_embedding_size
+            )
 
             if self.config.use_transformer_mapping_network:
                 # select the second last layer
-                vision_second_last_layer_hidden_states = vision_encoder_outputs.hidden_states[-2][:, 1:]
+                vision_second_last_layer_hidden_states = (
+                    vision_encoder_outputs.hidden_states[-2][:, 1:]
+                )
                 # transformer_mapping
-                transformer_mapping_input_features = self.transformer_mapping_input_linear(
-                    vision_second_last_layer_hidden_states
+                transformer_mapping_input_features = (
+                    self.transformer_mapping_input_linear(
+                        vision_second_last_layer_hidden_states
+                    )
                 )
 
                 # Cross attention only attends to the first 32 tokens
                 encoder_mask = torch.ones_like(mask).to(mask.device, dtype=mask.dtype)
-                cross_attention_length = self.config.transformer_mapping_cross_attention_length
+                cross_attention_length = (
+                    self.config.transformer_mapping_cross_attention_length
+                )
                 if text_encoder_hidden_states.shape[1] > cross_attention_length:
-                    text_encoder_hidden_states = text_encoder_hidden_states[:, :cross_attention_length]
+                    text_encoder_hidden_states = text_encoder_hidden_states[
+                        :, :cross_attention_length
+                    ]
                     encoder_mask = encoder_mask[:, :cross_attention_length]
 
                 # Obtain cross attention mask
-                encoder_extended_attention_mask = self.invert_attention_mask(encoder_mask.squeeze(-1))
+                encoder_extended_attention_mask = self.invert_attention_mask(
+                    encoder_mask.squeeze(-1)
+                )
                 # Pass through the transformer mapping
                 transformer_mapping_outputs = self.transformer_mapping_network(
                     transformer_mapping_input_features,
                     encoder_hidden_states=text_encoder_hidden_states,
                     encoder_attention_mask=encoder_extended_attention_mask,
                 )
-                transformer_mapping_output_features = transformer_mapping_outputs.last_hidden_state
+                transformer_mapping_output_features = (
+                    transformer_mapping_outputs.last_hidden_state
+                )
                 # Convert the dimension to FLMR dim
-                transformer_mapping_output_features = self.transformer_mapping_output_linear(
-                    transformer_mapping_output_features
+                transformer_mapping_output_features = (
+                    self.transformer_mapping_output_linear(
+                        transformer_mapping_output_features
+                    )
                 )
                 # Merge with the vision embeddings
-                vision_embeddings = torch.cat([vision_embeddings, transformer_mapping_output_features], dim=1)
+                vision_embeddings = torch.cat(
+                    [vision_embeddings, transformer_mapping_output_features], dim=1
+                )
 
         if concat_output_from_vision_encoder and concat_output_from_text_encoder:
             Q = torch.cat([text_embeddings, vision_embeddings], dim=1)
@@ -1204,7 +1375,9 @@ class FLMRModelForRetrieval(FLMRPretrainedModelForRetrieval):
         )
         text_encoder_attentions = (
             text_encoder_outputs.attentions
-            if text_encoder_outputs is not None and hasattr(text_encoder_outputs, "attentions") and output_attentions
+            if text_encoder_outputs is not None
+            and hasattr(text_encoder_outputs, "attentions")
+            and output_attentions
             else None
         )
         text_encoder_hidden_states = (
@@ -1241,7 +1414,9 @@ class FLMRModelForRetrieval(FLMRPretrainedModelForRetrieval):
         )
 
     @add_start_docstrings_to_model_forward(FLMR_MODEL_CONTEXT_INPUTS_DOCSTRING)
-    @replace_return_docstrings(output_type=FLMRContextEncoderOutput, config_class=_CONFIG_FOR_DOC)
+    @replace_return_docstrings(
+        output_type=FLMRContextEncoderOutput, config_class=_CONFIG_FOR_DOC
+    )
     def doc(
         self,
         input_ids: torch.Tensor,
@@ -1262,14 +1437,24 @@ class FLMRModelForRetrieval(FLMRPretrainedModelForRetrieval):
         assert keep_dims in [True, False]
 
         if concat_output_from_vision_encoder is None:
-            concat_output_from_vision_encoder = self.config.context_concat_output_from_vision_encoder
+            concat_output_from_vision_encoder = (
+                self.config.context_concat_output_from_vision_encoder
+            )
 
         if concat_output_from_text_encoder is None:
-            concat_output_from_text_encoder = self.config.context_concat_output_from_text_encoder
+            concat_output_from_text_encoder = (
+                self.config.context_concat_output_from_text_encoder
+            )
 
-        output_attentions = output_attentions if output_attentions is not None else self.config.output_attentions
+        output_attentions = (
+            output_attentions
+            if output_attentions is not None
+            else self.config.output_attentions
+        )
         output_hidden_states = (
-            output_hidden_states if output_hidden_states is not None else self.config.output_hidden_states
+            output_hidden_states
+            if output_hidden_states is not None
+            else self.config.output_hidden_states
         )
 
         input_modality = []
@@ -1294,12 +1479,22 @@ class FLMRModelForRetrieval(FLMRPretrainedModelForRetrieval):
                 input_ids is not None and attention_mask is not None
             ), "input_ids and attention_mask must be provided if text modality is used"
             # Forward the text encoder
-            input_ids, attention_mask = input_ids.to(self.device), attention_mask.to(self.device)
-            text_encoder_outputs = self.context_text_encoder(input_ids, attention_mask=attention_mask)
+            input_ids, attention_mask = input_ids.to(self.device), attention_mask.to(
+                self.device
+            )
+            text_encoder_outputs = self.context_text_encoder(
+                input_ids, attention_mask=attention_mask
+            )
             text_embeddings = text_encoder_outputs[0]
             text_embeddings = self.context_text_encoder_linear(text_embeddings)
 
-            mask = torch.tensor(self.mask(input_ids, skiplist=self.skiplist), device=self.device).unsqueeze(2).float()
+            mask = (
+                torch.tensor(
+                    self.mask(input_ids, skiplist=self.skiplist), device=self.device
+                )
+                .unsqueeze(2)
+                .float()
+            )
             text_embeddings = text_embeddings * mask
 
         if "image" in input_modality:
@@ -1317,10 +1512,14 @@ class FLMRModelForRetrieval(FLMRPretrainedModelForRetrieval):
             # Forward the vision projection / mapping network
             vision_embeddings = self.context_vision_projection(vision_embeddings)
             vision_embeddings = vision_embeddings.view(
-                -1, self.mapping_network_prefix_length, self.late_interaction_embedding_size
+                -1,
+                self.mapping_network_prefix_length,
+                self.late_interaction_embedding_size,
             )
 
-            image_mask = torch.ones(batch_size, vision_embeddings.shape[1], 1).to(self.device)
+            image_mask = torch.ones(batch_size, vision_embeddings.shape[1], 1).to(
+                self.device
+            )
 
         if concat_output_from_vision_encoder and concat_output_from_text_encoder:
             # Note: vision embeddings must be in the front since the ColBERT engine only indexes embeddings up to number of 1's in the mask
@@ -1360,7 +1559,9 @@ class FLMRModelForRetrieval(FLMRPretrainedModelForRetrieval):
         )
         text_encoder_attentions = (
             text_encoder_outputs.attentions
-            if text_encoder_outputs is not None and hasattr(text_encoder_outputs, "attentions") and output_attentions
+            if text_encoder_outputs is not None
+            and hasattr(text_encoder_outputs, "attentions")
+            and output_attentions
             else None
         )
         text_encoder_hidden_states = (
@@ -1389,7 +1590,10 @@ class FLMRModelForRetrieval(FLMRPretrainedModelForRetrieval):
         return colbert_score(Q, D_padded, D_mask, use_gpu=self.use_gpu)
 
     def mask(self, input_ids, skiplist):
-        mask = [[(x not in skiplist) and (x != 0) for x in d] for d in input_ids.cpu().tolist()]
+        mask = [
+            [(x not in skiplist) and (x != 0) for x in d]
+            for d in input_ids.cpu().tolist()
+        ]
         return mask
 
 
@@ -1408,12 +1612,16 @@ class FLMRTextModel(FLMRPreTrainedModel):
             raise ValueError("Encoder hidden_size can't be zero")
         self.projection_dim = config.projection_dim
         if self.projection_dim > 0:
-            self.encode_proj = nn.Linear(self.bert_model.config.hidden_size, config.projection_dim)
+            self.encode_proj = nn.Linear(
+                self.bert_model.config.hidden_size, config.projection_dim
+            )
         # Initialize weights and apply final processing
         self.post_init()
 
     @add_start_docstrings_to_model_forward(FLMR_TEXT_ENCODERS_INPUTS_DOCSTRING)
-    @replace_return_docstrings(output_type=BaseModelOutputWithPooling, config_class=FLMRTextConfig)
+    @replace_return_docstrings(
+        output_type=BaseModelOutputWithPooling, config_class=FLMRTextConfig
+    )
     def forward(
         self,
         input_ids: Optional[Tensor] = None,
@@ -1428,11 +1636,19 @@ class FLMRTextModel(FLMRPreTrainedModel):
         Returns:
 
         """
-        output_attentions = output_attentions if output_attentions is not None else self.config.output_attentions
-        output_hidden_states = (
-            output_hidden_states if output_hidden_states is not None else self.config.output_hidden_states
+        output_attentions = (
+            output_attentions
+            if output_attentions is not None
+            else self.config.output_attentions
         )
-        return_dict = return_dict if return_dict is not None else self.config.use_return_dict
+        output_hidden_states = (
+            output_hidden_states
+            if output_hidden_states is not None
+            else self.config.output_hidden_states
+        )
+        return_dict = (
+            return_dict if return_dict is not None else self.config.use_return_dict
+        )
 
         outputs = self.bert_model(
             input_ids=input_ids,
@@ -1485,7 +1701,9 @@ class FLMRVisionModel(FLMRPreTrainedModel):
         return self.vision_model.vision_model.embeddings.patch_embedding
 
     @add_start_docstrings_to_model_forward(FLMR_VISION_ENCODERS_INPUTS_DOCSTRING)
-    @replace_return_docstrings(output_type=BaseModelOutputWithPooling, config_class=FLMRVisionConfig)
+    @replace_return_docstrings(
+        output_type=BaseModelOutputWithPooling, config_class=FLMRVisionConfig
+    )
     def forward(
         self,
         pixel_values: Optional[torch.FloatTensor] = None,
@@ -1515,7 +1733,9 @@ class FLMRVisionModel(FLMRPreTrainedModel):
         >>> last_hidden_state = outputs.last_hidden_state
         >>> pooled_output = outputs.pooler_output  # pooled CLS states
         ```"""
-        return_dict = return_dict if return_dict is not None else self.config.use_return_dict
+        return_dict = (
+            return_dict if return_dict is not None else self.config.use_return_dict
+        )
 
         return self.vision_model(
             pixel_values=pixel_values,

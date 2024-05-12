@@ -1,5 +1,3 @@
-
-
 import copy
 import math
 import os
@@ -14,7 +12,12 @@ from torch.utils.checkpoint import checkpoint
 from typing import Any, Callable, Dict, Iterable, List, Optional, Tuple, Union
 from collections import Counter, defaultdict
 from easydict import EasyDict
-from transformers import T5Tokenizer, T5ForConditionalGeneration, T5Config, T5PreTrainedModel
+from transformers import (
+    T5Tokenizer,
+    T5ForConditionalGeneration,
+    T5Config,
+    T5PreTrainedModel,
+)
 from transformers import VisualBertModel, VisualBertConfig, BertTokenizer
 from transformers import DPRQuestionEncoder, DPRContextEncoder, DPRConfig
 from transformers import BertModel, BertConfig
@@ -26,7 +29,11 @@ from src.models.retriever.retriever_dpr import RetrieverDPR
 from colbert.infra import Run, RunConfig, ColBERTConfig
 from colbert.modeling.colbert import ColBERT
 from src.models.retriever.visual_colbert import *
-from colbert.modeling.tokenization import QueryTokenizer, DocTokenizer, tensorize_triples
+from colbert.modeling.tokenization import (
+    QueryTokenizer,
+    DocTokenizer,
+    tensorize_triples,
+)
 from colbert.data import Queries
 from colbert import Searcher
 
@@ -37,6 +44,7 @@ import pytorch_lightning as pl
 import time
 
 import logging
+
 logger = logging.getLogger(__name__)
 
 
@@ -51,19 +59,21 @@ import random
 from src.models.custom_peft import PeftModelForSeq2SeqLM
 
 
-
-
 class HFIndexBase(Index):
     def __init__(self, vector_size, dataset, index_initialized=False):
         self.vector_size = vector_size
         self.dataset = dataset
         self._index_initialized = index_initialized
         self._check_dataset_format(with_index=index_initialized)
-        dataset.set_format("numpy", columns=["embeddings"], output_all_columns=True, dtype="float32")
+        dataset.set_format(
+            "numpy", columns=["embeddings"], output_all_columns=True, dtype="float32"
+        )
 
     def _check_dataset_format(self, with_index: bool):
         if not isinstance(self.dataset, Dataset):
-            raise ValueError(f"Dataset should be a datasets.Dataset object, but got {type(self.dataset)}")
+            raise ValueError(
+                f"Dataset should be a datasets.Dataset object, but got {type(self.dataset)}"
+            )
         # if len({"title", "text", "embeddings"} - set(self.dataset.column_names)) > 0:
         #     raise ValueError(
         #         "Dataset should be a dataset with the following columns: "
@@ -85,15 +95,20 @@ class HFIndexBase(Index):
     def get_doc_dicts(self, doc_ids: np.ndarray) -> List[dict]:
         return [self.dataset[doc_ids[i].tolist()] for i in range(doc_ids.shape[0])]
 
-    def get_top_docs(self, question_hidden_states: np.ndarray, n_docs=5) -> Tuple[np.ndarray, np.ndarray]:
+    def get_top_docs(
+        self, question_hidden_states: np.ndarray, n_docs=5
+    ) -> Tuple[np.ndarray, np.ndarray]:
         _, ids = self.dataset.search_batch("embeddings", question_hidden_states, n_docs)
         docs = [self.dataset[[i for i in indices if i >= 0]] for indices in ids]
         vectors = [doc["embeddings"] for doc in docs]
         for i in range(len(vectors)):
             if len(vectors[i]) < n_docs:
-                vectors[i] = np.vstack([vectors[i], np.zeros((n_docs - len(vectors[i]), self.vector_size))])
-        return np.array(ids), np.array(vectors)  # shapes (batch_size, n_docs) and (batch_size, n_docs, d)
-
+                vectors[i] = np.vstack(
+                    [vectors[i], np.zeros((n_docs - len(vectors[i]), self.vector_size))]
+                )
+        return np.array(ids), np.array(
+            vectors
+        )  # shapes (batch_size, n_docs) and (batch_size, n_docs, d)
 
 
 class CustomHFIndex(HFIndexBase):
@@ -131,8 +146,9 @@ class CustomHFIndex(HFIndexBase):
             self._index_initialized = True
 
 
-
-def shift_tokens_right(input_ids: torch.Tensor, pad_token_id: int, decoder_start_token_id: int):
+def shift_tokens_right(
+    input_ids: torch.Tensor, pad_token_id: int, decoder_start_token_id: int
+):
     """
     Shift input ids one token to the right.
     """
@@ -147,9 +163,10 @@ def shift_tokens_right(input_ids: torch.Tensor, pad_token_id: int, decoder_start
 
 
 class RagModelForBlip(pl.LightningModule):
-    '''
+    """
     Class for RAG, re-implementation
-    '''
+    """
+
     def __init__(self, config: EasyDict, prepared_data) -> None:
         super().__init__()
 
@@ -158,50 +175,63 @@ class RagModelForBlip(pl.LightningModule):
         # with open("RAG_config.pkl", "wb") as f:
         #     pickle.dump(self.config, f)
         # raise ValueError
-        
-        self.prepared_data = prepared_data
-        self.tokenizers = self.prepared_data['tokenizers']
 
-        self.retriever_tokenizer = self.tokenizers['tokenizer']
-        self.generator_tokenizer = self.tokenizers['decoder_tokenizer']
+        self.prepared_data = prepared_data
+        self.tokenizers = self.prepared_data["tokenizers"]
+
+        self.retriever_tokenizer = self.tokenizers["tokenizer"]
+        self.generator_tokenizer = self.tokenizers["decoder_tokenizer"]
 
         # read from prepared data
-        self.passage_id2doc = None #self.prepared_data['passages'].id2doc
-        
-        
-        if 'static_retrieval' in self.config.model_config.modules:
+        self.passage_id2doc = None  # self.prepared_data['passages'].id2doc
+
+        if "static_retrieval" in self.config.model_config.modules:
             import json
-            # load all predictions in 
+
+            # load all predictions in
             self.questionId2topPassages = {}
             for prediction_pkl in self.config.model_config.index_files.static_results:
                 logger.info(f"Loading static retrieval results from {prediction_pkl}")
-                if prediction_pkl.endswith('.json'):
+                if prediction_pkl.endswith(".json"):
                     # load using json
-                    with open(prediction_pkl, 'r') as f:
-                        predictions = json.load(f)['output']
+                    with open(prediction_pkl, "r") as f:
+                        predictions = json.load(f)["output"]
                         for pred in predictions:
-                            q_id = pred['question_id']
-                            top_ranking_passages = pred['top_ranking_passages']
+                            q_id = pred["question_id"]
+                            top_ranking_passages = pred["top_ranking_passages"]
                             self.questionId2topPassages[q_id] = top_ranking_passages
                 else:
                     # Can use `src/tools/reduce_retrieval_result_file_size.py` to reduce json file size to speed up the loading
                     # in this case, we load from a pkl file
-                    with open(prediction_pkl, 'rb') as f:
-                        predictions = pickle.load(f)['output']
+                    with open(prediction_pkl, "rb") as f:
+                        predictions = pickle.load(f)["output"]
                         for pred in predictions:
-                            q_id = pred['question_id']
-                            top_ranking_passages = pred['top_ranking_passages']
+                            q_id = pred["question_id"]
+                            top_ranking_passages = pred["top_ranking_passages"]
                             self.questionId2topPassages[q_id] = top_ranking_passages
-            logger.info(f"Loaded {len(self.questionId2topPassages)} static retrieval results.")
+            logger.info(
+                f"Loaded {len(self.questionId2topPassages)} static retrieval results."
+            )
         else:
             # Initialising question encoder
-            QueryEncoderModelClass = globals()[self.config.model_config.QueryEncoderModelClass]
-            
-            self.use_colbert = True if "ColBERT" in self.config.model_config.QueryEncoderModelClass  else False
+            QueryEncoderModelClass = globals()[
+                self.config.model_config.QueryEncoderModelClass
+            ]
+
+            self.use_colbert = (
+                True
+                if "ColBERT" in self.config.model_config.QueryEncoderModelClass
+                else False
+            )
 
             if self.use_colbert:
                 if "$" in self.config.model_config.QueryEncoderModelVersion:
-                    self.config.model_config.QueryEncoderModelVersion = os.path.join(self.config.root_exp_dir, self.config.model_config.QueryEncoderModelVersion.replace('$', ''))
+                    self.config.model_config.QueryEncoderModelVersion = os.path.join(
+                        self.config.root_exp_dir,
+                        self.config.model_config.QueryEncoderModelVersion.replace(
+                            "$", ""
+                        ),
+                    )
 
                 colbert_config = ColBERTConfig(
                     bsize=None,
@@ -212,79 +242,114 @@ class RagModelForBlip(pl.LightningModule):
                 if QueryEncoderModelClass != ColBERT:
                     # custom ColBERT model, need to input our own config
                     self.question_encoder = QueryEncoderModelClass(
-                        name=colbert_config.checkpoint, 
+                        name=colbert_config.checkpoint,
                         colbert_config=colbert_config,
-                        global_config=self.config)
+                        global_config=self.config,
+                    )
 
-                    checkpoint_to_load = self.config.model_config.QueryEncoderModelVersion
-                    pretrained_dict = torch.load(checkpoint_to_load, map_location="cpu")['state_dict']
-                    pretrained_dict = {k[6:]: v for k, v in pretrained_dict.items() if k.startswith('model.')}
+                    checkpoint_to_load = (
+                        self.config.model_config.QueryEncoderModelVersion
+                    )
+                    pretrained_dict = torch.load(
+                        checkpoint_to_load, map_location="cpu"
+                    )["state_dict"]
+                    pretrained_dict = {
+                        k[6:]: v
+                        for k, v in pretrained_dict.items()
+                        if k.startswith("model.")
+                    }
                     self.question_encoder.load_state_dict(pretrained_dict)
-                    logger.info(f"Loaded the following parameters to question_encoder from the given checkpoint: {pretrained_dict.keys()}")
-                    
+                    logger.info(
+                        f"Loaded the following parameters to question_encoder from the given checkpoint: {pretrained_dict.keys()}"
+                    )
 
                 else:
                     self.question_encoder = QueryEncoderModelClass(
-                        name=colbert_config.checkpoint, 
-                        colbert_config=colbert_config)
+                        name=colbert_config.checkpoint, colbert_config=colbert_config
+                    )
 
             else:
-                QueryEncoderConfigClass = globals()[self.config.model_config.QueryEncoderConfigClass]
-                
+                QueryEncoderConfigClass = globals()[
+                    self.config.model_config.QueryEncoderConfigClass
+                ]
+
                 if "$" in self.config.model_config.QueryEncoderModelVersion:
-                    self.config.model_config.QueryEncoderModelVersion = os.path.join(self.config.root_exp_dir, self.config.model_config.QueryEncoderModelVersion.replace('$', ''))
-                
-                question_encoder_model_config = QueryEncoderConfigClass.from_pretrained(self.config.model_config.QueryEncoderModelVersion)
-                self.question_encoder = QueryEncoderModelClass.from_pretrained(self.config.model_config.QueryEncoderModelVersion,
-                                                            config=question_encoder_model_config)
+                    self.config.model_config.QueryEncoderModelVersion = os.path.join(
+                        self.config.root_exp_dir,
+                        self.config.model_config.QueryEncoderModelVersion.replace(
+                            "$", ""
+                        ),
+                    )
+
+                question_encoder_model_config = QueryEncoderConfigClass.from_pretrained(
+                    self.config.model_config.QueryEncoderModelVersion
+                )
+                self.question_encoder = QueryEncoderModelClass.from_pretrained(
+                    self.config.model_config.QueryEncoderModelVersion,
+                    config=question_encoder_model_config,
+                )
                 self.retiever_hidden_size = question_encoder_model_config.hidden_size
-                self.question_encoder.resize_token_embeddings(len(self.retriever_tokenizer))
-            
-            
+                self.question_encoder.resize_token_embeddings(
+                    len(self.retriever_tokenizer)
+                )
+
         # Initialising generator
         GeneratorModelClass = globals()[self.config.model_config.GeneratorModelClass]
         GeneratorConfigClass = globals()[self.config.model_config.GeneratorConfigClass]
-        generator_model_config = GeneratorConfigClass.from_pretrained(self.config.model_config.GeneratorModelVersion)
-        self.generator = GeneratorModelClass.from_pretrained(self.config.model_config.GeneratorModelVersion,
-                                                    config=generator_model_config)
-        
-        
-        peft_config = LoraConfig(
-            task_type=TaskType.SEQ_2_SEQ_LM, inference_mode=False, r=8, lora_alpha=32, lora_dropout=0.1
+        generator_model_config = GeneratorConfigClass.from_pretrained(
+            self.config.model_config.GeneratorModelVersion
+        )
+        self.generator = GeneratorModelClass.from_pretrained(
+            self.config.model_config.GeneratorModelVersion,
+            config=generator_model_config,
         )
 
-        self.generator = PeftModelForSeq2SeqLM(self.generator, peft_config)# get_peft_model(self.generator, peft_config)
+        peft_config = LoraConfig(
+            task_type=TaskType.SEQ_2_SEQ_LM,
+            inference_mode=False,
+            r=8,
+            lora_alpha=32,
+            lora_dropout=0.1,
+        )
+
+        self.generator = PeftModelForSeq2SeqLM(
+            self.generator, peft_config
+        )  # get_peft_model(self.generator, peft_config)
         self.generator.print_trainable_parameters()
-        
+
         self.generator_tokenizer = self.generator_tokenizer.tokenizer
 
         # self.generator.resize_token_embeddings(len(self.generator_tokenizer))
-        
+
         self.loss_fct = CrossEntropyLoss(ignore_index=-100)
         # label smoother imported from huggingface transformers
-        label_smoothing_factor = self.config.train.get('label_smoothing_factor', 0)
+        label_smoothing_factor = self.config.train.get("label_smoothing_factor", 0)
         if label_smoothing_factor != 0:
             from transformers.trainer_pt_utils import LabelSmoother
+
             self.label_smoother = LabelSmoother(epsilon=label_smoothing_factor)
         else:
             self.label_smoother = None
-        
-        if 'static_retrieval' in self.config.model_config.modules:
+
+        if "static_retrieval" in self.config.model_config.modules:
             self.retrieve = self.static_retrieve
         else:
             self.retrieve = self.main_retrieve
             self.init_retrieval()
 
-        self.use_decoder_only_language_model = generator_model_config.use_decoder_only_language_model
-    
-    
+        self.use_decoder_only_language_model = (
+            generator_model_config.use_decoder_only_language_model
+        )
+
     def init_retrieval(self):
 
         # Prepend EXPERIMENT_FOLDER to all paths
         for k, v in self.config.model_config.index_files.items():
             if "$" in v:
-                self.config.model_config.index_files[k] = os.path.join(self.config.root_exp_dir, v.replace('$', ''))
-            
+                self.config.model_config.index_files[k] = os.path.join(
+                    self.config.root_exp_dir, v.replace("$", "")
+                )
+
         if self.use_colbert:
             # Use ColBERT index
 
@@ -292,30 +357,45 @@ class RagModelForBlip(pl.LightningModule):
             index_root = os.path.dirname(index_path)
             index_name = os.path.basename(index_path)
 
-            if self.device == torch.device('cpu'):
+            if self.device == torch.device("cpu"):
                 total_visible_gpus = 0
             else:
                 total_visible_gpus = 1
-            
-            with Run().context(RunConfig(nranks=1, rank=self.global_rank, root=index_root, experiment=index_name)):
+
+            with Run().context(
+                RunConfig(
+                    nranks=1,
+                    rank=self.global_rank,
+                    root=index_root,
+                    experiment=index_name,
+                )
+            ):
                 config = ColBERTConfig(
                     total_visible_gpus=total_visible_gpus,
                 )
                 self.index = Searcher(index=f"temp_index.nbits=8", config=config)
 
             # Load embedding
-            logger.info(f"Loading embedding data from {self.config.model_config.index_files.embedding_path}")
-            with open(self.config.model_config.index_files.embedding_path, 'rb') as f:
+            logger.info(
+                f"Loading embedding data from {self.config.model_config.index_files.embedding_path}"
+            )
+            with open(self.config.model_config.index_files.embedding_path, "rb") as f:
                 embedding_data = pickle.load(f)
                 self.item_embeddings = {}
                 # self.item_embedding_mask = {}
-                for index, item_embeddings, item_embedding_mask in tqdm(zip(list(range(len(embedding_data['item_embeddings']))), embedding_data['item_embeddings'], embedding_data['item_embedding_mask'])):
+                for index, item_embeddings, item_embedding_mask in tqdm(
+                    zip(
+                        list(range(len(embedding_data["item_embeddings"]))),
+                        embedding_data["item_embeddings"],
+                        embedding_data["item_embedding_mask"],
+                    )
+                ):
                     self.item_embeddings[index] = (item_embeddings, item_embedding_mask)
-                self.passage_index2id = embedding_data['passage_index2id']
-            self.data_source = 'custom'
+                self.passage_index2id = embedding_data["passage_index2id"]
+            self.data_source = "custom"
             return
-        
-        if self.config.model_config.index_files.index_passages_path == '':
+
+        if self.config.model_config.index_files.index_passages_path == "":
             # use wikidata
             self.index = CanonicalHFIndex(
                 vector_size=self.retiever_hidden_size,
@@ -323,9 +403,11 @@ class RagModelForBlip(pl.LightningModule):
                 dataset_split=self.config.model_config.index_files.index_dataset_split,
                 index_name=self.config.model_config.index_files.index_name,
                 index_path=None,
-                use_dummy_dataset=True if self.config.model_config.index_files.index_dummy else False,
+                use_dummy_dataset=(
+                    True if self.config.model_config.index_files.index_dummy else False
+                ),
             )
-            self.data_source = 'wiki'
+            self.data_source = "wiki"
         else:
             # use custom corpus
             self.index = CustomHFIndex.load_from_disk(
@@ -333,23 +415,29 @@ class RagModelForBlip(pl.LightningModule):
                 dataset_path=self.config.model_config.index_files.index_passages_path,
                 index_path=self.config.model_config.index_files.index_path,
             )
-            self.data_source = 'custom'
+            self.data_source = "custom"
         print("initializing retrieval")
         self.index.init_index()
-        self.dataset_dict = self.index.dataset.to_pandas().set_index("passage_id", drop=False).to_dict(orient="index")
+        self.dataset_dict = (
+            self.index.dataset.to_pandas()
+            .set_index("passage_id", drop=False)
+            .to_dict(orient="index")
+        )
         print("init done.")
 
-    def main_retrieve(self, 
-                    input_ids: torch.Tensor,
-                    attention_mask: torch.Tensor, 
-                    labels: torch.Tensor, 
-                    question_ids: List, 
-                    input_text_sequences: List, 
-                    image_features: torch.Tensor = None,
-                    pixel_values: torch.Tensor = None,
-                    n_docs=None,
-                    **kwargs):
-        """ Main retrieval function, retrieve documents using retriever
+    def main_retrieve(
+        self,
+        input_ids: torch.Tensor,
+        attention_mask: torch.Tensor,
+        labels: torch.Tensor,
+        question_ids: List,
+        input_text_sequences: List,
+        image_features: torch.Tensor = None,
+        pixel_values: torch.Tensor = None,
+        n_docs=None,
+        **kwargs,
+    ):
+        """Main retrieval function, retrieve documents using retriever
 
         Args:
             input_ids (torch.Tensor): [description]
@@ -379,30 +467,34 @@ class RagModelForBlip(pl.LightningModule):
 
             custom_quries = {i: query for i, query in enumerate(input_text_sequences)}
             queries = Queries(data=custom_quries)
-            
+
             if n_docs < 5:
                 n_docs_retrieve = 5
             else:
                 n_docs_retrieve = n_docs
-            
-            ranking = self.index._search_all_Q(queries, question_hidden_states.cpu().detach(), k=n_docs_retrieve, progress=False)
-            
+
+            ranking = self.index._search_all_Q(
+                queries,
+                question_hidden_states.cpu().detach(),
+                k=n_docs_retrieve,
+                progress=False,
+            )
+
             retrieval_results = ranking.todict()
 
             doc_scores = []
             all_retrieved_doc_indices = []
 
-            
             for query_index, retrieved_docs in retrieval_results.items():
                 retrieved_doc_indices = []
                 retrieved_doc_scores = []
                 if n_docs != n_docs_retrieve:
                     retrieved_docs = random.sample(retrieved_docs, n_docs)
-                
+
                 for doc_index, _, doc_score in retrieved_docs:
                     retrieved_doc_indices.append(doc_index)
                     retrieved_doc_scores.append(doc_score)
-                
+
                 # Get embeddings
                 retrieved_item_embeddings = []
                 retrieved_item_embeding_mask = []
@@ -410,30 +502,43 @@ class RagModelForBlip(pl.LightningModule):
                     emb_tuple = self.item_embeddings[i]
                     retrieved_item_embeddings.append(torch.Tensor(emb_tuple[0]))
                     retrieved_item_embeding_mask.append(torch.Tensor(emb_tuple[1]))
-                
-                retrieved_item_embeddings = torch.stack(retrieved_item_embeddings).to(self.device)
-                retrieved_item_embeding_mask = torch.stack(retrieved_item_embeding_mask).to(self.device)
-                
+
+                retrieved_item_embeddings = torch.stack(retrieved_item_embeddings).to(
+                    self.device
+                )
+                retrieved_item_embeding_mask = torch.stack(
+                    retrieved_item_embeding_mask
+                ).to(self.device)
+
                 retrieved_query_embedding = question_hidden_states[[query_index]]
 
                 self.question_encoder.colbert_config.nway = len(retrieved_doc_indices)
-                Q_duplicated = retrieved_query_embedding.repeat_interleave(self.question_encoder.colbert_config.nway, dim=0).contiguous()
-                
-                scores = self.question_encoder.score(Q_duplicated, retrieved_item_embeddings, retrieved_item_embeding_mask)
+                Q_duplicated = retrieved_query_embedding.repeat_interleave(
+                    self.question_encoder.colbert_config.nway, dim=0
+                ).contiguous()
+
+                scores = self.question_encoder.score(
+                    Q_duplicated,
+                    retrieved_item_embeddings,
+                    retrieved_item_embeding_mask,
+                )
 
                 doc_scores.append(scores)
                 all_retrieved_doc_indices.append(retrieved_doc_indices)
-            
+
             # batch_size x n_docs
             doc_scores = torch.stack(doc_scores)
             ids = np.array(all_retrieved_doc_indices)
         else:
             # Use question_encoder to encode question inputs
-            query_outputs = self.question_encoder(input_ids=input_ids,
-                                                attention_mask=attention_mask)
+            query_outputs = self.question_encoder(
+                input_ids=input_ids, attention_mask=attention_mask
+            )
             question_hidden_states = query_outputs.pooler_output
 
-            ids, vectors = self.index.get_top_docs(question_hidden_states.cpu().detach().numpy(), n_docs)
+            ids, vectors = self.index.get_top_docs(
+                question_hidden_states.cpu().detach().numpy(), n_docs
+            )
 
             # question_hidden_states: batch_size x hidden_size
             # item_hidden_states: batch_size x n_docs x hidden_size
@@ -442,14 +547,16 @@ class RagModelForBlip(pl.LightningModule):
             # print('item_hidden_states', item_hidden_states.shape)
 
             # batch_size x n_docs
-            doc_scores = (question_hidden_states.unsqueeze(dim=1) * item_hidden_states).sum(dim=-1)
-        
-        
-        if 'add_null_document' in self.config.model_config.modules:
-            null_doc_scores = (question_hidden_states * self.null_embedding.unsqueeze(dim=0)).sum(dim=-1)
+            doc_scores = (
+                question_hidden_states.unsqueeze(dim=1) * item_hidden_states
+            ).sum(dim=-1)
+
+        if "add_null_document" in self.config.model_config.modules:
+            null_doc_scores = (
+                question_hidden_states * self.null_embedding.unsqueeze(dim=0)
+            ).sum(dim=-1)
             # null_doc_scores: batch_size
 
-            
         doc_scores_cpu = doc_scores.cpu().detach().numpy()
 
         retrieved_docs = []
@@ -457,33 +564,47 @@ class RagModelForBlip(pl.LightningModule):
             doc_data = []
             if self.use_colbert:
                 retrieved_doc_indices = all_retrieved_doc_indices[b]
-                retrieved_doc_ids = [self.passage_index2id[i] for i in retrieved_doc_indices]
-                contents = [{"id": i, "title": "","text": self.passage_id2doc[i]} for i in retrieved_doc_ids]
+                retrieved_doc_ids = [
+                    self.passage_index2id[i] for i in retrieved_doc_indices
+                ]
+                contents = [
+                    {"id": i, "title": "", "text": self.passage_id2doc[i]}
+                    for i in retrieved_doc_ids
+                ]
             else:
                 contents = self.index.get_doc_dicts(ids[b])
-            
 
             for i in range(n_docs):
-                if self.data_source == 'wiki':
-                    content = 'title: ' + contents[i]['title'] + " content: " + contents[i]['text']
+                if self.data_source == "wiki":
+                    content = (
+                        "title: "
+                        + contents[i]["title"]
+                        + " content: "
+                        + contents[i]["text"]
+                    )
                 else:
-                    content = contents[i].get('text', None) or contents[i].get('passage_content', None)
-                content = ' '.join([content])
+                    content = contents[i].get("text", None) or contents[i].get(
+                        "passage_content", None
+                    )
+                content = " ".join([content])
                 passage_data = {
-                    'passage_id': str(ids[b, i]),
-                    'title': contents[i].get('title', ""),
-                    'content': content,
-                    'score': doc_scores_cpu[b, i]
+                    "passage_id": str(ids[b, i]),
+                    "title": contents[i].get("title", ""),
+                    "content": content,
+                    "score": doc_scores_cpu[b, i],
                 }
                 doc_data.append(passage_data)
             retrieved_docs.append(doc_data)
         assert len(retrieved_docs) == batch_size
-        
-        if 'add_null_document' in self.config.model_config.modules:
-            doc_scores = torch.cat([
-                null_doc_scores.reshape(batch_size, 1), # batch_size x 1
-                doc_scores,
-            ], dim=-1)
+
+        if "add_null_document" in self.config.model_config.modules:
+            doc_scores = torch.cat(
+                [
+                    null_doc_scores.reshape(batch_size, 1),  # batch_size x 1
+                    doc_scores,
+                ],
+                dim=-1,
+            )
 
         return EasyDict(
             retrieved_docs=retrieved_docs,
@@ -491,16 +612,18 @@ class RagModelForBlip(pl.LightningModule):
             question_hidden_states=question_hidden_states,
         )
 
-    def static_retrieve(self, 
-                    input_ids: torch.Tensor,
-                    attention_mask: torch.Tensor, 
-                    labels: torch.Tensor, 
-                    question_ids: List, 
-                    input_text_sequences: List, 
-                    image_features: torch.Tensor = None,
-                    pixel_values: torch.Tensor = None,
-                    n_docs=None,
-                    **kwargs):
+    def static_retrieve(
+        self,
+        input_ids: torch.Tensor,
+        attention_mask: torch.Tensor,
+        labels: torch.Tensor,
+        question_ids: List,
+        input_text_sequences: List,
+        image_features: torch.Tensor = None,
+        pixel_values: torch.Tensor = None,
+        n_docs=None,
+        **kwargs,
+    ):
         """A dummy retrieval function, retrieve from static results
 
         Args:
@@ -516,15 +639,15 @@ class RagModelForBlip(pl.LightningModule):
         """
         if n_docs is None:
             n_docs = self.config.model_config.num_knowledge_passages
-        
+
         n_docs_to_retrieve = self.config.model_config.num_knowledge_passages
 
         batch_size = input_ids.shape[0]
 
-        pos_item_ids = kwargs.get('pos_item_ids', [None]*batch_size)
+        pos_item_ids = kwargs.get("pos_item_ids", [None] * batch_size)
         if pos_item_ids is None:
-            pos_item_ids = [None]*batch_size
-        
+            pos_item_ids = [None] * batch_size
+
         #####   Dummy Retrieval ####
         retrieved_docs = []
         doc_scores = []
@@ -532,44 +655,41 @@ class RagModelForBlip(pl.LightningModule):
             annotation = self.questionId2topPassages.get(str(question_id), None)
             if annotation is None:
                 annotation = [
-                    {
-                        'score': 10,
-                        'title': '',
-                        'content': '',
-                        'passage_id': ''
-                    }
-                ]*n_docs
-            
+                    {"score": 10, "title": "", "content": "", "passage_id": ""}
+                ] * n_docs
+
             if n_docs < n_docs_to_retrieve:
                 # This helps to reduce the number of documents used in training so that model can fit in the GPU memory provided
                 # randomly select n_docs from top n_docs_to_retrieve
                 top_passages = random.sample(annotation[:n_docs_to_retrieve], n_docs)
             else:
                 top_passages = annotation[:n_docs]
-            
-            if 'use_gt_docs_for_training' in self.config.model_config.modules and pos_ids is not None:
+
+            if (
+                "use_gt_docs_for_training" in self.config.model_config.modules
+                and pos_ids is not None
+            ):
                 annotation = []
                 for i in range(n_docs):
                     annotation.append(
                         {
-                            'score': 10,
-                            'title': '',
-                            'content': '',
-                            'passage_id': random.sample(pos_ids, 1)[0]
+                            "score": 10,
+                            "title": "",
+                            "content": "",
+                            "passage_id": random.sample(pos_ids, 1)[0],
                         }
                     )
                 top_passages = annotation
-            
-            
+
             for p in top_passages:
-                p['title'] = ''
-                passage_id = p['passage_id']
-                p['content'] = self.passage_id2doc.get(passage_id, "")
+                p["title"] = ""
+                passage_id = p["passage_id"]
+                p["content"] = self.passage_id2doc.get(passage_id, "")
 
             retrieved_docs.append(top_passages)
-            scores = [p['score'] for p in top_passages]
+            scores = [p["score"] for p in top_passages]
             doc_scores.append(scores)
-        
+
         doc_scores = torch.FloatTensor(doc_scores).to(device=self.device)
 
         assert len(retrieved_docs) == batch_size
@@ -579,12 +699,13 @@ class RagModelForBlip(pl.LightningModule):
             doc_scores=doc_scores,
         )
 
-    def prepare_inputs_for_generator(self, 
-                input_text_sequences, retrieved_docs, labels, n_docs=None):
-        
+    def prepare_inputs_for_generator(
+        self, input_text_sequences, retrieved_docs, labels, n_docs=None
+    ):
+
         if n_docs is None:
             n_docs = self.config.model_config.num_knowledge_passages
-        
+
         batch_size = len(input_text_sequences)
 
         extended_input_text_sequences = []
@@ -595,39 +716,58 @@ class RagModelForBlip(pl.LightningModule):
                 # remove string until ":"
                 new_input_text_sequence = input_text_sequence
                 # new_input_text_sequence = "".join(input_text_sequence.split(":")[1:])
-                
+
                 new_input_text_sequence = new_input_text_sequence.replace("<BOQ>", "")
                 new_input_text_sequence = new_input_text_sequence.replace("<EOQ>", "")
-                new_input_text_sequence = new_input_text_sequence.replace("<BOC>", "Caption: ")
+                new_input_text_sequence = new_input_text_sequence.replace(
+                    "<BOC>", "Caption: "
+                )
                 new_input_text_sequence = new_input_text_sequence.replace("<EOC>", "")
-                new_input_text_sequence = new_input_text_sequence.replace("<BOV>", "Objects: ")
+                new_input_text_sequence = new_input_text_sequence.replace(
+                    "<BOV>", "Objects: "
+                )
                 new_input_text_sequence = new_input_text_sequence.replace("<EOV>", ". ")
                 new_input_text_sequence = new_input_text_sequence.replace("<SOV>", ", ")
                 new_input_text_sequence = new_input_text_sequence.strip()
 
-                if 'ignore_knowledge_passages' in self.config.model_config.modules:
-                    extended_input_text_sequences.append( 
-                        ' '.join(["Question:", new_input_text_sequence, "Answer:"]) 
-                    ) # "Knowledge:", doc['content'], 
-                else: 
-                    extended_input_text_sequences.append( 
-                        ' '.join(["Question:", new_input_text_sequence, "Knowledge:", doc['content'], "Answer:"]) 
-                    ) # "Knowledge:", doc['content'], 
-                scores.append(doc['score'])
+                if "ignore_knowledge_passages" in self.config.model_config.modules:
+                    extended_input_text_sequences.append(
+                        " ".join(["Question:", new_input_text_sequence, "Answer:"])
+                    )  # "Knowledge:", doc['content'],
+                else:
+                    extended_input_text_sequences.append(
+                        " ".join(
+                            [
+                                "Question:",
+                                new_input_text_sequence,
+                                "Knowledge:",
+                                doc["content"],
+                                "Answer:",
+                            ]
+                        )
+                    )  # "Knowledge:", doc['content'],
+                scores.append(doc["score"])
         targets = labels
-        
-        encoding = self.generator_tokenizer([sequence for sequence in extended_input_text_sequences],
-                                    padding='longest',
-                                    max_length=self.config.model_config.max_decoder_source_length,
-                                    truncation=True,
-                                    return_tensors="pt")
-        generator_input_ids, generator_attention_mask = encoding.input_ids, encoding.attention_mask
+
+        encoding = self.generator_tokenizer(
+            [sequence for sequence in extended_input_text_sequences],
+            padding="longest",
+            max_length=self.config.model_config.max_decoder_source_length,
+            truncation=True,
+            return_tensors="pt",
+        )
+        generator_input_ids, generator_attention_mask = (
+            encoding.input_ids,
+            encoding.attention_mask,
+        )
         generator_input_ids = generator_input_ids.to(labels.device)
         generator_attention_mask = generator_attention_mask.to(labels.device)
         if self.use_decoder_only_language_model:
             generator_decoder_input_ids = None
         else:
-            generator_decoder_input_ids = self.generator.model.language_model._shift_right(targets)
+            generator_decoder_input_ids = (
+                self.generator.model.language_model._shift_right(targets)
+            )
 
         return EasyDict(
             generator_input_text_sequences=extended_input_text_sequences,
@@ -637,27 +777,43 @@ class RagModelForBlip(pl.LightningModule):
             generator_labels=targets,
         )
 
-    def forward(self, input_ids: torch.Tensor,
-                      attention_mask: torch.Tensor,
-                      labels: torch.Tensor,
-                      question_ids: List,
-                      input_text_sequences: List,
-                    **kwargs):
+    def forward(
+        self,
+        input_ids: torch.Tensor,
+        attention_mask: torch.Tensor,
+        labels: torch.Tensor,
+        question_ids: List,
+        input_text_sequences: List,
+        **kwargs,
+    ):
 
         n_docs = self.config.model_config.num_knowledge_passages_in_training
-        pixel_values = kwargs.get('pixel_values', None)
-        decoder_pixel_values = kwargs.get('decoder_pixel_values', None)
-        image_features = kwargs.get('image_features', None)
-        
+        pixel_values = kwargs.get("pixel_values", None)
+        decoder_pixel_values = kwargs.get("decoder_pixel_values", None)
+        image_features = kwargs.get("image_features", None)
+
         batch_size = input_ids.shape[0]
 
-        pos_item_ids = kwargs.get('pos_item_ids', None)
-        
+        pos_item_ids = kwargs.get("pos_item_ids", None)
+
         # Retrieve docs for given question inputs
-        retrieval_results = self.retrieve(input_ids, attention_mask, labels, question_ids, input_text_sequences, image_features=image_features, pixel_values=pixel_values, n_docs=n_docs, pos_item_ids=pos_item_ids)
-        retrieved_docs, doc_scores = retrieval_results.retrieved_docs, retrieval_results.doc_scores
-        
-        answers = kwargs.get('answers', None)
+        retrieval_results = self.retrieve(
+            input_ids,
+            attention_mask,
+            labels,
+            question_ids,
+            input_text_sequences,
+            image_features=image_features,
+            pixel_values=pixel_values,
+            n_docs=n_docs,
+            pos_item_ids=pos_item_ids,
+        )
+        retrieved_docs, doc_scores = (
+            retrieval_results.retrieved_docs,
+            retrieval_results.doc_scores,
+        )
+
+        answers = kwargs.get("answers", None)
         assert answers is not None
         get_retrieval_labels_results = self.get_retrieval_labels(
             question_ids=question_ids,
@@ -665,18 +821,20 @@ class RagModelForBlip(pl.LightningModule):
             batch_retrieved_docs=retrieved_docs,
         )
         retrieval_labels = get_retrieval_labels_results.retrieval_labels
-        
-        if 'add_null_document' in self.config.model_config.modules:
+
+        if "add_null_document" in self.config.model_config.modules:
             n_docs += 1
-        
-        if 'force_existence' in self.config.model_config.modules:
+
+        if "force_existence" in self.config.model_config.modules:
             # Force the label to be in the retrieved document
-            
+
             selected_answers = get_retrieval_labels_results.selected_answers
-            target_encoding = self.generator_tokenizer(selected_answers,
-                    padding='longest',
-                    max_length=self.config.model_config.max_target_length,
-                    truncation=True)
+            target_encoding = self.generator_tokenizer(
+                selected_answers,
+                padding="longest",
+                max_length=self.config.model_config.max_target_length,
+                truncation=True,
+            )
             labels = target_encoding.input_ids
             labels = torch.LongTensor(labels).type_as(input_ids)
         else:
@@ -685,18 +843,22 @@ class RagModelForBlip(pl.LightningModule):
         decoder_pixel_values = decoder_pixel_values.repeat_interleave(n_docs, 0)
 
         # prepare inputs for generator
-        generator_inputs = self.prepare_inputs_for_generator(input_text_sequences=input_text_sequences,
-                                            retrieved_docs=retrieved_docs,
-                                            labels=labels, n_docs=n_docs)
+        generator_inputs = self.prepare_inputs_for_generator(
+            input_text_sequences=input_text_sequences,
+            retrieved_docs=retrieved_docs,
+            labels=labels,
+            n_docs=n_docs,
+        )
 
         generator_outputs = self.generator(
-                            pixel_values=decoder_pixel_values,
-                            input_ids=generator_inputs.generator_input_ids,
-                            attention_mask=generator_inputs.generator_attention_mask,
-                            decoder_input_ids=generator_inputs.generator_decoder_input_ids,
-                            labels=labels,
-                            return_dict=True)
-        
+            pixel_values=decoder_pixel_values,
+            input_ids=generator_inputs.generator_input_ids,
+            attention_mask=generator_inputs.generator_attention_mask,
+            decoder_input_ids=generator_inputs.generator_decoder_input_ids,
+            labels=labels,
+            return_dict=True,
+        )
+
         logits = generator_outputs.logits
 
         loss_dict = self.get_loss(
@@ -720,44 +882,60 @@ class RagModelForBlip(pl.LightningModule):
         for loss_name, loss_ratio in self.config.model_config.loss_ratio.items():
             if loss_ratio != 0:
                 total_loss += loss_dict[loss_name] * loss_ratio
-        
 
         # function to extract grad
         def set_grad(var):
             def hook(grad):
                 var.grad = grad
-                print('setting grad:', grad)
+                print("setting grad:", grad)
+
             return hook
-    
-        return EasyDict(loss=total_loss,
-                        loss_dict=loss_dict,
-                        doc_scores=doc_scores.cpu().detach().numpy())
 
+        return EasyDict(
+            loss=total_loss,
+            loss_dict=loss_dict,
+            doc_scores=doc_scores.cpu().detach().numpy(),
+        )
 
-    def generate(self, input_ids: torch.Tensor,
-                      attention_mask: torch.Tensor,
-                      labels: torch.Tensor,
-                      question_ids: List,
-                      input_text_sequences: List,
-                      n_docs: int=None,
-                      **kwargs):
+    def generate(
+        self,
+        input_ids: torch.Tensor,
+        attention_mask: torch.Tensor,
+        labels: torch.Tensor,
+        question_ids: List,
+        input_text_sequences: List,
+        n_docs: int = None,
+        **kwargs,
+    ):
 
         batch_size = input_ids.shape[0]
-        image_features = kwargs.get('image_features', None)
-        pixel_values = kwargs.get('pixel_values', None)
-        decoder_pixel_values = kwargs.get('decoder_pixel_values', None)
-        
+        image_features = kwargs.get("image_features", None)
+        pixel_values = kwargs.get("pixel_values", None)
+        decoder_pixel_values = kwargs.get("decoder_pixel_values", None)
+
         # Retrieve docs for given question inputs
-        retrieval_results = self.retrieve(input_ids, attention_mask, labels, question_ids, input_text_sequences, image_features=image_features, pixel_values=pixel_values, n_docs=n_docs)
-        retrieved_docs, doc_scores = retrieval_results.retrieved_docs, retrieval_results.doc_scores
-        
+        retrieval_results = self.retrieve(
+            input_ids,
+            attention_mask,
+            labels,
+            question_ids,
+            input_text_sequences,
+            image_features=image_features,
+            pixel_values=pixel_values,
+            n_docs=n_docs,
+        )
+        retrieved_docs, doc_scores = (
+            retrieval_results.retrieved_docs,
+            retrieval_results.doc_scores,
+        )
+
         # print(question_ids)
         # print(retrieval_results)
         # input()
 
         if n_docs is None:
             n_docs = self.config.model_config.num_knowledge_passages
-            if 'add_null_document' in self.config.model_config.modules:
+            if "add_null_document" in self.config.model_config.modules:
                 n_docs += 1
 
         # populate labels
@@ -765,15 +943,16 @@ class RagModelForBlip(pl.LightningModule):
 
         # prepare inputs for generator
         generator_inputs = self.prepare_inputs_for_generator(
-                                            input_text_sequences=input_text_sequences,
-                                            retrieved_docs=retrieved_docs,
-                                            labels=labels,
-                                            n_docs=n_docs)
+            input_text_sequences=input_text_sequences,
+            retrieved_docs=retrieved_docs,
+            labels=labels,
+            n_docs=n_docs,
+        )
 
         # populate pixel values
         if decoder_pixel_values is not None:
             decoder_pixel_values = decoder_pixel_values.repeat_interleave(n_docs, 0)
-        
+
         # print("start generation")
         # print("pixel_values", pixel_values.shape)
 
@@ -783,28 +962,29 @@ class RagModelForBlip(pl.LightningModule):
         if use_beam_search:
 
             # Not RAG decoding. Simply run generation and return the highest confident answer
-            test_batch = EasyDict({
-                'input_ids': generator_inputs.generator_input_ids,
-                'attention_mask': generator_inputs.generator_attention_mask,
-                "pixel_values": decoder_pixel_values,
-                "max_length": self.config.model_config.max_target_length,
-                "num_beams": self.config.model_config.num_beams,
-                "return_dict_in_generate": True,
-                'output_scores': True
-            })
-
-            generation_results = self.generator.generate(
-                **test_batch
+            test_batch = EasyDict(
+                {
+                    "input_ids": generator_inputs.generator_input_ids,
+                    "attention_mask": generator_inputs.generator_attention_mask,
+                    "pixel_values": decoder_pixel_values,
+                    "max_length": self.config.model_config.max_target_length,
+                    "num_beams": self.config.model_config.num_beams,
+                    "return_dict_in_generate": True,
+                    "output_scores": True,
+                }
             )
 
-            generation_outputs = generation_results['sequences']
-            generation_seq_scores = generation_results['sequences_scores']
+            generation_results = self.generator.generate(**test_batch)
+
+            generation_outputs = generation_results["sequences"]
+            generation_seq_scores = generation_results["sequences_scores"]
             # print("generation_seq_scores", generation_seq_scores.shape)
             generation_seq_scores = generation_seq_scores.reshape(batch_size, n_docs)
 
             # decode the generation outputs
-            generation_outputs_decoded = self.generator_tokenizer.batch_decode(generation_outputs, skip_special_tokens=True)
-
+            generation_outputs_decoded = self.generator_tokenizer.batch_decode(
+                generation_outputs, skip_special_tokens=True
+            )
 
             # Find answer proposals from n_docs outputs for each question
             outputs = []
@@ -826,32 +1006,33 @@ class RagModelForBlip(pl.LightningModule):
                 # use topk to get indices of top candidates
                 top_cand_inds = (loss_with_doc_scores[b]).topk(1)[1]
                 outputs.append(generation_outputs[b, top_cand_inds])
-                answer_proposals = generation_outputs_decoded[b*n_docs:(b+1)*n_docs]
+                answer_proposals = generation_outputs_decoded[
+                    b * n_docs : (b + 1) * n_docs
+                ]
                 generation_outputs_for_docs.append(answer_proposals)
                 # print(-loss[b])
                 # print(answer_proposals)
             outputs = torch.cat(outputs)
-        
-        else:
-            
-            # Get encoder outputs first
-            test_batch = EasyDict({
-                'input_ids': generator_inputs.generator_input_ids,
-                'attention_mask': generator_inputs.generator_attention_mask,
-                'return_dict': True,
-            })
 
-            encoder_outputs = self.generator.language_model.encoder(
-                **test_batch
+        else:
+
+            # Get encoder outputs first
+            test_batch = EasyDict(
+                {
+                    "input_ids": generator_inputs.generator_input_ids,
+                    "attention_mask": generator_inputs.generator_attention_mask,
+                    "return_dict": True,
+                }
             )
+
+            encoder_outputs = self.generator.language_model.encoder(**test_batch)
 
             # Get decoder outputs from encoder_outputs
             test_batch = {
-                'encoder_outputs': encoder_outputs,
+                "encoder_outputs": encoder_outputs,
                 "max_length": self.config.model_config.max_target_length,
             }
             generation_outputs = self.generator.language_model.generate(**test_batch)
-        
 
             # Find answer proposals from n_docs outputs for each question
             outputs = []
@@ -865,7 +1046,9 @@ class RagModelForBlip(pl.LightningModule):
 
             pad_token_id = self.generator.model.language_model.config.pad_token_id
 
-            shifted_generation_outputs = torch.ones_like(generation_outputs) * pad_token_id
+            shifted_generation_outputs = (
+                torch.ones_like(generation_outputs) * pad_token_id
+            )
             shifted_generation_outputs[:, :-1] = generation_outputs[:, 1:]
             # print(self.generator_tokenizer.batch_decode(generation_outputs))
             # print('input:', generation_outputs)
@@ -873,10 +1056,11 @@ class RagModelForBlip(pl.LightningModule):
             # print('output:', shifted_generation_outputs)
             # input()
             forward_results = self.generator.model.language_model(
-                                encoder_outputs=encoder_outputs, # use pre-computed encoder outputs
-                                decoder_input_ids=generation_outputs,
-                                return_dict=True)
-            
+                encoder_outputs=encoder_outputs,  # use pre-computed encoder outputs
+                decoder_input_ids=generation_outputs,
+                return_dict=True,
+            )
+
             # Loss for each pair can be computed now
             logits = forward_results.logits
 
@@ -884,8 +1068,8 @@ class RagModelForBlip(pl.LightningModule):
             loss_dict = self.get_loss(
                 seq_logits=logits,
                 doc_scores=doc_scores,
-                target=shifted_generation_outputs, # use generation outputs as labels
-                reduce_loss=False, # do not reduce loss
+                target=shifted_generation_outputs,  # use generation outputs as labels
+                reduce_loss=False,  # do not reduce loss
                 exclude_bos_score=False,
                 ignore_index=pad_token_id,
                 n_docs=n_docs,
@@ -894,12 +1078,15 @@ class RagModelForBlip(pl.LightningModule):
             loss = loss_dict.nll_loss
 
             # decode the generation outputs
-            generation_outputs_decoded = self.generator_tokenizer.batch_decode(generation_outputs, skip_special_tokens=True)
+            generation_outputs_decoded = self.generator_tokenizer.batch_decode(
+                generation_outputs, skip_special_tokens=True
+            )
 
             # reshape generation_outputs
             generation_outputs = generation_outputs.reshape(batch_size, n_docs, -1)
-            shifted_generation_outputs = shifted_generation_outputs.reshape(batch_size, n_docs, -1)
-            
+            shifted_generation_outputs = shifted_generation_outputs.reshape(
+                batch_size, n_docs, -1
+            )
 
             ################################
             # mean over tokens for each doc
@@ -932,20 +1119,33 @@ class RagModelForBlip(pl.LightningModule):
                 # use topk to get indices of top candidates
                 top_cand_inds = (-loss_with_doc_scores[b]).topk(1)[1]
                 outputs.append(generation_outputs[b, top_cand_inds])
-                answer_proposals = generation_outputs_decoded[b*n_docs:(b+1)*n_docs]
+                answer_proposals = generation_outputs_decoded[
+                    b * n_docs : (b + 1) * n_docs
+                ]
                 generation_outputs_for_docs.append(answer_proposals)
                 # print(-loss[b])
                 # print(answer_proposals)
             outputs = torch.cat(outputs)
 
-        return EasyDict(outputs=outputs, 
-                        retrieved_docs=retrieved_docs, 
-                        doc_scores=doc_scores.cpu().detach().numpy(),
-                        loss_with_doc_scores=loss_with_doc_scores.cpu().detach().numpy(),
-                        generation_outputs_for_docs=generation_outputs_for_docs)
+        return EasyDict(
+            outputs=outputs,
+            retrieved_docs=retrieved_docs,
+            doc_scores=doc_scores.cpu().detach().numpy(),
+            loss_with_doc_scores=loss_with_doc_scores.cpu().detach().numpy(),
+            generation_outputs_for_docs=generation_outputs_for_docs,
+        )
 
     def get_loss(
-        self, seq_logits, doc_scores, target, reduce_loss=True, epsilon=0.0, exclude_bos_score=False, ignore_index=-100, n_docs=None, retrieval_labels=None,
+        self,
+        seq_logits,
+        doc_scores,
+        target,
+        reduce_loss=True,
+        epsilon=0.0,
+        exclude_bos_score=False,
+        ignore_index=-100,
+        n_docs=None,
+        retrieval_labels=None,
     ):
         """Compute loss
 
@@ -966,21 +1166,22 @@ class RagModelForBlip(pl.LightningModule):
 
         if n_docs is None:
             n_docs = self.config.model_config.num_knowledge_passages
-        
+
         loss_dict = EasyDict()
-        
+
         # bos_token_id is None for T5
         bos_token_id = self.generator.config.bos_token_id
         use_bos = bos_token_id is not None and target[:, 0].eq(bos_token_id).all()
 
-        
         batch_size = seq_logits.shape[0] // n_docs
         seq_len = seq_logits.shape[1]
         # seq_logits dim = (batch*n_docs, seq_len , #vocabs)
         seq_logprobs = nn.functional.log_softmax(seq_logits, dim=-1).view(
             batch_size, n_docs, -1, seq_logits.size(-1)
         )  # batch_size x n_docs x tgt_len x vocab_size
-        doc_logprobs = nn.functional.log_softmax(doc_scores, dim=1).unsqueeze(-1).unsqueeze(-1)
+        doc_logprobs = (
+            nn.functional.log_softmax(doc_scores, dim=1).unsqueeze(-1).unsqueeze(-1)
+        )
         # print('doc_logprobs', doc_logprobs.shape)
 
         # RAG-sequence marginalization
@@ -988,11 +1189,16 @@ class RagModelForBlip(pl.LightningModule):
         if use_bos:
             second_token_scores = seq_logprobs[:, :, 1:2, :]
             remainder = seq_logprobs[:, :, 2:, :]
-            rag_logprobs = torch.cat([first_token_scores, second_token_scores + doc_logprobs, remainder], dim=2)
+            rag_logprobs = torch.cat(
+                [first_token_scores, second_token_scores + doc_logprobs, remainder],
+                dim=2,
+            )
         else:
             # print('using T5 doc probs!')
             remainder = seq_logprobs[:, :, 1:, :]
-            rag_logprobs = torch.cat([first_token_scores + doc_logprobs, remainder], dim=2)
+            rag_logprobs = torch.cat(
+                [first_token_scores + doc_logprobs, remainder], dim=2
+            )
 
         # print("target", target)
         # print(self.generator_tokenizer.batch_decode(target))
@@ -1020,8 +1226,8 @@ class RagModelForBlip(pl.LightningModule):
         ll = seq_logprobs.gather(dim=-1, index=new_target)
         if pad_mask.any():
             ll.masked_fill_(pad_mask, 0.0)
-        
-        ll = ll.squeeze(-1) # batch_size x n_docs x seq_len
+
+        ll = ll.squeeze(-1)  # batch_size x n_docs x seq_len
 
         nll_loss = -ll
         loss_dict.nll_loss = nll_loss
@@ -1033,8 +1239,8 @@ class RagModelForBlip(pl.LightningModule):
             # reuse pad_mask
             if pad_mask.any():
                 rag_ll.masked_fill_(pad_mask, 0.0)
-            
-            rag_ll = rag_ll.squeeze(-1) # batch_size x n_docs x seq_len
+
+            rag_ll = rag_ll.squeeze(-1)  # batch_size x n_docs x seq_len
 
             # reduce directly since we don't use it elsewhere
             # in training, the marginalisation is performed
@@ -1044,7 +1250,7 @@ class RagModelForBlip(pl.LightningModule):
             # print(rag_ll)
             rag_ll = rag_ll.logsumexp(1)  # sum over docs
             # print(rag_ll)
-            rag_ll = rag_ll.sum() # sum over batches
+            rag_ll = rag_ll.sum()  # sum over batches
             # print(rag_ll)
             # print('after logsumexp', ll.shape)
             rag_loss = -rag_ll
@@ -1067,36 +1273,44 @@ class RagModelForBlip(pl.LightningModule):
                 first_token_target = target.reshape(batch_size, n_docs, -1)[:, :, 0]
                 # print('first_token_target', first_token_target)
 
-                prediction_labels = (first_token_prediction == first_token_target)
+                prediction_labels = first_token_prediction == first_token_target
                 # print(prediction_labels)
                 retrieval_labels = retrieval_labels.to(seq_logits.device).float()
                 # print(retrieval_labels)
 
                 RAVQA_loss_type = self.config.model_config.RAVQA_loss_type
-                if RAVQA_loss_type == 'Approach1':
+                if RAVQA_loss_type == "Approach1":
                     ##############   approach 1:  ##################
                     # ignore documents with wrong predictions and a negative pseudo label
                     # correct prediction + positive pseudo label = 1
                     # wrong prediction + positive pseudo label = 1
                     # correct prediction + negative pseudo label = 1
                     # wrong prediction + negative pseudo label = -100
-                    merged_labels = torch.logical_or(prediction_labels, retrieval_labels).float()
-                    ignore_mask = (merged_labels==0)
+                    merged_labels = torch.logical_or(
+                        prediction_labels, retrieval_labels
+                    ).float()
+                    ignore_mask = merged_labels == 0
                     # print(merged_labels)
-                elif RAVQA_loss_type == 'Approach2':
+                elif RAVQA_loss_type == "Approach2":
                     ##############   approach 2:  ##################
                     #  reduce documents with wrong predictions and with a negative pseudo label
                     #  ignore ducuments with correct predictions but with a negative pseudo label
-                    merged_labels = torch.logical_or(prediction_labels, retrieval_labels).float()
-                    ignore_mask = torch.logical_and((prediction_labels==1), (retrieval_labels==0))
-                elif RAVQA_loss_type == 'Approach3':
+                    merged_labels = torch.logical_or(
+                        prediction_labels, retrieval_labels
+                    ).float()
+                    ignore_mask = torch.logical_and(
+                        (prediction_labels == 1), (retrieval_labels == 0)
+                    )
+                elif RAVQA_loss_type == "Approach3":
                     ##############   approach 3:  ##################
                     #  ignore documents with wrong predictions and a negative pseudo label
                     #  ignore ducuments with correct predictions but with a negative pseudo label
-                    merged_labels = torch.logical_or(prediction_labels, retrieval_labels).float()
-                    ignore_mask = (retrieval_labels==0)
+                    merged_labels = torch.logical_or(
+                        prediction_labels, retrieval_labels
+                    ).float()
+                    ignore_mask = retrieval_labels == 0
 
-                elif RAVQA_loss_type == 'Approach4':
+                elif RAVQA_loss_type == "Approach4":
                     ##############   approach 4:  ##################
                     # correct prediction + positive pseudo label = 1
                     # wrong prediction + positive pseudo label = 1
@@ -1104,39 +1318,52 @@ class RagModelForBlip(pl.LightningModule):
                     # wrong prediction + negative pseudo label = 0
                     merged_labels = retrieval_labels
                     merged_labels = merged_labels.float()
-                    ignore_mask = torch.logical_and((prediction_labels==1), (retrieval_labels==0))
+                    ignore_mask = torch.logical_and(
+                        (prediction_labels == 1), (retrieval_labels == 0)
+                    )
 
-                elif RAVQA_loss_type == 'Approach5':
+                elif RAVQA_loss_type == "Approach5":
                     ##############   approach 5:  ##################
                     # correct prediction + positive pseudo label = 1
                     # wrong prediction + positive pseudo label = -100
                     # correct prediction + negative pseudo label = -100
                     # wrong prediction + negative pseudo label = -100
-                    merged_labels = torch.logical_and(prediction_labels, retrieval_labels).float()
-                    ignore_mask = (merged_labels==0)
-                
-                elif RAVQA_loss_type == 'Approach6':
+                    merged_labels = torch.logical_and(
+                        prediction_labels, retrieval_labels
+                    ).float()
+                    ignore_mask = merged_labels == 0
+
+                elif RAVQA_loss_type == "Approach6":
                     ##############   approach 6:  ##################
                     # correct prediction + positive pseudo label = 1
                     # wrong prediction + positive pseudo label = -100
                     # correct prediction + negative pseudo label = -100
                     # wrong prediction + negative pseudo label = 0
-                    merged_labels = torch.logical_and(prediction_labels, retrieval_labels).float()
+                    merged_labels = torch.logical_and(
+                        prediction_labels, retrieval_labels
+                    ).float()
                     ignore_mask = torch.logical_or(
-                        torch.logical_and((prediction_labels==0), (retrieval_labels==1)),
-                        torch.logical_and((prediction_labels==1), (retrieval_labels==0)),
-                        )
-                elif RAVQA_loss_type == 'NoPR':
+                        torch.logical_and(
+                            (prediction_labels == 0), (retrieval_labels == 1)
+                        ),
+                        torch.logical_and(
+                            (prediction_labels == 1), (retrieval_labels == 0)
+                        ),
+                    )
+                elif RAVQA_loss_type == "NoPR":
                     ##############   approach NoPR:  ##################
                     # correct prediction = 1
                     # wrong prediction = 0
                     merged_labels = prediction_labels.float()
-                    ignore_mask = torch.zeros_like(merged_labels).bool().to(merged_labels.device)
-
+                    ignore_mask = (
+                        torch.zeros_like(merged_labels).bool().to(merged_labels.device)
+                    )
 
                 doc_scores_softmaxed = F.softmax(doc_scores, dim=-1)
 
-                dist_loss = F.binary_cross_entropy(doc_scores_softmaxed, merged_labels, reduction='none')
+                dist_loss = F.binary_cross_entropy(
+                    doc_scores_softmaxed, merged_labels, reduction="none"
+                )
                 dist_loss.masked_fill_(ignore_mask, 0.0)
 
                 count_nonzero = torch.count_nonzero(dist_loss)
@@ -1148,71 +1375,71 @@ class RagModelForBlip(pl.LightningModule):
                 loss_dict.additional_loss = dist_loss
             else:
                 loss_dict.additional_loss = 0
-        
+
         if reduce_loss:
-            mask = (pad_mask == 0)
+            mask = pad_mask == 0
             nll_loss = nll_loss.sum()
             nll_loss = nll_loss / torch.sum(mask)
             loss_dict.nll_loss = nll_loss
 
-            
-
         return loss_dict
-        
 
+    def get_retrieval_labels(
+        self, question_ids: List, batch_answers: List, batch_retrieved_docs: List
+    ):
 
-    def get_retrieval_labels(self, 
-                            question_ids: List,
-                            batch_answers: List, 
-                            batch_retrieved_docs: List):
-        
         def most_frequent(List):
-            return max(set(List), key = List.count)
+            return max(set(List), key=List.count)
 
         retrieved_docs = batch_retrieved_docs
         log_result = {
-            'recall': [],
-            'precision': [],
-            'gold_precision': [],
-            'gold_recall': [],
+            "recall": [],
+            "precision": [],
+            "gold_precision": [],
+            "gold_recall": [],
         }
         labels = []
         selected_answers = []
-        for question_id, answer_list, docs in zip(question_ids, batch_answers, retrieved_docs):
-            
-            filtered_answer_list = [ans for ans in answer_list if ans != '']
+        for question_id, answer_list, docs in zip(
+            question_ids, batch_answers, retrieved_docs
+        ):
+
+            filtered_answer_list = [ans for ans in answer_list if ans != ""]
             gold_answer = most_frequent(filtered_answer_list)
             unique_answers = list(set(answer_list))
             counts = Counter(filtered_answer_list)
-            answer_list_by_frequency = sorted(filtered_answer_list, key=lambda x: -counts[x])
-            
-            doc_texts = [doc['content'] for doc in docs]
-            
+            answer_list_by_frequency = sorted(
+                filtered_answer_list, key=lambda x: -counts[x]
+            )
+
+            doc_texts = [doc["content"] for doc in docs]
+
             found_answers = []
             found_gold_answers = []
 
-            
-            if 'add_null_document' in self.config.model_config.modules:
+            if "add_null_document" in self.config.model_config.modules:
                 doc_texts = doc_texts[1:]
 
             this_batch_labels = [0] * len(doc_texts)
             K = len(doc_texts)
 
             def check_contain_entity(ans, doc_to_check):
-                doc_id = doc_to_check['title']
+                doc_id = doc_to_check["title"]
                 triplet = self.data_loader.data.fvqa_data.triplets.get(doc_id, None)
                 if triplet is None:
-                    logger.error(f'triplet id {doc_id} not found in the data!')
+                    logger.error(f"triplet id {doc_id} not found in the data!")
                     return False
                 else:
-                    triplet_entities = [triplet.e1_label.lower(), triplet.e2_label.lower()]
+                    triplet_entities = [
+                        triplet.e1_label.lower(),
+                        triplet.e2_label.lower(),
+                    ]
                     if ans in triplet_entities:
                         return True
                     else:
                         return False
-            
 
-            if 'use_entity_in_retrieval_labels' in self.config.model_config.modules:
+            if "use_entity_in_retrieval_labels" in self.config.model_config.modules:
                 for index, passage_data in enumerate(docs):
                     for answer in unique_answers:
                         if check_contain_entity(answer.lower(), passage_data):
@@ -1228,44 +1455,44 @@ class RagModelForBlip(pl.LightningModule):
                     selected_answer = gold_answer
                     # select answer that appears in the document and with highest frequency
                     if gold_answer.lower() in passage_data.lower():
-                        pass # no change, by default the gold answer is selected
+                        pass  # no change, by default the gold answer is selected
                     else:
                         for answer in answer_list_by_frequency:
                             if answer == gold_answer:
-                                continue # not consider gold answer
+                                continue  # not consider gold answer
                             if answer.lower() in passage_data.lower():
                                 selected_answer = answer
                                 break
                     selected_answers.append(selected_answer)
 
-            elif 'use_triplet_in_retrieval_labels' in self.config.model_config.modules:
+            elif "use_triplet_in_retrieval_labels" in self.config.model_config.modules:
                 item = self.data_loader.data.vqa_data.lookup.get(question_id, None)
                 ref_triplet_ids = []
                 for i in item.facts.values():
                     ref_triplet_ids.extend(i)
-                
+
                 for index, passage_data in enumerate(docs):
-                    
-                    if passage_data['title'] in ref_triplet_ids:
+
+                    if passage_data["title"] in ref_triplet_ids:
                         this_batch_labels[index] = 1
-                        found_answers.append(passage_data['title'])
-                        found_gold_answers.append(passage_data['title'])
+                        found_answers.append(passage_data["title"])
+                        found_gold_answers.append(passage_data["title"])
 
                 for index, passage_data in enumerate(doc_texts):
                     # by default the gold answer is selected, regardless the existence of answer
                     selected_answer = gold_answer
                     # select answer that appears in the document and with highest frequency
                     if gold_answer.lower() in passage_data.lower():
-                        pass # no change, by default the gold answer is selected
+                        pass  # no change, by default the gold answer is selected
                     else:
                         for answer in answer_list_by_frequency:
                             if answer == gold_answer:
-                                continue # not consider gold answer
+                                continue  # not consider gold answer
                             if answer.lower() in passage_data.lower():
                                 selected_answer = answer
                                 break
                     selected_answers.append(selected_answer)
-                
+
             else:
                 for index, passage_data in enumerate(doc_texts):
                     for answer in unique_answers:
@@ -1282,33 +1509,33 @@ class RagModelForBlip(pl.LightningModule):
                     selected_answer = gold_answer
                     # select answer that appears in the document and with highest frequency
                     if gold_answer.lower() in passage_data.lower():
-                        pass # no change, by default the gold answer is selected
+                        pass  # no change, by default the gold answer is selected
                     else:
                         for answer in answer_list_by_frequency:
                             if answer == gold_answer:
-                                continue # not consider gold answer
+                                continue  # not consider gold answer
                             if answer.lower() in passage_data.lower():
                                 selected_answer = answer
                                 break
                     selected_answers.append(selected_answer)
 
             labels.append(this_batch_labels)
-                    
+
             if len(found_answers) > 0:
                 # At least one answer is retireved
-                log_result['recall'].append(1)
+                log_result["recall"].append(1)
             else:
-                log_result['recall'].append(0)
+                log_result["recall"].append(0)
             # The proportion of retrieved knowledge has an answer
-            log_result['precision'].append(len(found_answers) / K)
+            log_result["precision"].append(len(found_answers) / K)
 
             if len(found_gold_answers) > 0:
                 # if gold answer is found
-                log_result['gold_recall'].append(1)
+                log_result["gold_recall"].append(1)
             else:
-                log_result['gold_recall'].append(0)
+                log_result["gold_recall"].append(0)
             # The proportion of retrieved knowledge has the gold answer
-            log_result['gold_precision'].append(len(found_gold_answers) / K)
+            log_result["gold_precision"].append(len(found_gold_answers) / K)
 
         labels = torch.FloatTensor(labels)
         return EasyDict(
@@ -1325,20 +1552,20 @@ class RagModelForBlip(pl.LightningModule):
         zero = torch.zeros(1).to(tensor_1.device)
         tensor_1, tensor_2 = tensor_1.unsqueeze(-1), tensor_2.unsqueeze(-1)
         """cul distance matrix"""
-        a_, b_ = torch.matmul(tensor_1, tensor_1.t()) * 2, \
-                torch.matmul(tensor_2, tensor_2.t()) * 2  # [channel, channel]
-        tensor_1_square, tensor_2_square = tensor_1 ** 2, tensor_2 ** 2
-        a, b = torch.sqrt(torch.max(tensor_1_square - a_ + tensor_1_square.t(), zeros) + 1e-8), \
-                torch.sqrt(torch.max(tensor_2_square - b_ + tensor_2_square.t(), zeros) + 1e-8)  # [channel, channel]
+        a_, b_ = (
+            torch.matmul(tensor_1, tensor_1.t()) * 2,
+            torch.matmul(tensor_2, tensor_2.t()) * 2,
+        )  # [channel, channel]
+        tensor_1_square, tensor_2_square = tensor_1**2, tensor_2**2
+        a, b = torch.sqrt(
+            torch.max(tensor_1_square - a_ + tensor_1_square.t(), zeros) + 1e-8
+        ), torch.sqrt(
+            torch.max(tensor_2_square - b_ + tensor_2_square.t(), zeros) + 1e-8
+        )  # [channel, channel]
         """cul distance correlation"""
         A = a - a.mean(dim=0, keepdim=True) - a.mean(dim=1, keepdim=True) + a.mean()
         B = b - b.mean(dim=0, keepdim=True) - b.mean(dim=1, keepdim=True) + b.mean()
-        dcov_AB = torch.sqrt(torch.max((A * B).sum() / channel ** 2, zero) + 1e-8)
-        dcov_AA = torch.sqrt(torch.max((A * A).sum() / channel ** 2, zero) + 1e-8)
-        dcov_BB = torch.sqrt(torch.max((B * B).sum() / channel ** 2, zero) + 1e-8)
+        dcov_AB = torch.sqrt(torch.max((A * B).sum() / channel**2, zero) + 1e-8)
+        dcov_AA = torch.sqrt(torch.max((A * A).sum() / channel**2, zero) + 1e-8)
+        dcov_BB = torch.sqrt(torch.max((B * B).sum() / channel**2, zero) + 1e-8)
         return dcov_AB / torch.sqrt(dcov_AA * dcov_BB + 1e-8)
-
-
-
-
-

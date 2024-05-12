@@ -22,7 +22,10 @@ from .tokenization_flmr import FLMRContextEncoderTokenizer, FLMRQueryEncoderToke
 
 logger = logging.get_logger(__name__)
 
-VOCAB_FILES_NAMES = {"vocab_file": "vocab.txt", "tokenizer_file": "tokenizer_config.json"}
+VOCAB_FILES_NAMES = {
+    "vocab_file": "vocab.txt",
+    "tokenizer_file": "tokenizer_config.json",
+}
 
 CONTEXT_ENCODER_PRETRAINED_VOCAB_FILES_MAP = {
     "vocab_file": {
@@ -47,7 +50,9 @@ QUESTION_ENCODER_PRETRAINED_VOCAB_FILES_MAP = {
         "LinWeizheDragon/PreFLMR_ViT-L": (
             "https://huggingface.co/LinWeizheDragon/PreFLMR_ViT-L/resolve/main/query_tokenizer/vocab.txt"
         ),
-        "LinWeizheDragon/FLMR": ("https://huggingface.co/LinWeizheDragon/FLMR/resolve/main/query_tokenizer/vocab.txt"),
+        "LinWeizheDragon/FLMR": (
+            "https://huggingface.co/LinWeizheDragon/FLMR/resolve/main/query_tokenizer/vocab.txt"
+        ),
     },
     "tokenizer_file": {
         "LinWeizheDragon/PreFLMR_ViT-L": (

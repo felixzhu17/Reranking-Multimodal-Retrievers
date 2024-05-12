@@ -121,16 +121,24 @@ class FLMRVisionConfig(PretrainedConfig):
         self.hidden_act = hidden_act
 
     @classmethod
-    def from_pretrained(cls, pretrained_model_name_or_path: Union[str, os.PathLike], **kwargs) -> "PretrainedConfig":
+    def from_pretrained(
+        cls, pretrained_model_name_or_path: Union[str, os.PathLike], **kwargs
+    ) -> "PretrainedConfig":
         cls._set_token_in_kwargs(kwargs)
 
-        config_dict, kwargs = cls.get_config_dict(pretrained_model_name_or_path, **kwargs)
+        config_dict, kwargs = cls.get_config_dict(
+            pretrained_model_name_or_path, **kwargs
+        )
 
         # get the vision config dict if we are loading from a CLIPConfig
         if config_dict.get("model_type") == "clip":
             config_dict = config_dict["vision_config"]
 
-        if "model_type" in config_dict and hasattr(cls, "model_type") and config_dict["model_type"] != cls.model_type:
+        if (
+            "model_type" in config_dict
+            and hasattr(cls, "model_type")
+            and config_dict["model_type"] != cls.model_type
+        ):
             logger.warning(
                 f"You are using a model of type {config_dict['model_type']} to instantiate a model of type "
                 f"{cls.model_type}. This is not supported for all configurations of models and can yield errors."
@@ -358,22 +366,40 @@ class FLMRConfig(PretrainedConfig):
         self.mask_punctuation = mask_punctuation
         self.mapping_network_prefix_length = mapping_network_prefix_length
         self.use_vision_encoder = use_vision_encoder
-        self.separate_query_and_context_text_encoder = separate_query_and_context_text_encoder
-        self.separate_query_and_context_vision_encoder = separate_query_and_context_vision_encoder
-        self.query_concat_output_from_vision_encoder = query_concat_output_from_vision_encoder
-        self.query_concat_output_from_text_encoder = query_concat_output_from_text_encoder
-        self.context_concat_output_from_vision_encoder = context_concat_output_from_vision_encoder
-        self.context_concat_output_from_text_encoder = context_concat_output_from_text_encoder
+        self.separate_query_and_context_text_encoder = (
+            separate_query_and_context_text_encoder
+        )
+        self.separate_query_and_context_vision_encoder = (
+            separate_query_and_context_vision_encoder
+        )
+        self.query_concat_output_from_vision_encoder = (
+            query_concat_output_from_vision_encoder
+        )
+        self.query_concat_output_from_text_encoder = (
+            query_concat_output_from_text_encoder
+        )
+        self.context_concat_output_from_vision_encoder = (
+            context_concat_output_from_vision_encoder
+        )
+        self.context_concat_output_from_text_encoder = (
+            context_concat_output_from_text_encoder
+        )
         self.use_transformer_mapping_network = use_transformer_mapping_network
         self.transformer_mapping_config_base = transformer_mapping_config_base
-        self.transformer_mapping_num_hidden_layers = transformer_mapping_num_hidden_layers
+        self.transformer_mapping_num_hidden_layers = (
+            transformer_mapping_num_hidden_layers
+        )
         self.load_cpu_extension = load_cpu_extension
         self.mask_instruction_token = mask_instruction_token
-        self.transformer_mapping_cross_attention_length = transformer_mapping_cross_attention_length
+        self.transformer_mapping_cross_attention_length = (
+            transformer_mapping_cross_attention_length
+        )
         self.vision_model_version = vision_model_version
 
     @classmethod
-    def from_text_vision_configs(cls, text_config: FLMRTextConfig, vision_config: FLMRVisionConfig, **kwargs):
+    def from_text_vision_configs(
+        cls, text_config: FLMRTextConfig, vision_config: FLMRVisionConfig, **kwargs
+    ):
         r"""
         Instantiate a [`FLMRConfig`] (or a derived class) from FLMR text model configuration and FLMR vision model
         configuration.

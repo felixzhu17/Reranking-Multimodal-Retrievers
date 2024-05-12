@@ -1,8 +1,14 @@
-
 from transformers import CLIPImageProcessor
 import numpy as np
 from typing import Dict, List, Optional, Union
-from transformers.image_utils import ChannelDimension, ImageInput, PILImageResampling, is_batched, to_numpy_array, valid_images
+from transformers.image_utils import (
+    ChannelDimension,
+    ImageInput,
+    PILImageResampling,
+    is_batched,
+    to_numpy_array,
+    valid_images,
+)
 from transformers.image_transforms import (
     center_crop,
     convert_to_rgb,
@@ -12,6 +18,7 @@ from transformers.image_transforms import (
     resize,
     to_channel_dimension_format,
 )
+
 
 class CustomCLIPImageProcessor(CLIPImageProcessor):
     def normalize(

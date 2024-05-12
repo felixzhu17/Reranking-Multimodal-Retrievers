@@ -4,6 +4,7 @@ import shutil
 import stat
 import zipfile
 
+
 def zipDir(dirpath, outFullName):
     """
     zip folder
@@ -11,12 +12,13 @@ def zipDir(dirpath, outFullName):
     :param outFullName: target file path (.zip)
     :return:
     """
-    zip = zipfile.ZipFile(outFullName,"w",zipfile.ZIP_DEFLATED)
-    for path,dirnames,filenames in os.walk(dirpath):
-        fpath = path.replace(dirpath,'')
+    zip = zipfile.ZipFile(outFullName, "w", zipfile.ZIP_DEFLATED)
+    for path, dirnames, filenames in os.walk(dirpath):
+        fpath = path.replace(dirpath, "")
         for filename in filenames:
-            zip.write(os.path.join(path,filename),os.path.join(fpath,filename))
+            zip.write(os.path.join(path, filename), os.path.join(fpath, filename))
     zip.close()
+
 
 def create_dirs(dirs):
     """
@@ -29,14 +31,17 @@ def create_dirs(dirs):
             if not os.path.exists(dir_):
                 os.makedirs(dir_)
     except Exception as err:
-        logging.getLogger("Dirs Creator").info("Creating directories error: {0}".format(err))
+        logging.getLogger("Dirs Creator").info(
+            "Creating directories error: {0}".format(err)
+        )
+
 
 def delete_dir(filePath):
     if os.path.exists(filePath):
         for fileList in os.walk(filePath):
             for name in fileList[2]:
-                os.chmod(os.path.join(fileList[0],name), stat.S_IWRITE)
-                os.remove(os.path.join(fileList[0],name))
+                os.chmod(os.path.join(fileList[0], name), stat.S_IWRITE)
+                os.remove(os.path.join(fileList[0], name))
         shutil.rmtree(filePath)
         return "delete ok"
     else:

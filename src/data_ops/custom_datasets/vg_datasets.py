@@ -23,6 +23,7 @@ from collections import defaultdict
 from torch.utils.data import DataLoader, RandomSampler, SequentialSampler
 
 import logging
+
 logger = logging.getLogger(__name__)
 
 
@@ -35,21 +36,21 @@ from src.data_ops.custom_datasets.module_parser import ModuleParser
 from src.data_ops.custom_datasets.base_datasets import BaseDataset, DPRBaseDataset
 
 
-
 class VisualGenomeDatasetForDPR(DPRBaseDataset, ModuleParser):
     """
     This is a dataset class for VG dataset used for DPR training
     """
+
     def __init__(self, config, dataset_dict):
         super().__init__(config, dataset_dict)
-        self.passages = dataset_dict['passages']
-        if 'images' in dataset_dict.keys():
-            self.images = dataset_dict['images']
+        self.passages = dataset_dict["passages"]
+        if "images" in dataset_dict.keys():
+            self.images = dataset_dict["images"]
         """
         Negative samples are randomly sampled from the corpus
         Can choose whether sampling can access the full corpus
         """
-        self.n_passages = len(self.passages.id2doc) # number of passages
+        self.n_passages = len(self.passages.id2doc)  # number of passages
 
     def __getitem__(self, idx):
         def negative_sampling(img_id, pos_item_ids, num_samples=1):
@@ -61,13 +62,15 @@ class VisualGenomeDatasetForDPR(DPRBaseDataset, ModuleParser):
                 neg_items: list of negative item ids.
             """
             neg_items = []
-            
+
             while len(neg_items) < num_samples:
                 # sample num_samples negative items for the user
                 img_id = str(img_id)
                 while True:
                     # if self.p is not None:
-                    neg_item = np.random.randint(low=0, high=self.n_passages-1, size=1)[0]
+                    neg_item = np.random.randint(
+                        low=0, high=self.n_passages - 1, size=1
+                    )[0]
                     # else:
                     #     neg_item = np.random.choice(self.n_params.n_items, 1, p=self.p)[0]
                     # print(annotations, neg_item)
@@ -80,12 +83,12 @@ class VisualGenomeDatasetForDPR(DPRBaseDataset, ModuleParser):
                     #         VALID = False
                     if str(neg_item) in pos_item_ids:
                         VALID = False
-                    
+
                     if VALID == True:
                         break
                 neg_items.append(neg_item)
             return neg_items
-        
+
         sample = super().__getitem__(idx)
         item = self.data.data_items[idx]
         # these two belong to a positive sample (in annotations)
@@ -93,20 +96,25 @@ class VisualGenomeDatasetForDPR(DPRBaseDataset, ModuleParser):
 
         passage_content = self.passages.id2doc[passage_id]
 
-        sample.update({
-            'passage_id': passage_id,
-            'passage_content': passage_content,
-            'pos_item_ids': item.pos_item_ids,
-            'neg_passage_ids': negative_sampling(item.img_id, item.pos_item_ids, self.config.model_config.num_negative_samples),
-        })
+        sample.update(
+            {
+                "passage_id": passage_id,
+                "passage_content": passage_content,
+                "pos_item_ids": item.pos_item_ids,
+                "neg_passage_ids": negative_sampling(
+                    item.img_id,
+                    item.pos_item_ids,
+                    self.config.model_config.num_negative_samples,
+                ),
+            }
+        )
         return sample
 
-
     def collate_fn(self, batch):
-        '''
+        """
         when collate_fn is given to the torch dataloader, we can do further actions to the batch, e.g., tensor can be formed here
         a batch is formed as a list where each element is a defined data returned by __getitem__, andy
-        '''
+        """
         batched_data = super().collate_fn(batch)
 
         #############################
@@ -115,15 +123,17 @@ class VisualGenomeDatasetForDPR(DPRBaseDataset, ModuleParser):
         question_ids = [sample.img_id for sample in batch]
         passage_ids = [sample.passage_id for sample in batch]
         pos_item_ids = [sample.pos_item_ids for sample in batch]
-        neg_item_ids = [
-            str(sample.neg_passage_ids) for sample in batch
-        ]
+        neg_item_ids = [str(sample.neg_passage_ids) for sample in batch]
 
-        batched_data.update(EasyDict({
-            'passage_ids': passage_ids, # currently used pos item
-            'question_ids': question_ids,
-            'pos_item_ids': pos_item_ids, # annotated pos items (all)
-            'neg_item_ids': neg_item_ids, # currently used neg items
-        }))
+        batched_data.update(
+            EasyDict(
+                {
+                    "passage_ids": passage_ids,  # currently used pos item
+                    "question_ids": question_ids,
+                    "pos_item_ids": pos_item_ids,  # annotated pos items (all)
+                    "neg_item_ids": neg_item_ids,  # currently used neg items
+                }
+            )
+        )
 
         return batched_data

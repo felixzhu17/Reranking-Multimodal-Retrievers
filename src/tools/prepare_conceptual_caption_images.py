@@ -1,4 +1,3 @@
-
 import numpy as np
 
 from concurrent.futures import ThreadPoolExecutor
@@ -44,7 +43,6 @@ def get_images(batch, num_threads, timeout=10, retries=0):
     return batch
 
 
-
 con_caps = load_dataset(
     "parquet",
     data_files={
@@ -53,8 +51,8 @@ con_caps = load_dataset(
     },
 )
 
-con_caps['train'] = con_caps['train'].remove_columns(['clip_embeddings'])
-con_caps['train'] = con_caps['train'].map(
+con_caps["train"] = con_caps["train"].remove_columns(["clip_embeddings"])
+con_caps["train"] = con_caps["train"].map(
     get_images,
     batched=True,
     batch_size=512,
@@ -62,8 +60,6 @@ con_caps['train'] = con_caps['train'].map(
         "num_threads": num_threads,
     },
 )
-out_path = '/rds/project/rds-hirYTW1FQIw/shared_space/vqa_data/KBVQA_data/conceptual_captions/pre-extracted-features/conceptual_captions_train.parquet'
+out_path = "/rds/project/rds-hirYTW1FQIw/shared_space/vqa_data/KBVQA_data/conceptual_captions/pre-extracted-features/conceptual_captions_train.parquet"
 print(f"Writing output to {out_path}...")
-con_caps['train'].to_parquet(out_path)
-
-
+con_caps["train"].to_parquet(out_path)

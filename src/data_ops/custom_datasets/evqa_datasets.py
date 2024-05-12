@@ -23,6 +23,7 @@ from collections import defaultdict
 from torch.utils.data import DataLoader, RandomSampler, SequentialSampler
 
 import logging
+
 logger = logging.getLogger(__name__)
 
 from src.utils.dirs import create_dirs
@@ -39,18 +40,26 @@ from src.data_ops.custom_datasets.module_parser import ModuleParser
 
 from src.data_ops.custom_datasets.base_datasets import BaseDataset, DPRBaseDataset
 
+
 class EVQADataset(BaseDataset, ModuleParser):
     """
     Base OKVQA dataset class
     """
+
     def __init__(self, config, dataset_dict):
         super().__init__(config, dataset_dict)
-        if 'images' in dataset_dict.keys():
-            self.images = dataset_dict['images']
-        if 'image_dataset_with_embeddings' in dataset_dict.keys():
-            self.image_dataset_with_embeddings = dataset_dict['image_dataset_with_embeddings']
-            self.image_dataset_with_embeddings = self.image_dataset_with_embeddings.to_pandas().set_index("__index_level_0__").to_dict(orient="index")
-        
+        if "images" in dataset_dict.keys():
+            self.images = dataset_dict["images"]
+        if "image_dataset_with_embeddings" in dataset_dict.keys():
+            self.image_dataset_with_embeddings = dataset_dict[
+                "image_dataset_with_embeddings"
+            ]
+            self.image_dataset_with_embeddings = (
+                self.image_dataset_with_embeddings.to_pandas()
+                .set_index("__index_level_0__")
+                .to_dict(orient="index")
+            )
+
         # self.use_ids = []
         # data_items = []
         # for index, item in enumerate(self.data.data_items):
@@ -58,7 +67,6 @@ class EVQADataset(BaseDataset, ModuleParser):
         #         self.use_ids.append(index)
         #         data_items.append(item)
         # self.data.data_items = data_items
-
 
     def __len__(self):
         return len(self.data)
@@ -82,12 +90,11 @@ class EVQADataset(BaseDataset, ModuleParser):
         sample = EasyDict(self.data[idx])
         return sample
 
-    
     def collate_fn(self, batch):
-        '''
+        """
         when collate_fn is given to the torch dataloader, we can do further actions to the batch, e.g., tensor can be formed here
         a batch is formed as a list where each element is a defined data returned by __getitem__, andy
-        '''
+        """
         batched_data = super().collate_fn(batch)
 
         #############################
@@ -98,14 +105,17 @@ class EVQADataset(BaseDataset, ModuleParser):
         answers = [sample.answers for sample in batch]
         gold_answers = [sample.gold_answer for sample in batch]
         pos_item_ids = [sample.pos_item_ids for sample in batch]
-        
-        batched_data.update(EasyDict({
-            'question_ids': question_ids,
-            'questions': questions,
-            'answers': answers,
-            'gold_answers': gold_answers,
-            'pos_item_ids': pos_item_ids,
-        }))
+
+        batched_data.update(
+            EasyDict(
+                {
+                    "question_ids": question_ids,
+                    "questions": questions,
+                    "answers": answers,
+                    "gold_answers": gold_answers,
+                    "pos_item_ids": pos_item_ids,
+                }
+            )
+        )
 
         return batched_data
-

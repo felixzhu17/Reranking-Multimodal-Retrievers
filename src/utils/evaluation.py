@@ -23,8 +23,9 @@ def ranklist_by_heapq(user_pos_test, test_items, rating, Ks):
         else:
             r.append(0)
         top_score_items.append(i)
-    
+
     return r, top_score_items
+
 
 def get_auc(item_score, user_pos_test):
     item_score = sorted(item_score.items(), key=lambda kv: kv[1])
@@ -40,6 +41,7 @@ def get_auc(item_score, user_pos_test):
             r.append(0)
     auc = AUC(ground_truth=r, prediction=posterior)
     return auc
+
 
 def ranklist_by_sorted(user_pos_test, test_items, rating, Ks):
     item_score = {}
@@ -58,6 +60,7 @@ def ranklist_by_sorted(user_pos_test, test_items, rating, Ks):
     auc = get_auc(item_score, user_pos_test)
     return r, auc
 
+
 def get_performance(user_pos_test, r, auc, Ks):
     precision, recall, ndcg, hit_ratio = [], [], [], []
 
@@ -67,5 +70,10 @@ def get_performance(user_pos_test, r, auc, Ks):
         ndcg.append(ndcg_at_k(r, K, user_pos_test))
         hit_ratio.append(hit_at_k(r, K))
 
-    return {'recall': np.array(recall), 'precision': np.array(precision),
-            'ndcg': np.array(ndcg), 'hit_ratio': np.array(hit_ratio), 'auc': auc}
+    return {
+        "recall": np.array(recall),
+        "precision": np.array(precision),
+        "ndcg": np.array(ndcg),
+        "hit_ratio": np.array(hit_ratio),
+        "auc": auc,
+    }

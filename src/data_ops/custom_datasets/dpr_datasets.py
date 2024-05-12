@@ -23,6 +23,7 @@ from collections import defaultdict
 from torch.utils.data import DataLoader, RandomSampler, SequentialSampler
 
 import logging
+
 logger = logging.getLogger(__name__)
 
 
@@ -35,35 +36,47 @@ from src.data_ops.custom_datasets.module_parser import ModuleParser
 from .base_datasets import BaseDataset, DPRBaseDataset
 
 
-
 class CommonDatasetForDPR(DPRBaseDataset, ModuleParser):
     """
     This is a dataset class for VG dataset used for DPR training
     """
+
     def __init__(self, config, dataset_dict):
         super().__init__(config, dataset_dict)
-        if 'passages' in dataset_dict.keys():
-            self.passages = dataset_dict['passages']
-            self.passages = EasyDict({
-                'dataset': self.passages,
-            })
-        
-        if 'valid_passages' in dataset_dict.keys() and dataset_dict['mode'] in ['valid', 'test']:
-            self.passages = dataset_dict['valid_passages']
-            self.passages = EasyDict({
-                'dataset': self.passages,
-            })
+        if "passages" in dataset_dict.keys():
+            self.passages = dataset_dict["passages"]
+            self.passages = EasyDict(
+                {
+                    "dataset": self.passages,
+                }
+            )
+
+        if "valid_passages" in dataset_dict.keys() and dataset_dict["mode"] in [
+            "valid",
+            "test",
+        ]:
+            self.passages = dataset_dict["valid_passages"]
+            self.passages = EasyDict(
+                {
+                    "dataset": self.passages,
+                }
+            )
             print(f"Using valid_passages instead for {dataset_dict['mode']}...")
 
-        if 'images' in dataset_dict.keys():
-            self.images = dataset_dict['images']
-        if 'image_dataset_with_embeddings' in dataset_dict.keys():
-            self.image_dataset_with_embeddings = dataset_dict['image_dataset_with_embeddings']
-            self.image_dataset_with_embeddings = self.image_dataset_with_embeddings.to_pandas().set_index("id").to_dict(orient="index")
+        if "images" in dataset_dict.keys():
+            self.images = dataset_dict["images"]
+        if "image_dataset_with_embeddings" in dataset_dict.keys():
+            self.image_dataset_with_embeddings = dataset_dict[
+                "image_dataset_with_embeddings"
+            ]
+            self.image_dataset_with_embeddings = (
+                self.image_dataset_with_embeddings.to_pandas()
+                .set_index("id")
+                .to_dict(orient="index")
+            )
 
         s = time.time()
-        
-        
+
         # first, load full passages as train docs
         # logger.info(f"Using {len(ds)} passage data for training...")
         # self.passages.id2doc_train = ds.to_pandas().set_index("passage_id").to_dict(orient="index")
@@ -75,17 +88,17 @@ class CommonDatasetForDPR(DPRBaseDataset, ModuleParser):
         # self.passages.id2doc = self.passages.id2doc_train
 
         logger.info(f"passages prepared. used {time.time()-s} secs.")
-        
+
         """
         Negative samples are randomly sampled from the corpus
         Can choose whether sampling can access the full corpus
         """
-        if 'passages' in dataset_dict.keys():
-            self.n_passages = len(self.passages.dataset) # number of passages
+        if "passages" in dataset_dict.keys():
+            self.n_passages = len(self.passages.dataset)  # number of passages
 
     def __len__(self):
         return len(self.data)
-        
+
     def __getitem__(self, idx):
         def negative_sampling(pos_item_ids, negative_source=None, num_samples=1):
             """Generate negative samples for a query. ONLY used in training
@@ -96,12 +109,14 @@ class CommonDatasetForDPR(DPRBaseDataset, ModuleParser):
                 neg_items: list of negative item ids.
             """
             neg_items = []
-            
+
             while len(neg_items) < num_samples:
                 # sample num_samples negative items for the user
                 while True:
                     # if self.p is not None:
-                    neg_item = np.random.randint(low=0, high=self.n_passages-1, size=1)[0]
+                    neg_item = np.random.randint(
+                        low=0, high=self.n_passages - 1, size=1
+                    )[0]
                     # else:
                     #     neg_item = np.random.choice(self.n_params.n_items, 1, p=self.p)[0]
                     # print(annotations, neg_item)
@@ -113,54 +128,60 @@ class CommonDatasetForDPR(DPRBaseDataset, ModuleParser):
                     #     if answer in neg_passage:
                     #         VALID = False
                     neg_item = self.passages.dataset[int(neg_item)]
-                    if neg_item['passage_id'] in pos_item_ids:
+                    if neg_item["passage_id"] in pos_item_ids:
                         VALID = False
-                    if "use_self_negatives" in self.config.model_config.modules and negative_source is not None:
-                        if neg_item['source_name'] != negative_source:
+                    if (
+                        "use_self_negatives" in self.config.model_config.modules
+                        and negative_source is not None
+                    ):
+                        if neg_item["source_name"] != negative_source:
                             VALID = False
-                    
+
                     if VALID == True:
                         break
                 neg_items.append(neg_item)
             return neg_items
-        
+
         sample = EasyDict(self.data[idx])
         item = sample
         # these two belong to a positive sample (in annotations)
 
         selected_pos_index = random.sample(range(len(item.pos_item_ids)), k=1)[0]
         passage_id = item.pos_item_ids[selected_pos_index]
-        passage_content = item.pos_item_contents[selected_pos_index] #self.passages.id2doc[passage_id]
-        
-        neg_items = negative_sampling(
-            item.pos_item_ids, 
-            negative_source=item.get('use_negative_items', None),
-            num_samples=self.config.model_config.num_negative_samples
-        )
-        neg_passage_ids = [neg_item['passage_id'] for neg_item in neg_items]
-        neg_passage_contents = [neg_item['passage_content'] for neg_item in neg_items]
+        passage_content = item.pos_item_contents[
+            selected_pos_index
+        ]  # self.passages.id2doc[passage_id]
 
-        sample.update({
-            'img_path': sample['img_path'],
-            'passage_id': passage_id,
-            'passage_content': passage_content,
-            'pos_item_ids': item.pos_item_ids,
-            'neg_passage_ids': neg_passage_ids,
-            'neg_passage_contents': neg_passage_contents,
-        })
+        neg_items = negative_sampling(
+            item.pos_item_ids,
+            negative_source=item.get("use_negative_items", None),
+            num_samples=self.config.model_config.num_negative_samples,
+        )
+        neg_passage_ids = [neg_item["passage_id"] for neg_item in neg_items]
+        neg_passage_contents = [neg_item["passage_content"] for neg_item in neg_items]
+
+        sample.update(
+            {
+                "img_path": sample["img_path"],
+                "passage_id": passage_id,
+                "passage_content": passage_content,
+                "pos_item_ids": item.pos_item_ids,
+                "neg_passage_ids": neg_passage_ids,
+                "neg_passage_contents": neg_passage_contents,
+            }
+        )
         return EasyDict(sample)
 
-
     def collate_fn(self, batch):
-        '''
+        """
         when collate_fn is given to the torch dataloader, we can do further actions to the batch, e.g., tensor can be formed here
         a batch is formed as a list where each element is a defined data returned by __getitem__, andy
-        '''
+        """
         try:
             batched_data = super().collate_fn(batch)
         except:
             print("error!")
-            print([sample['img_path'] for sample in batch])
+            print([sample["img_path"] for sample in batch])
             raise Exception
         #############################
         #  Meta Features
@@ -168,64 +189,88 @@ class CommonDatasetForDPR(DPRBaseDataset, ModuleParser):
         question_ids = [sample.question_id for sample in batch]
         passage_ids = [sample.passage_id for sample in batch]
         pos_item_ids = [sample.pos_item_ids for sample in batch]
-        neg_item_ids = [
-            sample.neg_passage_ids for sample in batch
-        ]
+        neg_item_ids = [sample.neg_passage_ids for sample in batch]
 
-        batched_data.update(EasyDict({
-            'passage_ids': passage_ids, # currently used pos item
-            'question_ids': question_ids,
-            'questions': batched_data['input_text_sequences'],
-            'pos_item_ids': pos_item_ids, # annotated pos items (all)
-            'neg_item_ids': neg_item_ids, # currently used neg items
-        }))
+        batched_data.update(
+            EasyDict(
+                {
+                    "passage_ids": passage_ids,  # currently used pos item
+                    "question_ids": question_ids,
+                    "questions": batched_data["input_text_sequences"],
+                    "pos_item_ids": pos_item_ids,  # annotated pos items (all)
+                    "neg_item_ids": neg_item_ids,  # currently used neg items
+                }
+            )
+        )
 
         return batched_data
-    
+
+
 class WITDatasetForDPR(CommonDatasetForDPR, ModuleParser):
     def __init__(self, config, dataset_dict):
         super().__init__(config, dataset_dict)
+
+
 class llavaDatasetForDPR(CommonDatasetForDPR, ModuleParser):
     def __init__(self, config, dataset_dict):
         super().__init__(config, dataset_dict)
+
+
 class CCDatasetForDPR(CommonDatasetForDPR, ModuleParser):
     def __init__(self, config, dataset_dict):
         super().__init__(config, dataset_dict)
+
+
 class MSMARCODatasetForDPR(CommonDatasetForDPR, ModuleParser):
     def __init__(self, config, dataset_dict):
         super().__init__(config, dataset_dict)
+
+
 class KVQADatasetForDPR(CommonDatasetForDPR, ModuleParser):
     def __init__(self, config, dataset_dict):
         super().__init__(config, dataset_dict)
+
+
 class OvenDatasetForDPR(CommonDatasetForDPR, ModuleParser):
     def __init__(self, config, dataset_dict):
         super().__init__(config, dataset_dict)
+
+
 class IGLUEDatasetForDPR(CommonDatasetForDPR, ModuleParser):
     def __init__(self, config, dataset_dict):
         super().__init__(config, dataset_dict)
+
+
 class MSCOCODatasetForDPR(CommonDatasetForDPR, ModuleParser):
     def __init__(self, config, dataset_dict):
         super().__init__(config, dataset_dict)
+
+
 class FlickerDatasetForDPR(CommonDatasetForDPR, ModuleParser):
     def __init__(self, config, dataset_dict):
         super().__init__(config, dataset_dict)
 
+
 class EVQADatasetForDPR(CommonDatasetForDPR, ModuleParser):
     def __init__(self, config, dataset_dict):
         super().__init__(config, dataset_dict)
-    
+
     def collate_fn(self, batch):
-        '''
+        """
         when collate_fn is given to the torch dataloader, we can do further actions to the batch, e.g., tensor can be formed here
         a batch is formed as a list where each element is a defined data returned by __getitem__, andy
-        '''
+        """
         batched_data = super().collate_fn(batch)
 
         answers = [sample.answers for sample in batch]
         gold_answers = [sample.gold_answer for sample in batch]
 
-        batched_data.update(EasyDict({
-            'answers': answers,
-            'gold_answers': gold_answers,
-        }))
+        batched_data.update(
+            EasyDict(
+                {
+                    "answers": answers,
+                    "gold_answers": gold_answers,
+                }
+            )
+        )
         return batched_data

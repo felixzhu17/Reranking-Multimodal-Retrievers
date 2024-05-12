@@ -7,6 +7,7 @@ from transformers import DPRQuestionEncoder, DPRContextEncoder, DPRConfig
 from transformers import BertModel, BertConfig
 from easydict import EasyDict
 
+
 class RetrieverT5(torch.nn.Module):
     """
     Class of retriever model
@@ -16,52 +17,77 @@ class RetrieverT5(torch.nn.Module):
         super().__init__()
         self.config = config
 
-        QueryEncoderModelClass = globals()[self.config.model_config.QueryEncoderModelClass]
+        QueryEncoderModelClass = globals()[
+            self.config.model_config.QueryEncoderModelClass
+        ]
 
-        QueryEncoderConfigClass = globals()[self.config.model_config.QueryEncoderConfigClass]
-        query_model_config = QueryEncoderConfigClass.from_pretrained(self.config.model_config.QueryEncoderModelVersion)
-        self.query_encoder = QueryEncoderModelClass.from_pretrained(self.config.model_config.QueryEncoderModelVersion, config=query_model_config)
-        
-        self.SEP_ENCODER = True if 'separate_query_and_item_encoders' in self.config.model_config.modules else None
-        self.SPAN_DETECTOR = True if 'span_detector' in self.config.model_config.modules else None
+        QueryEncoderConfigClass = globals()[
+            self.config.model_config.QueryEncoderConfigClass
+        ]
+        query_model_config = QueryEncoderConfigClass.from_pretrained(
+            self.config.model_config.QueryEncoderModelVersion
+        )
+        self.query_encoder = QueryEncoderModelClass.from_pretrained(
+            self.config.model_config.QueryEncoderModelVersion, config=query_model_config
+        )
+
+        self.SEP_ENCODER = (
+            True
+            if "separate_query_and_item_encoders" in self.config.model_config.modules
+            else None
+        )
+        self.SPAN_DETECTOR = (
+            True if "span_detector" in self.config.model_config.modules else None
+        )
 
         if self.SEP_ENCODER:
-            ItemEncoderModelClass = globals()[self.config.model_config.ItemEncoderModelClass]
+            ItemEncoderModelClass = globals()[
+                self.config.model_config.ItemEncoderModelClass
+            ]
 
-            ItemEncoderConfigClass = globals()[self.config.model_config.ItemEncoderConfigClass]
-            item_model_config = ItemEncoderConfigClass.from_pretrained(self.config.model_config.ItemEncoderModelVersion)
-            self.item_encoder = ItemEncoderModelClass.from_pretrained(self.config.model_config.ItemEncoderModelVersion, config=item_model_config)
+            ItemEncoderConfigClass = globals()[
+                self.config.model_config.ItemEncoderConfigClass
+            ]
+            item_model_config = ItemEncoderConfigClass.from_pretrained(
+                self.config.model_config.ItemEncoderModelVersion
+            )
+            self.item_encoder = ItemEncoderModelClass.from_pretrained(
+                self.config.model_config.ItemEncoderModelVersion,
+                config=item_model_config,
+            )
         else:
             # Use the same model for query and item encoders
             item_model_config = query_model_config
             self.item_encoder = self.query_encoder
-        
 
         if self.SPAN_DETECTOR:
             # add span detection layer
             self.span_outputs = nn.Linear(item_model_config.hidden_size, 2)
 
-        if self.config.model_config.get('pooling_output', None) is not None:
+        if self.config.model_config.get("pooling_output", None) is not None:
             self.query_pooler = nn.Sequential(
-                nn.Linear(query_model_config.hidden_size, self.config.model_config.pooling_output.dim),
-                nn.Dropout(self.config.model_config.pooling_output.dropout)
+                nn.Linear(
+                    query_model_config.hidden_size,
+                    self.config.model_config.pooling_output.dim,
+                ),
+                nn.Dropout(self.config.model_config.pooling_output.dropout),
             )
             self.item_pooler = nn.Sequential(
-                nn.Linear(item_model_config.hidden_size, self.config.model_config.pooling_output.dim),
-                nn.Dropout(self.config.model_config.pooling_output.dropout)
+                nn.Linear(
+                    item_model_config.hidden_size,
+                    self.config.model_config.pooling_output.dim,
+                ),
+                nn.Dropout(self.config.model_config.pooling_output.dropout),
             )
         else:
             self.query_pooler = None
             self.item_pooler = None
-        
-        self.loss_fn = nn.CrossEntropyLoss()
-        
-        
 
-    
+        self.loss_fn = nn.CrossEntropyLoss()
+
     def resize_token_embeddings(self, dim):
         self.query_encoder.resize_token_embeddings(dim)
-        if 'separate_query_and_item_encoders' in self.config.model_config.modules:
+        if "separate_query_and_item_encoders" in self.config.model_config.modules:
             self.item_encoder.resize_token_embeddings(dim)
 
     def forward(
@@ -75,8 +101,9 @@ class RetrieverT5(torch.nn.Module):
         **kwargs
     ):
         # query encoder
-        query_outputs = self.query_encoder(input_ids=input_ids,
-                                            attention_mask=attention_mask)
+        query_outputs = self.query_encoder(
+            input_ids=input_ids, attention_mask=attention_mask
+        )
         query_last_hidden_states = query_outputs.last_hidden_state
         if self.query_pooler is not None:
             query_last_hidden_states = self.query_pooler(query_last_hidden_states)
@@ -84,17 +111,14 @@ class RetrieverT5(torch.nn.Module):
         # print('query_embeddings', query_embeddings.shape)
 
         # item encoder
-        item_outputs = self.item_encoder(input_ids=item_input_ids,
-                                            attention_mask=item_attention_mask)
+        item_outputs = self.item_encoder(
+            input_ids=item_input_ids, attention_mask=item_attention_mask
+        )
         item_last_hidden_states = item_outputs.last_hidden_state
         if self.item_pooler is not None:
             item_last_hidden_states = self.item_pooler(item_last_hidden_states)
         item_embeddings = item_last_hidden_states[:, 0]
         # print('item_embeddings', item_embeddings.shape)
-        
-
-        
-
 
         ################## in-batch negative sampling ###############
         batch_size = query_embeddings.shape[0]
@@ -102,13 +126,15 @@ class RetrieverT5(torch.nn.Module):
         num_pos_and_neg = batch_size_with_pos_and_neg // batch_size
         num_pos = 1
         num_neg = num_pos_and_neg - num_pos
-        
-        # batch_size x dim  matmul  dim x (num_pos+num_neg)*batch_size  
+
+        # batch_size x dim  matmul  dim x (num_pos+num_neg)*batch_size
         # -->  batch_size x (num_pos+num_neg)*batch_size
-        in_batch_labels = torch.zeros(batch_size, batch_size_with_pos_and_neg).to(labels.device)
+        in_batch_labels = torch.zeros(batch_size, batch_size_with_pos_and_neg).to(
+            labels.device
+        )
         step = num_pos_and_neg
         for i in range(batch_size):
-            in_batch_labels[i, step*i] = 1
+            in_batch_labels[i, step * i] = 1
         # print('in_batch_labels', in_batch_labels)
         in_batch_labels = torch.argmax(in_batch_labels, dim=1)
         # print('in_batch_labels', in_batch_labels)
@@ -117,7 +143,6 @@ class RetrieverT5(torch.nn.Module):
         loss = self.loss_fn(in_batch_scores, in_batch_labels)
         # print('loss', loss)
         # input('forwarded.')
-
 
         # sequence_output = item_last_hidden_states
 
@@ -149,10 +174,11 @@ class RetrieverT5(torch.nn.Module):
         #     end_loss = loss_fct(end_logits, end_positions)
         #     total_loss = (start_loss + end_loss) / 2
 
-
-        return EasyDict({
-            'loss': loss,
-        })
+        return EasyDict(
+            {
+                "loss": loss,
+            }
+        )
 
     def generate_query_embeddings(
         self,
@@ -160,8 +186,9 @@ class RetrieverT5(torch.nn.Module):
         attention_mask=None,
     ):
         # query encoder
-        query_outputs = self.query_encoder(input_ids=input_ids,
-                                            attention_mask=attention_mask)
+        query_outputs = self.query_encoder(
+            input_ids=input_ids, attention_mask=attention_mask
+        )
         query_last_hidden_states = query_outputs.last_hidden_state
         if self.query_pooler is not None:
             query_last_hidden_states = self.query_pooler(query_last_hidden_states)
@@ -174,15 +201,15 @@ class RetrieverT5(torch.nn.Module):
         attention_mask=None,
     ):
         # item encoder
-        item_outputs = self.item_encoder(input_ids=input_ids,
-                                            attention_mask=attention_mask)
+        item_outputs = self.item_encoder(
+            input_ids=input_ids, attention_mask=attention_mask
+        )
         item_last_hidden_states = item_outputs.last_hidden_state
         if self.item_pooler is not None:
             item_last_hidden_states = self.item_pooler(item_last_hidden_states)
         item_embeddings = item_last_hidden_states[:, 0]
         return item_embeddings
-    
-    
+
     def create_bpr_loss(self, query, pos_items, neg_items):
         """[summary]
 
@@ -201,13 +228,13 @@ class RetrieverT5(torch.nn.Module):
         # extend the query for mapping with any number of neg samples
         extend_query = query.repeat(1, num_neg_samples).reshape(-1, hidden_size)
 
-        pos_scores = torch.sum(torch.mul(query, pos_items), axis=1) # batch_size
+        pos_scores = torch.sum(torch.mul(query, pos_items), axis=1)  # batch_size
         if num_neg_samples > 1:
             # extend pos_scores to match with neg scores
-            pos_scores = pos_scores.repeat(num_neg_samples, 1).permute(1,0).reshape(-1)
+            pos_scores = pos_scores.repeat(num_neg_samples, 1).permute(1, 0).reshape(-1)
         # print('pos_scores', pos_scores)
         neg_scores = torch.sum(torch.mul(extend_query, neg_items), axis=1)
         # print('neg_scores', neg_scores)
         mf_loss = -1 * torch.mean(nn.LogSigmoid()(pos_scores - neg_scores))
-        
+
         return mf_loss

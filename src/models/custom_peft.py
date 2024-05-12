@@ -1,4 +1,3 @@
-
 import warnings
 
 import torch
@@ -8,7 +7,9 @@ import torch.nn.functional as F
 from peft import PeftModel, PeftConfig, PromptLearningConfig, PeftType
 
 
-def shift_tokens_right(input_ids: torch.Tensor, pad_token_id: int, decoder_start_token_id: int):
+def shift_tokens_right(
+    input_ids: torch.Tensor, pad_token_id: int, decoder_start_token_id: int
+):
     """
     Shift input ids one token to the right.
     """
@@ -55,7 +56,9 @@ class PeftModelForSeq2SeqLM(PeftModel):
 
     def __init__(self, model, peft_config: PeftConfig, adapter_name="default"):
         super().__init__(model, peft_config, adapter_name)
-        self.base_model_prepare_inputs_for_generation = self.base_model.prepare_inputs_for_generation
+        self.base_model_prepare_inputs_for_generation = (
+            self.base_model.prepare_inputs_for_generation
+        )
         self.base_model_prepare_encoder_decoder_kwargs_for_generation = (
             self.base_model._prepare_encoder_decoder_kwargs_for_generation
         )
@@ -108,14 +111,22 @@ class PeftModelForSeq2SeqLM(PeftModel):
         batch_size = input_ids.shape[0]
         if decoder_attention_mask is not None:
             # concat prompt attention mask
-            prefix_attention_mask = torch.ones(batch_size, peft_config.num_virtual_tokens).to(self.device)
-            decoder_attention_mask = torch.cat((prefix_attention_mask, decoder_attention_mask), dim=1)
+            prefix_attention_mask = torch.ones(
+                batch_size, peft_config.num_virtual_tokens
+            ).to(self.device)
+            decoder_attention_mask = torch.cat(
+                (prefix_attention_mask, decoder_attention_mask), dim=1
+            )
 
         if kwargs.get("position_ids", None) is not None:
-            warnings.warn("Position ids are not supported for parameter efficient tuning. Ignoring position ids.")
+            warnings.warn(
+                "Position ids are not supported for parameter efficient tuning. Ignoring position ids."
+            )
             kwargs["position_ids"] = None
         if kwargs.get("token_type_ids", None) is not None:
-            warnings.warn("Token type ids are not supported for parameter efficient tuning. Ignoring token type ids")
+            warnings.warn(
+                "Token type ids are not supported for parameter efficient tuning. Ignoring token type ids"
+            )
             kwargs["token_type_ids"] = None
         kwargs.update(
             {
@@ -131,7 +142,10 @@ class PeftModelForSeq2SeqLM(PeftModel):
         if peft_config.peft_type == PeftType.PREFIX_TUNING:
             past_key_values = self.get_prompt(batch_size)
             return self.base_model(
-                input_ids=input_ids, decoder_input_ids=decoder_input_ids, past_key_values=past_key_values, **kwargs
+                input_ids=input_ids,
+                decoder_input_ids=decoder_input_ids,
+                past_key_values=past_key_values,
+                **kwargs,
             )
         else:
             if inputs_embeds is None:
@@ -144,31 +158,47 @@ class PeftModelForSeq2SeqLM(PeftModel):
 
             if attention_mask is not None:
                 # concat prompt attention mask
-                prefix_attention_mask = torch.ones(batch_size, peft_config.num_virtual_tokens).to(self.device)
-                kwargs["attention_mask"] = torch.cat((prefix_attention_mask, attention_mask), dim=1)
+                prefix_attention_mask = torch.ones(
+                    batch_size, peft_config.num_virtual_tokens
+                ).to(self.device)
+                kwargs["attention_mask"] = torch.cat(
+                    (prefix_attention_mask, attention_mask), dim=1
+                )
             # concat prompt labels
             if labels is not None:
                 if peft_config.num_transformer_submodules == 1:
                     kwargs["labels"] = labels
                 elif peft_config.num_transformer_submodules == 2:
-                    prefix_labels = torch.full((batch_size, peft_config.num_virtual_tokens), -100).to(self.device)
+                    prefix_labels = torch.full(
+                        (batch_size, peft_config.num_virtual_tokens), -100
+                    ).to(self.device)
                     kwargs["labels"] = torch.cat((prefix_labels, labels), dim=1)
             prompts = self.get_prompt(batch_size=batch_size)
             prompts = prompts.to(inputs_embeds.dtype)
-            inputs_embeds = torch.cat((prompts[:, : peft_config.num_virtual_tokens], inputs_embeds), dim=1)
+            inputs_embeds = torch.cat(
+                (prompts[:, : peft_config.num_virtual_tokens], inputs_embeds), dim=1
+            )
             if peft_config.num_transformer_submodules == 1:
                 return self.base_model(inputs_embeds=inputs_embeds, **kwargs)
             elif peft_config.num_transformer_submodules == 2:
                 decoder_inputs_embeds = torch.cat(
-                    (prompts[:, peft_config.num_virtual_tokens :], decoder_inputs_embeds), dim=1
+                    (
+                        prompts[:, peft_config.num_virtual_tokens :],
+                        decoder_inputs_embeds,
+                    ),
+                    dim=1,
                 )
                 return self.base_model(
-                    inputs_embeds=inputs_embeds, decoder_inputs_embeds=decoder_inputs_embeds, **kwargs
+                    inputs_embeds=inputs_embeds,
+                    decoder_inputs_embeds=decoder_inputs_embeds,
+                    **kwargs,
                 )
 
     def generate(self, **kwargs):
         peft_config = self.active_peft_config
-        self.base_model.prepare_inputs_for_generation = self.prepare_inputs_for_generation
+        self.base_model.prepare_inputs_for_generation = (
+            self.prepare_inputs_for_generation
+        )
         self.base_model._prepare_encoder_decoder_kwargs_for_generation = (
             self._prepare_encoder_decoder_kwargs_for_generation
         )
@@ -177,7 +207,9 @@ class PeftModelForSeq2SeqLM(PeftModel):
                 outputs = self.base_model.generate(**kwargs)
             else:
                 if "input_ids" not in kwargs:
-                    raise ValueError("input_ids must be provided for Peft model generation")
+                    raise ValueError(
+                        "input_ids must be provided for Peft model generation"
+                    )
                 if kwargs.get("position_ids", None) is not None:
                     warnings.warn(
                         "Position ids are not supported for parameter efficient tuning. Ignoring position ids."
@@ -194,13 +226,17 @@ class PeftModelForSeq2SeqLM(PeftModel):
                 else:
                     raise NotImplementedError
         except:
-            self.base_model.prepare_inputs_for_generation = self.base_model_prepare_inputs_for_generation
+            self.base_model.prepare_inputs_for_generation = (
+                self.base_model_prepare_inputs_for_generation
+            )
             self.base_model._prepare_encoder_decoder_kwargs_for_generation = (
                 self.base_model_prepare_encoder_decoder_kwargs_for_generation
             )
             raise
         else:
-            self.base_model.prepare_inputs_for_generation = self.base_model_prepare_inputs_for_generation
+            self.base_model.prepare_inputs_for_generation = (
+                self.base_model_prepare_inputs_for_generation
+            )
             self.base_model._prepare_encoder_decoder_kwargs_for_generation = (
                 self.base_model_prepare_encoder_decoder_kwargs_for_generation
             )
@@ -209,7 +245,10 @@ class PeftModelForSeq2SeqLM(PeftModel):
     def prepare_inputs_for_generation(self, *args, **kwargs):
         peft_config = self.active_peft_config
         model_kwargs = self.base_model_prepare_inputs_for_generation(*args, **kwargs)
-        if model_kwargs["past_key_values"] is None and peft_config.peft_type == PeftType.PREFIX_TUNING:
+        if (
+            model_kwargs["past_key_values"] is None
+            and peft_config.peft_type == PeftType.PREFIX_TUNING
+        ):
             batch_size = model_kwargs["decoder_input_ids"].shape[0]
             past_key_values = self.get_prompt(batch_size)
             if self.base_model_torch_dtype is not None:
@@ -217,13 +256,15 @@ class PeftModelForSeq2SeqLM(PeftModel):
                 if isinstance(past_key_values[0], tuple):
                     past_key_values = tuple(
                         tuple(
-                            past_key_value.to(self.base_model_torch_dtype) for past_key_value in past_key_value_tuple
+                            past_key_value.to(self.base_model_torch_dtype)
+                            for past_key_value in past_key_value_tuple
                         )
                         for past_key_value_tuple in past_key_values
                     )
                 else:
                     past_key_values = tuple(
-                        past_key_value.to(self.base_model_torch_dtype) for past_key_value in past_key_values
+                        past_key_value.to(self.base_model_torch_dtype)
+                        for past_key_value in past_key_values
                     )
             model_kwargs["past_key_values"] = past_key_values
 

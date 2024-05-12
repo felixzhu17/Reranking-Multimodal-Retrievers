@@ -1,4 +1,3 @@
-
 from pprint import pprint
 
 import ast
@@ -8,18 +7,21 @@ prediction_file = "/home/ubuntu/additional_data/experiments/AWS_EVQA_RAG_PreFLMR
 
 # This line can be obtained from HF field: "question_type"
 # either templated or automatic
-question_type = 'automatic'
+question_type = "automatic"
 
 from tqdm import tqdm
 import multiprocessing
 from functools import partial
+
 # read csv
 import pandas as pd
+
 df = pd.read_csv(prediction_file, sep="\t")
 # print(df.columns)
 
 # use multi-processing to speed up
 import multiprocessing
+
 
 # Function to process a single row of the DataFrame
 def process_row(row, question_type):
@@ -36,14 +38,16 @@ def process_row(row, question_type):
             question,
             reference_list=answers,
             candidate=prediction,
-            question_type=question_type)
+            question_type=question_type,
+        )
     except:
         score = 1.0
     print(score)
     return score
 
+
 # Set the number of processes to use
-num_processes = 64 #multiprocessing.cpu_count() // 2
+num_processes = 64  # multiprocessing.cpu_count() // 2
 
 # Create a partial function with the fixed argument (question_type)
 partial_process_row = partial(process_row, question_type=question_type)
@@ -51,7 +55,9 @@ partial_process_row = partial(process_row, question_type=question_type)
 # Create a Pool of workers
 with multiprocessing.Pool(processes=num_processes) as pool:
     # Use tqdm to display progress
-    all_scores = list(tqdm(pool.imap(partial_process_row, df.iterrows(), chunksize=1), total=len(df)))
+    all_scores = list(
+        tqdm(pool.imap(partial_process_row, df.iterrows(), chunksize=1), total=len(df))
+    )
 
 # Calculate and print the average score
 average_score = sum(all_scores) / len(all_scores)
@@ -76,5 +82,5 @@ print(f"Average score: {average_score}")
 #         question_type=question_type)
 #     all_scores.append(score)
 #     # break
-    
+
 # print(f"Average score: {sum(all_scores) / len(all_scores)}")
