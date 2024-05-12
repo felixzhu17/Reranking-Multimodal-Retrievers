@@ -30,6 +30,7 @@ from colbert.data import Queries
 from colbert import Searcher
 
 from transformers.models.rag.retrieval_rag import Index
+from src.models.rerank.attention_fusion import AttentionFusionBertModel
 
 import pytorch_lightning as pl
 
@@ -59,7 +60,7 @@ class CrossEncoder(nn.Module):
     def __init__(self, config):
         super().__init__()
         # Initialize the BERT model with a pooling layer
-        self.bert_model = BertModel(config, add_pooling_layer=True)
+        self.bert_model = AttentionFusionBertModel(config, add_pooling_layer=True)
         # Define a classifier layer which projects the CLS token's embedding
         self.classifier = nn.Linear(config.hidden_size, 1)
         # Define a sigmoid activation function to output a probability score
