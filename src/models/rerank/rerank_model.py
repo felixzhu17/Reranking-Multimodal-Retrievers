@@ -380,27 +380,19 @@ class RerankModel(pl.LightningModule):
             )
             
             # Cross-Attention Fusion
-            upper_right = truncated_scores.permute(0, 2, 1)
-            bottom_left = truncated_scores
+            upper_right = F.softmax(truncated_scores.permute(0, 2, 1), dim=-1)
+            bottom_left = F.softmax(truncated_scores, dim=-1)
             
-            # Save upper_right and bottom_left to pkl
-            with open('upper_right.pkl', 'wb') as f:
-                pickle.dump(upper_right, f)
-
-            with open('bottom_left.pkl', 'wb') as f:
-                pickle.dump(bottom_left, f)
-                
-            raise ValueError
-            
-            
-            
+      
             reranker_attention_adj = torch.cat(
                 [
-                    torch.cat([upper_left, truncated_scores.permute(0, 2, 1)], dim=2),
-                    torch.cat([truncated_scores, bottom_right], dim=2),
+                    torch.cat([upper_left, upper_right], dim=2),
+                    torch.cat([bottom_left, bottom_right], dim=2),
                 ],
                 dim=1,
             )
+
+            
         else:
             reranker_attention_adj = None
 
