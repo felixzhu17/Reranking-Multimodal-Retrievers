@@ -155,12 +155,15 @@ class RerankerBaseExecutor(BaseExecutor, MetricsProcessor):
         reranker_config = model_config.reranker_config
         RerankerClass = globals()[reranker_config.RerankerClass]
         if "interaction_reranker" in self.model_config.modules:
-            assert RerankerClass == InteractionRerankModel, "Only RerankModel supports interaction_reranker"
+            assert RerankerClass == InteractionRerankModel, "Only InteractionRerankModel supports interaction_reranker"
+        else:
+            assert RerankerClass == RerankModel, "RerankModel is required when interaction_reranker is not used"
         self.prepared_data = self.dp.get_data([self.use_data_node], explode=True)
         self.reranker = RerankerClass(reranker_config)
         print("Freezing Reranker vision encoders")
-        for name, param in self.reranker.context_vision_encoder.named_parameters():
-            param.requires_grad = False
+        if RerankerClass == RerankModel:
+            for name, param in self.reranker.context_vision_encoder.named_parameters():
+                param.requires_grad = False
 
         if "preflmr_attention_fusion" in self.model_config.modules or "interaction_reranker" in self.model_config.modules:
             retriever_config = model_config.retriever_config
@@ -498,18 +501,16 @@ class RerankerBaseExecutor(BaseExecutor, MetricsProcessor):
         if "interaction_reranker" in self.model_config.modules:
             retrieval_results = self.retriever(**train_batch)
             train_batch = {
-                "query_late_interaction": retrieval_results.query_late_interaction,
-                "context_late_interaction": retrieval_results.context_late_interaction,
+                "query_late_interaction": retrieval_results.query_late_interaction_output,
+                "context_late_interaction": retrieval_results.context_late_interaction_output,
                 "num_negative_examples": self.model_config.num_negative_samples,
             }
-            
+                        
         if "preflmr_attention_fusion" in self.model_config.modules:
             train_batch["preflmr_scores"] = retrieval_results.scores_raw if retrieval_results is not None else self.retriever(**train_batch).scores_raw
             train_batch["fusion_multiplier"] = self.model_config.fusion_multiplier
 
         batch_loss = self.reranker(**train_batch).loss
-        raise ValueError
-
 
         # log the current learning rate from shedulers
         current_lrs = self.scheduler.get_last_lr()
@@ -592,6 +593,7 @@ class RerankerBaseExecutor(BaseExecutor, MetricsProcessor):
         return None
 
     def _compute_loss(self, sample_batched, batch_idx, dataloader_idx=0):
+        retrieval_results = None
         test_batch = {
             "query_input_ids": sample_batched["input_ids"].to(self.device),
             "query_attention_mask": sample_batched["attention_mask"].to(self.device),
@@ -602,6 +604,24 @@ class RerankerBaseExecutor(BaseExecutor, MetricsProcessor):
             "query_pixel_values": sample_batched["pixel_values"].to(self.device),
             "num_negative_examples": self.model_config.num_negative_samples,
         }
+        
+        batch_info = {
+            "query_input_ids": test_batch["query_input_ids"],
+            "query_attention_mask": test_batch["query_attention_mask"],
+            "query_pixel_values": test_batch["query_pixel_values"],
+        }
+
+        if "interaction_reranker" in self.model_config.modules:
+            retrieval_results = self.retriever(**test_batch)
+            test_batch = {
+                "query_late_interaction": retrieval_results.query_late_interaction_output,
+                "context_late_interaction": retrieval_results.context_late_interaction_output,
+                "num_negative_examples": self.model_config.num_negative_samples,
+            }
+            
+        if "preflmr_attention_fusion" in self.model_config.modules:
+            test_batch["preflmr_scores"] = retrieval_results.scores_raw if retrieval_results is not None else self.retriever(**test_batch).scores_raw
+            test_batch["fusion_multiplier"] = self.model_config.fusion_multiplier
 
         batch_loss = self.reranker(**test_batch).loss
 
@@ -618,7 +638,7 @@ class RerankerBaseExecutor(BaseExecutor, MetricsProcessor):
             "loss": batch_loss.detach().cpu(),
         }
 
-        return data_to_return, test_batch
+        return data_to_return, batch_info
 
     def evaluate_outputs(self, step_outputs, current_batches, mode="test"):
         # Batching every validation step outputs
@@ -686,22 +706,34 @@ class RerankerBaseExecutor(BaseExecutor, MetricsProcessor):
             query_pixel_values,
         ):
             print(f"Reranking question {question_id}")
+            
+            retrieval_results = None
+            
             retrieved_docs = self.static_retrieve(question_id).retrieved_docs
             context_input_ids, context_attention_masks = self.tokenize_retrieved_docs(
                 retrieved_docs
             )
+            batch_input = {
+                "query_input_ids": query_input_id,
+                "query_attention_mask": query_attention_mask,
+                "query_pixel_values": query_pixel_value,
+                "context_input_ids": context_input_ids,
+                "context_attention_mask": context_attention_masks,
+                "num_negative_examples": context_input_ids.shape[0] - query_input_id.shape[0]
+            }
 
-            batch_input = dict(
-                query_input_ids=query_input_id,
-                query_attention_mask=query_attention_mask,
-                query_pixel_values=query_pixel_value,
-                context_input_ids=context_input_ids,
-                context_attention_mask=context_attention_masks,
-                num_negative_examples=context_input_ids.shape[0]
-                - query_input_id.shape[0],
-            )
+            
+            if "interaction_reranker" in self.model_config.modules:
+                retrieval_results = self.retriever(**batch_input)
+                batch_input = {
+                    "query_late_interaction": retrieval_results.query_late_interaction_output,
+                    "context_late_interaction": retrieval_results.context_late_interaction_output,
+                    "num_negative_examples": retrieval_results.context_late_interaction_output.size(0) - retrieval_results.query_late_interaction_output.size(0),
+                }
+                
+                
             if "preflmr_attention_fusion" in self.model_config.modules:
-                preflmr_scores = self.retriever(**batch_input).scores_raw
+                preflmr_scores = retrieval_results.scores_raw if retrieval_results is not None else self.retriever(**batch_input).scores_raw
                 batch_input["preflmr_scores"] = preflmr_scores
                 batch_input["fusion_multiplier"] = self.model_config.fusion_multiplier
 

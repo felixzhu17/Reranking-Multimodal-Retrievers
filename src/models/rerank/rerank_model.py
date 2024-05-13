@@ -259,9 +259,9 @@ class RerankModel(pl.LightningModule):
         fusion_multiplier: float = 1,
     ):
 
-        batch_size = query_input_ids.shape[0]
+        batch_size = query_input_ids.size(0)
         expanded_batch_size = batch_size * (num_negative_examples + 1)
-        assert expanded_batch_size == context_input_ids.shape[0]
+        assert expanded_batch_size == context_input_ids.size(0)
         query_input_ids = query_input_ids.repeat_interleave(
             num_negative_examples + 1, dim=0
         ).contiguous()
@@ -674,6 +674,10 @@ class InteractionRerankModel(pl.LightningModule):
             self.config.cross_encoder_max_position_embeddings
         )
         self.reranker = CrossEncoder(cross_encoder_config)
+        pretrain_config = FLMRConfig.from_pretrained(
+            self.config.pretrain_model_version, trust_remote_code=True
+        )
+        self.late_interaction_embedding_size = pretrain_config.dim
         self.cross_encoder_input_mapping = nn.Linear(
             self.late_interaction_embedding_size, cross_encoder_config.hidden_size
         )
@@ -687,11 +691,18 @@ class InteractionRerankModel(pl.LightningModule):
         fusion_multiplier: float = 1,
     ):
 
-        expanded_batch_size = query_late_interaction.shape[0]
-        batch_size = expanded_batch_size // (num_negative_examples + 1)
-        assert expanded_batch_size % (num_negative_examples + 1) == 0
+
+        
+        batch_size = query_late_interaction.size(0)
+        expanded_batch_size = batch_size * (num_negative_examples + 1)
+        assert expanded_batch_size == context_late_interaction.size(0), f"{query_late_interaction.shape}, {context_late_interaction.shape}, {num_negative_examples}"
+        
         query_length = query_late_interaction.size(1)
         context_length = context_late_interaction.size(1)
+
+        query_late_interaction = query_late_interaction.repeat_interleave(
+            num_negative_examples + 1, dim=0
+        ).contiguous()
 
         reranker_inputs = torch.cat((query_late_interaction, context_late_interaction), dim=1)
         reranker_attention_mask = torch.ones((expanded_batch_size, query_length + context_length), device=self.device)
@@ -732,6 +743,9 @@ class InteractionRerankModel(pl.LightningModule):
             
         else:
             reranker_attention_adj = None
+
+        reranker_inputs = self.cross_encoder_input_mapping(reranker_inputs)
+
 
         logits = self.reranker(
             reranker_inputs,

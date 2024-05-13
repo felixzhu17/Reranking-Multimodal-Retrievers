@@ -116,7 +116,7 @@ local data_pipeline = std.mergePatch(merge_data, data_loader);
         "reranker_config":{
           "base_model": "FLMR",
           "pretrain_config_class": "FLMRConfig",
-          "RerankerClass": "RerankModel",
+          "RerankerClass": "InteractionRerankModel",
           "pretrain_model_version": reranker_pretrained_ckpt_path,
           "cross_encoder_config_base": "bert-base-uncased",
           "cross_encoder_num_hidden_layers": 3,
@@ -127,11 +127,13 @@ local data_pipeline = std.mergePatch(merge_data, data_loader);
         "num_negative_samples": 4,
         "max_source_length": 32,
         "max_decoder_source_length": 512,
+        "fusion_multiplier": 1,
         "pretrained": 1,
         "modules": [
             "separate_query_and_item_encoders",
             "train_with_retrieved_docs",
             "preflmr_attention_fusion",
+            "interaction_reranker"
         ],
         "index_files": index_files,
         "nbits": 8,

@@ -437,16 +437,7 @@ class FLMRBaseExecutor(BaseExecutor, MetricsProcessor):
         if question_mask is not None:
             train_batch["query_question_mask"] = question_mask.to(self.device)
 
-        # Save train_batch as a pkl file
-
-        # with open('PreFLMR_train_batch.pkl', 'wb') as f:
-        #     pickle.dump(train_batch, f)
-        # raise ValueError
-
         forward_results = self.model(**train_batch)
-
-        # print(f"{forward_results=}")
-
         batch_loss = forward_results.loss
         ib_loss = forward_results.in_batch_negative_loss
 
