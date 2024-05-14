@@ -703,3 +703,164 @@ class MetricsProcessor:
         log_dict.metrics.update(log_result)
 
         return log_dict
+
+    def compute_rerank_DPR_scores(self, module, data_dict, log_dict) -> dict:
+        """
+        Compute DPR scores (Pseudo Relevance)
+        This metrics is based on string matching.
+        """
+        batch_result = data_dict["batch_retrieval_result"]
+        Ks = data_dict["Ks"]
+
+        # Total number of questions
+        count = len(batch_result)
+        result = {
+            "precision": np.zeros(len(Ks)),
+            "recall": np.zeros(len(Ks)),
+            "gold_precision": np.zeros(len(Ks)),
+            "gold_recall": np.zeros(len(Ks)),
+            "raw_precision": np.zeros(len(Ks)),
+            "raw_recall": np.zeros(len(Ks)),
+            "raw_gold_precision": np.zeros(len(Ks)),
+            "raw_gold_recall": np.zeros(len(Ks)),
+        }
+
+        for re in tqdm(batch_result):
+            if "answers" not in re.keys():
+                # This metric cannot be evaluated
+                return log_dict
+
+            top_ranking_passages = re["top_ranking_passages"]
+            raw_top_ranking_passages = re["raw_top_ranking_passages"]
+            answers = re["answers"]
+            gold_answer = re["gold_answer"]
+
+            for indexK, K in enumerate(Ks):
+                found_answers = []
+                found_gold_answers = []
+                raw_found_answers = []
+                raw_found_gold_answers = []
+
+                for passage_data in top_ranking_passages[:K]:
+                    for answer in answers:
+                        if answer.lower() in passage_data["content"].lower():
+                            found_answers.append(answer)
+                            break
+                    if gold_answer.lower() in passage_data["content"].lower():
+                        found_gold_answers.append(answer)
+
+                for raw_passage_data in raw_top_ranking_passages[:K]:
+                    for answer in answers:
+                        if answer.lower() in raw_passage_data["content"].lower():
+                            raw_found_answers.append(answer)
+                            break
+                    if gold_answer.lower() in raw_passage_data["content"].lower():
+                        raw_found_gold_answers.append(answer)
+
+                if len(found_answers) > 0:
+                    # At least one answer is retrieved
+                    result["recall"][indexK] += 1
+                # The proportion of retrieved knowledge has an answer
+                result["precision"][indexK] += len(found_answers) / K
+
+                if len(found_gold_answers) > 0:
+                    # If gold answer is found
+                    result["gold_recall"][indexK] += 1
+                # The proportion of retrieved knowledge has the gold answer
+                result["gold_precision"][indexK] += len(found_gold_answers) / K
+
+                if len(raw_found_answers) > 0:
+                    # At least one raw answer is retrieved
+                    result["raw_recall"][indexK] += 1
+                # The proportion of retrieved raw knowledge has an answer
+                result["raw_precision"][indexK] += len(raw_found_answers) / K
+
+                if len(raw_found_gold_answers) > 0:
+                    # If raw gold answer is found
+                    result["raw_gold_recall"][indexK] += 1
+                # The proportion of retrieved raw knowledge has the gold answer
+                result["raw_gold_precision"][indexK] += len(raw_found_gold_answers) / K
+
+        result["precision"] = result["precision"] / count
+        result["recall"] = result["recall"] / count
+        result["gold_precision"] = result["gold_precision"] / count
+        result["gold_recall"] = result["gold_recall"] / count
+        result["raw_precision"] = result["raw_precision"] / count
+        result["raw_recall"] = result["raw_recall"] / count
+        result["raw_gold_precision"] = result["raw_gold_precision"] / count
+        result["raw_gold_recall"] = result["raw_gold_recall"] / count
+
+        log_result = EasyDict()
+        for metrics_name, np_array in result.items():
+            for index, K in enumerate(Ks):
+                log_result[f"{metrics_name}_at_{K}"] = float(np_array[index])
+
+        log_dict.metrics.update(log_result)
+        return log_dict
+        
+    def compute_rerank_DPR_scores_with_pos_ids(self, module, data_dict, log_dict) -> dict:
+        """
+        Compute DPR scores (ground truth)
+        These metrics are based on ground truth data.
+        """
+        batch_result = data_dict["batch_retrieval_result"]
+        Ks = data_dict["Ks"]
+        max_K = max(Ks)
+
+        field = module.get("field", "pos_item_ids")
+
+        # Total number of questions
+        count = len(batch_result)
+        result = {
+            "precision": np.zeros(len(Ks)),
+            "recall": np.zeros(len(Ks)),
+            "raw_precision": np.zeros(len(Ks)),
+            "raw_recall": np.zeros(len(Ks)),
+        }
+
+        for re in tqdm(batch_result):
+            top_ranking_passages = re["top_ranking_passages"]
+            raw_top_ranking_passages = re["raw_top_ranking_passages"]
+            pos_item_ids = re[field]
+
+            hit = []
+            raw_hit = []
+
+            for passage_data in top_ranking_passages[:max_K]:
+                if passage_data["passage_id"] in pos_item_ids:
+                    hit.append(1)
+                else:
+                    hit.append(0)
+
+            for raw_passage_data in raw_top_ranking_passages[:max_K]:
+                if raw_passage_data["passage_id"] in pos_item_ids:
+                    raw_hit.append(1)
+                else:
+                    raw_hit.append(0)
+
+            for indexK, K in enumerate(Ks):
+                if sum(hit[:K]) > 0:
+                    # At least one answer is retrieved
+                    result["recall"][indexK] += 1
+                # The proportion of retrieved knowledge has an answer
+                result["precision"][indexK] += sum(hit[:K]) / K
+
+                if sum(raw_hit[:K]) > 0:
+                    # At least one raw answer is retrieved
+                    result["raw_recall"][indexK] += 1
+                # The proportion of retrieved raw knowledge has an answer
+                result["raw_precision"][indexK] += sum(raw_hit[:K]) / K
+
+        result["precision"] = result["precision"] / count
+        result["recall"] = result["recall"] / count
+        result["raw_precision"] = result["raw_precision"] / count
+        result["raw_recall"] = result["raw_recall"] / count
+
+        log_result = EasyDict()
+        for metrics_name, np_array in result.items():
+            for index, K in enumerate(Ks):
+                log_result[f"{field}_{metrics_name}_at_{K}"] = float(np_array[index])
+                log_result[f"raw_{field}_{metrics_name}_at_{K}"] = float(np_array[index])
+
+        log_dict.metrics.update(log_result)
+        return log_dict

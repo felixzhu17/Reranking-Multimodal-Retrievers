@@ -57,9 +57,6 @@ mpi_tasks_per_node=$(echo "$SLURM_TASKS_PER_NODE" | sed -e  's/^\([0-9][0-9]*\).
 #! (note that SLURM reproduces the environment at submission irrespective of ~/.bashrc):
 . /etc/profile.d/modules.sh                # Leave this line (enables the module command)
 source /home/${USER}/.bashrc
-# 
-# conda activate myenv
-# source /rds/user/fz288/hpc-work/MLMI14-Assignment-1/test_env/bin/activate
 
 #! Work directory (i.e. where the job will run):
 workdir="/home/fz288/rds/hpc-work/PreFLMR" 
@@ -71,7 +68,7 @@ conda deactivate
 conda deactivate
 source hpc/conda.sh
 
-application="source job_scripts/test_index.sh"
+application="source job_scripts/$SCRIPT_NAME.sh"
 
 #! Are you using OpenMP (NB this is unrelated to OpenMPI)? If so increase this
 #! safe value to no more than 128:

@@ -1,49 +1,17 @@
 python src/main.py --config configs/FLMR/evqa_FLMR.jsonnet --mode train --reset --override
 python src/main.py --config configs/FLMR/evqa_FLMR.jsonnet --mode test --test_suffix model_step_1000 --opts train.load_model_path="/home/fz288/rds/hpc-work/PreFLMR/experiments/default_DPR/train/saved_models/model_step_1000.ckpt" 
-
-python src/main.py --config configs/FLMR/oven_FLMR.jsonnet --mode train --opts train.load_model_path="experiments/Oven_PreFLMR/train/saved_models/model_step_500_restart_v3.ckpt" train.model_checkpoint_callback_paras.filename="model_step_{step}_restart_v4" 
-
-
-python src/main.py --config configs/FLMR/oven_FLMR.jsonnet --mode train --experiment_name Oven_PreFLMR_New --opts train.load_model_path="/home/fz288/rds/hpc-work/PreFLMR/experiments/Oven_PreFLMR_New/train/saved_models/model_step_500_restart_v11.ckpt" train.model_checkpoint_callback_paras.filename="model_step_{step}_restart_v12"
-
-python -c 'import wandb ; wandb.init(project="PreFLMR MLMI")'
-from datasets import DatasetDict
-x = DatasetDict.load_from_disk('/home/fz288/rds/hpc-work/PreFLMR/cache/process:ConcatenateDatasets-81353e53c956be30cfee960db8ff4323.hf')
-
-from easydict import EasyDict
-import pickle
-def load_pickle_data(data_file_name):
-    with open(data_file_name, 'rb') as f:
-        load_pickle_data = pickle.load(f)['cache']
-    return EasyDict(load_pickle_data)
-x = load_pickle_data('/home/fz288/rds/hpc-work/PreFLMR/cache/output:PrepareDataloaders-edf8c08d8ac107d33abf542faafd0bcf.pkl')
-import torch
-from torch.utils.data import DataLoader
-# Fetch the first batch
-for data in data['data_loaders']['train']['train/OKVQADatasetForDPR.train']:
-    break  # This stops the iteration after the first batch
-
-# Now 'data' holds the first batch
-# Print or inspect the batch
-print(data)
-# Optionally, print specific parts of the batch if it's a dictionary, tuple, etc.
-
-
 python src/main.py --config configs/RAG/okvqa_RAG.jsonnet --mode train
 
 
 python src/main.py --config configs/FLMR/okvqa_FLMR.jsonnet --mode train
 
 
-python src/main.py --config configs/FLMR/okvqa_FLMR.jsonnet --mode test --test_suffix index --experiment_name OKVQA_PreFLMR
+python src/main.py --config configs/FLMR/okvqa_FLMR.jsonnet --mode test --test_suffix index --experiment_name OKVQA_PreFLMR_v2
 
-x.vqa_data_with_dpr_output.lookup = {}
-for data_split in ['train', 'valid', 'test']:
-    ds_split = x.vqa_data_with_dpr_output[data_split]
-    lookup_dict = ds_split.to_pandas().set_index("question_id", drop=False).to_dict(orient="index")
-    x.vqa_data_with_dpr_output.lookup.update(lookup_dict)
 
-x.vqa_data_with_dpr_output.lookup[str(516065)].keys()
-
-python src/main.py --config configs/Rerank/okvqa_rerank.jsonnet --mode train
+python src/main.py --config configs/Rerank/okvqa_base_rerank.jsonnet --mode train --reset --override
 python src/main.py --config configs/Rerank/okvqa_rerank.jsonnet --mode test
+
+
+
+python src/main.py --config configs/Rerank/okvqa_base_rerank.jsonnet --mode test --test_suffix model_step_500 --opts train.load_model_path="experiments/OKVQA_Reranker/train/saved_models/model_step_500.ckpt" 

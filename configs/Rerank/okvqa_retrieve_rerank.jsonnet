@@ -79,11 +79,6 @@ local data_loader = {
           test: [
             {
               dataset_type: 'OKVQADatasetForDPR',
-              split: 'train',
-              use_column: 'okvqa_data',
-            },
-            {
-              dataset_type: 'OKVQADatasetForDPR',
               split: 'test',
               use_column: 'okvqa_data',
             },
@@ -102,7 +97,7 @@ local validation_indexing_source = ["okvqa_passages"];
 local data_pipeline = std.mergePatch(merge_data, data_loader);
 
 {
-    experiment_name: 'OKVQA_Reranker',
+    experiment_name: 'OKVQA_Retrieve_Reranker',
     test_suffix: 'default_test',
     meta: meta.default_meta,
     data_pipeline: data_pipeline,
@@ -116,7 +111,7 @@ local data_pipeline = std.mergePatch(merge_data, data_loader);
         "reranker_config":{
           "base_model": "FLMR",
           "pretrain_config_class": "FLMRConfig",
-          "RerankerClass": "InteractionRerankModel",
+          "RerankerClass": "RerankModel",
           "pretrain_model_version": reranker_pretrained_ckpt_path,
           "cross_encoder_config_base": "bert-base-uncased",
           "cross_encoder_num_hidden_layers": 3,
@@ -131,9 +126,7 @@ local data_pipeline = std.mergePatch(merge_data, data_loader);
         "pretrained": 1,
         "modules": [
             "separate_query_and_item_encoders",
-            "train_with_retrieved_docs",
-            "preflmr_attention_fusion",
-            "interaction_reranker"
+            "train_with_retrieved_docs"
         ],
         "index_files": index_files,
         "nbits": 8,
@@ -192,12 +185,13 @@ local data_pipeline = std.mergePatch(merge_data, data_loader);
             check_val_every_n_epoch: null,
             val_check_interval: 250,
             log_every_n_steps: 10,
-            limit_test_batches: 2,
+            // limit_train_batches: 2,
+            // limit_val_batches: 2,
         },
         model_checkpoint_callback_paras: {
-            monitor: 'valid/OKVQADatasetForDPR.test/recall_at_5',
+            monitor: 'valid/OKVQADatasetForDPR.test/loss',
             save_top_k: 3,
-            mode: "max",
+            mode: "min",
             filename: 'model_step_{step}',
             save_last: true,
             verbose: true,
@@ -205,9 +199,9 @@ local data_pipeline = std.mergePatch(merge_data, data_loader);
             save_on_train_epoch_end: false,
         },
         early_stopping_callback_paras: {
-            patience: 3,
+            patience: 1,
             verbose: true,
-            mode: "max",
+            mode: "min",
         },
         optimizer_config: {
             optimizer_name: "AdamW",
@@ -234,7 +228,7 @@ local data_pipeline = std.mergePatch(merge_data, data_loader);
             devices: 'auto',
             strategy: 'ddp_find_unused_parameters_true',
             precision: 'bf16',
-            limit_test_batches: 2,
+            // limit_test_batches: 2,
         },
         batch_size: 16,
         num_dataloader_workers: 0,
@@ -244,7 +238,7 @@ local data_pipeline = std.mergePatch(merge_data, data_loader);
         'eval_op_name': 'Your eval op name'
     },
     "metrics": [
-        {'name': 'compute_DPR_scores'},
-        {'name': 'compute_DPR_scores_with_pos_ids'},
+        {'name': 'compute_rerank_DPR_scores'},
+        {'name': 'compute_rerank_DPR_scores_with_pos_ids'},
     ],
 }

@@ -547,7 +547,7 @@ class RerankerBaseExecutor(BaseExecutor, MetricsProcessor):
         for i in range(len(self.val_dataloader())):
             validation_step_output = validation_step_outputs[i]
             validation_batch = validation_batches[i]
-            log_dict = self.evaluate_outputs(validation_step_output, validation_batch)
+            log_dict = self.fast_evaluate_outputs(validation_step_output, validation_batch)
             self.logging_results(log_dict, prefix=self.val_dataloader_names[i])
         self.validation_step_outputs = defaultdict(list)
         self.validation_batch = defaultdict(list)
@@ -640,6 +640,20 @@ class RerankerBaseExecutor(BaseExecutor, MetricsProcessor):
 
         return data_to_return, batch_info
 
+    def fast_evaluate_outputs(self, step_outputs, current_batches, mode="test"):
+        batch_loss = []
+        for step_output in step_outputs:
+            batch_loss.append(step_output["loss"])
+        loss = float(np.mean(np.array(batch_loss)))
+        test_table = wandb.Table(columns=[])
+        return EasyDict(
+            {
+                "metrics": {"loss": loss},
+                "artifacts": {"test_table": test_table},
+            }
+        )
+
+
     def evaluate_outputs(self, step_outputs, current_batches, mode="test"):
         # Batching every validation step outputs
         # n_queries x hidden_size
@@ -697,15 +711,14 @@ class RerankerBaseExecutor(BaseExecutor, MetricsProcessor):
             query_input_id,
             query_attention_mask,
             query_pixel_value,
-        ) in zip(
+        ) in tqdm(zip(
             question_ids,
             pos_item_ids,
             neg_item_ids,
             query_input_ids,
             query_attention_masks,
             query_pixel_values,
-        ):
-            print(f"Reranking question {question_id}")
+        )):
             
             retrieval_results = None
             
@@ -753,6 +766,15 @@ class RerankerBaseExecutor(BaseExecutor, MetricsProcessor):
             doc_logits_pairs = list(zip(retrieved_docs, logits_list))
             sorted_docs = sorted(doc_logits_pairs, key=lambda x: x[1], reverse=True)
 
+            raw_top_ranking_passages = [
+                {
+                    "passage_id": doc["passage_id"],
+                    "content": doc["content"],
+                    "score": None,
+                }
+                for doc in retrieved_docs
+            ]
+
             top_ranking_passages = [
                 {
                     "passage_id": doc["passage_id"],
@@ -769,6 +791,7 @@ class RerankerBaseExecutor(BaseExecutor, MetricsProcessor):
             batched_data = {
                 "question_id": question_id,
                 "top_ranking_passages": top_ranking_passages,
+                "raw_top_ranking_passages": raw_top_ranking_passages,
                 "pos_item_ids": pos_ids,
                 "neg_item_ids": neg_ids,
             }
