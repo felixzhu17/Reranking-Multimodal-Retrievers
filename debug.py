@@ -1,65 +1,80 @@
 import pickle
 
-# passage_id2doc = None 
 
-# import json
-# import pickle
-# from src.models.flmr import FLMRContextEncoderTokenizer
-
-# input_files = [
-#     "/home/fz288/rds/hpc-work/PreFLMR/experiments/OKVQA_PreFLMR/test/index/index_test_OKVQADatasetForDPR.test_predictions_rank_0.json",
-#     "/home/fz288/rds/hpc-work/PreFLMR/experiments/OKVQA_PreFLMR/test/index/index_test_OKVQADatasetForDPR.train_predictions_rank_0.json",
-# ]
-
-# # tokenizer = FLMRContextEncoderTokenizer.from_pretrained("LinWeizheDragon/PreFLMR_ViT-B", subfolder="context_tokenizer")
-
-# questionId2topPassages = {}
-# for prediction_pkl in input_files:
-#     if prediction_pkl.endswith('.json'):
-#         # load using json
-#         with open(prediction_pkl, 'r') as f:
-#             predictions = json.load(f)['output']
-#             for pred in predictions:
-#                 q_id = pred['question_id']
-#                 top_ranking_passages = pred['top_ranking_passages']
-#                 questionId2topPassages[q_id] = top_ranking_passages
-#     else:
-#         # Can use `src/tools/reduce_retrieval_result_file_size.py` to reduce json file size to speed up the loading
-#         # in this case, we load from a pkl file
-#         with open(prediction_pkl, 'rb') as f:
-#             predictions = pickle.load(f)['output']
-#             for pred in predictions:
-#                 q_id = pred['question_id']
-#                 top_ranking_passages = pred['top_ranking_passages']
-#                 questionId2topPassages[q_id] = top_ranking_passages
-
-# # Assert that the length of all questionId2topPassages values are equal
-# lengths = [len(passages) for passages in questionId2topPassages.values()]
-# assert all(length == lengths[0] for length in lengths)
-
-# with open("/home/fz288/rds/hpc-work/PreFLMR/question_ids.pkl", 'rb') as f:
-# #     questions = pickle.load(f)
-
-# with open("reranker_attention_mask.pkl", 'rb') as f:
-#     reranker_attention_mask = pickle.load(f)
-    
 with open("sample_batched.pkl", 'rb') as f:
     batch = pickle.load(f)
 
 
+from transformers import Blip2ForConditionalGeneration, Blip2Config, Blip2Processor
 
-# for q_id in questions:
-#     assert q_id in questionId2topPassages
+# Load the configuration
+config = Blip2Config.from_pretrained('Salesforce/blip2-flan-t5-xl')
+model = Blip2ForConditionalGeneration(config)
+tokenizer = Blip2Processor.from_pretrained('Salesforce/blip2-flan-t5-xl')
 
 
-# predictions[0]['top_ranking_passages'][0]['content']
+# Sample input and context text sequences
+input_text_sequences = batch['input_text_ids']
+context_text_sequences = batch['context_text_ids']
 
-# encoding = tokenizer([predictions[0]['top_ranking_passages'][0]['content'], predictions[0]['top_ranking_passages'][1]['content']],
-#                                     padding='max_length',
-#                                     max_length=512,
-#                                     truncation=True,
-#                                     return_tensors="pt")
-# generator_input_ids, generator_attention_mask = encoding.input_ids, encoding.attention_mask
-# generator_input_ids = generator_input_ids.to(labels.device)
-# generator_attention_mask = generator_attention_mask.to(labels.device)
+# Concatenate sequences and create labels
+concatenated_sequences = []
+labels = []
+for i, input_text in enumerate(input_text_sequences):
+    for j in range(5):
+        context_index = i * 5 + j
+        context_text = context_text_sequences[context_index]
+        concatenated_sequence = input_text + " " + context_text
+        concatenated_sequences.append(concatenated_sequence)
+        # First of each group of 5 gets 'yes', the others 'no'
+        if j == 0:
+            labels.append("yes")
+        else:
+            labels.append("no")
 
+from transformers import Blip2Processor
+import torch
+# Initialize the processor
+processor = Blip2Processor.from_pretrained('Salesforce/blip2-flan-t5-xl')
+
+# Tokenize the concatenated sequences and targets
+inputs = processor(text=concatenated_sequences, return_tensors="pt", padding=True, truncation=True)
+target_tokens = processor(text=labels, return_tensors="pt", padding=True, truncation=True).input_ids
+
+# # Align the labels for token prediction:
+# # Fill other parts with -100 (to ignore them in loss computation)
+# labels = torch.full_like(inputs.input_ids, -100)
+# labels[:, -1] = target_tokens[:, 0]  # Only the last token is the target
+
+labels = target_tokens[:, 0].reshape(-1, 1) 
+
+# Verify the shapes
+print("Inputs shape:", inputs.input_ids.shape)
+print("Labels shape:", labels.shape)
+
+# Generate fake pixel values
+batch_size = inputs.input_ids.size(0)
+num_channels = 3  # Typically, images have 3 channels (RGB)
+height = 224  # Common height for vision models
+width = 224  # Common width for vision models
+fake_pixel_values = torch.randn((batch_size, num_channels, height, width))
+
+
+
+model.eval()
+
+
+# Move inputs and labels to the correct device
+inputs = {key: val.to(model.device) for key, val in inputs.items()}
+labels = labels.to(model.device)
+fake_pixel_values = fake_pixel_values.to(model.device)
+
+# Add fake pixel values to the inputs dictionary
+inputs['pixel_values'] = fake_pixel_values
+
+# Forward pass with evaluation mode and no gradient tracking
+with torch.no_grad():
+    outputs = model(**inputs, labels=labels)
+    loss = outputs.loss
+# Output the loss
+print("Loss:", loss.item())
