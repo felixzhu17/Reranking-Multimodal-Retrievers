@@ -1,0 +1,4 @@
+# python src/main.py --config configs/Rerank/initial_experiments/okvqa_fusion_rerank.jsonnet --mode train
+python src/main.py --config configs/Rerank/initial_experiments/okvqa_fusion_rerank.jsonnet --mode train --experiment_name OKVQA_Fusion_Reranker_5 --opts model_config.fusion_multiplier=5
+python src/main.py --config configs/Rerank/initial_experiments/okvqa_fusion_rerank.jsonnet --mode train --experiment_name OKVQA_Fusion_Reranker_10  --opts model_config.fusion_multiplier=10
+python src/main.py --config configs/Rerank/initial_experiments/okvqa_fusion_rerank.jsonnet --mode train --experiment_name OKVQA_Fusion_Reranker_100  --opts model_config.fusion_multiplier=100

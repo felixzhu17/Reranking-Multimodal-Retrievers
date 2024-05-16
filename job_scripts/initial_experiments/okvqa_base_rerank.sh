@@ -1,0 +1,2 @@
+# python src/main.py --config configs/Rerank/initial_experiments/okvqa_base_rerank.jsonnet --mode train --reset --override
+python src/main.py --config configs/Rerank/initial_experiments/okvqa_base_rerank.jsonnet --mode train --reset --override

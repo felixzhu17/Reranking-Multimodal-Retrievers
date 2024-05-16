@@ -1,5 +1,5 @@
-local meta = import '../meta_configs/hpc_meta_config.libsonnet';
-local data = import '../data/okvqa_data.libsonnet';
+local meta = import '../../meta_configs/hpc_meta_config.libsonnet';
+local data = import '../../data/okvqa_data.libsonnet';
 local merge_data = data.merge_data_pipeline;
 
 local pretrained_ckpt_path = "LinWeizheDragon/PreFLMR_ViT-B";
@@ -97,7 +97,7 @@ local validation_indexing_source = ["okvqa_passages"];
 local data_pipeline = std.mergePatch(merge_data, data_loader);
 
 {
-    experiment_name: 'OKVQA_Reranker',
+    experiment_name: 'OKVQA_Interaction_Reranker',
     test_suffix: 'default_test',
     meta: meta.default_meta,
     data_pipeline: data_pipeline,
@@ -111,11 +111,12 @@ local data_pipeline = std.mergePatch(merge_data, data_loader);
         "reranker_config":{
           "base_model": "FLMR",
           "pretrain_config_class": "FLMRConfig",
-          "RerankerClass": "RerankModel",
+          "RerankerClass": "InteractionRerankModel",
           "pretrain_model_version": reranker_pretrained_ckpt_path,
           "cross_encoder_config_base": "bert-base-uncased",
           "cross_encoder_num_hidden_layers": 3,
-          "cross_encoder_max_position_embeddings": 750
+          "cross_encoder_max_position_embeddings": 750,
+          "loss_fn": "binary_cross_entropy"
 
         },
         "Ks": [5, 10, 20, 50, 100],
@@ -126,6 +127,7 @@ local data_pipeline = std.mergePatch(merge_data, data_loader);
         "pretrained": 1,
         "modules": [
             "separate_query_and_item_encoders",
+            "interaction_reranker"
         ],
         "index_files": index_files,
         "nbits": 8,
@@ -200,12 +202,12 @@ local data_pipeline = std.mergePatch(merge_data, data_loader);
         early_stopping_callback_paras: {
             patience: 3,
             verbose: true,
-            mode: "max",
+            mode: "min",
         },
         optimizer_config: {
             optimizer_name: "AdamW",
             optimizer_params: {
-                lr: 0.00001,
+                lr: 0.0001,
                 eps: 1e-08,
             },
             scheduler: "none",

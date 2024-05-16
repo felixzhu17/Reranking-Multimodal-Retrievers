@@ -78,10 +78,10 @@ class CrossEncoder(nn.Module):
         super().__init__()
         # Initialize the BERT model with a pooling layer
         self.bert_model = AttentionFusionBertModel(config, add_pooling_layer=True)
-        # Define a classifier layer which projects the CLS token's embedding
-        self.classifier = nn.Linear(config.hidden_size, 1)
+        # Define two classifier layers which project the CLS token's embedding
+        self.classifier1 = nn.Linear(config.hidden_size, 1)
+        self.classifier2 = nn.Linear(config.hidden_size, 1)
         # Define a sigmoid activation function to output a probability score
-        self.sigmoid = nn.Sigmoid()
 
     def forward(
         self,
@@ -102,16 +102,46 @@ class CrossEncoder(nn.Module):
         # Get the CLS token's output (first token of sequence output)
         cls_output = outputs.last_hidden_state[:, 0]
 
-        # Pass the CLS token's output through the classifier to get the logit
-        logits = self.classifier(cls_output)
+        # Pass the CLS token's output through the classifier to get the logits
+        logits1 = self.classifier1(cls_output)
+        logits2 = self.classifier2(cls_output)
 
-        return logits
+        return logits1, logits2
 
-    def predict(self, input_embeds, attention_mask=None, token_type_ids=None):
-        logits = self.forward(input_embeds, attention_mask, token_type_ids)
-        probabilities = self.sigmoid(logits)
+def initialise_loss_fn(config, device):
+    if config.loss_fn in ["binary_cross_entropy", "two_head_binary_cross_entropy"]:
+        pos_weight = torch.tensor([config.pos_weight], device=device) if config.pos_weight is not None else None
+        if pos_weight is not None:
+            print("Weighted BCE Loss", config.pos_weight)
+        loss_fn = nn.BCEWithLogitsLoss(pos_weight=pos_weight)
+    elif config.loss_fn == "negative_sampling":
+        print("Negative Sampling Loss")
+        loss_fn = nn.CrossEntropyLoss()
+    else:
+        raise ValueError(f"Unknown loss function {config.loss_fn}")
+    return loss_fn
 
-        return probabilities
+def prepare_logits_labels(config, logits, logits_secondary, batch_size, num_negative_examples):
+    if config.loss_fn in ["binary_cross_entropy", "two_head_binary_cross_entropy"]:
+        # First document is the positive example, concatenate them all along the first dimension and use binary cross entropy
+        labels = torch.zeros(num_negative_examples + 1, 1)
+        labels[0, 0] = 1
+        labels = labels.repeat(batch_size, 1)
+        labels = labels.to(logits.device)
+        if config.loss_fn == "two_head_binary_cross_entropy":
+            # Concatenate logits from both heads
+            logits = torch.cat((logits, logits_secondary), dim=1)
+            # Apply softmax across the concatenated logits
+            logits = F.softmax(logits, dim=1)
+            # Use only the probability of the positive class (assume positive class is the first one)
+            logits = logits[:, 0].unsqueeze(1)
+    elif config.loss_fn == "negative_sampling":
+        logits = logits.view(-1, num_negative_examples + 1)
+        labels = torch.zeros(batch_size, dtype=torch.long, device=logits.device)
+    else:
+        raise ValueError(f"Unknown loss function {config.loss_fn}")
+    return logits, labels
+
 
 
 class RerankModel(pl.LightningModule):
@@ -125,7 +155,7 @@ class RerankModel(pl.LightningModule):
         self.config = config
         self.init_model_base()
         self.init_reranker()
-        self.loss_fn = nn.BCEWithLogitsLoss()
+        self.loss_fn = initialise_loss_fn(config, self.device)
 
     def init_reranker(self):
         cross_encoder_config_base = self.config.cross_encoder_config_base
@@ -208,44 +238,6 @@ class RerankModel(pl.LightningModule):
         else:
             self.mask_instruction = False
 
-    #     else:
-    #         self.context_text_encoder = FLMRTextModel(pretrain_config.text_config)
-    #         self.context_text_encoder_linear = nn.Linear(pretrain_config.text_config.hidden_size, pretrain_config.dim, bias=False)
-    #         self.context_vision_encoder = FLMRVisionModel(pretrain_config.vision_config)
-    #         self.context_vision_projection = FLMRMultiLayerPerceptron(
-    #             (
-    #                 self.vision_encoder_embedding_size,
-    #                 (self.late_interaction_embedding_size * self.mapping_network_prefix_length) // 2,
-    #                 self.late_interaction_embedding_size * self.mapping_network_prefix_length,
-    #             )
-    #         )
-    #         self.init_transformer_mapping()
-
-    # def init_transformer_mapping(self):
-    #     transformer_mapping_config_base = self.config.transformer_mapping_config_base
-    #     transformer_mapping_config = BertConfig.from_pretrained(transformer_mapping_config_base)
-
-    #     assert (
-    #         self.config.text_config.hidden_size == transformer_mapping_config.hidden_size
-    #     ), f"hidden_size {self.config.text_config.hidden_size} != transformer_mapping_config.hidden_size {transformer_mapping_config.hidden_size}. To use cross attention, the dimensions must match."
-    #     # shallow transformer
-    #     transformer_mapping_config.num_hidden_layers = self.config.transformer_mapping_num_hidden_layers
-    #     # add cross attention
-    #     transformer_mapping_config.is_decoder = True
-    #     transformer_mapping_config.add_cross_attention = True
-
-    #     # The linear layer from vision encoder to transformer input
-    #     self.transformer_mapping_input_linear = nn.Linear(
-    #         self.vision_encoder_embedding_size, transformer_mapping_config.hidden_size
-    #     )
-
-    #     # The transformer encoder
-    #     self.transformer_mapping_network = BertEncoder(transformer_mapping_config)
-
-    #     # The linear layer from transformer output to FLMR dim
-    #     self.transformer_mapping_output_linear = nn.Linear(
-    #         transformer_mapping_config.hidden_size, self.late_interaction_embedding_size
-    #     )
 
     def forward(
         self,
@@ -297,10 +289,6 @@ class RerankModel(pl.LightningModule):
             dim=1,
         )
 
-        # # Prune the input size when the appended documents are too long
-        # if joint_query_input_ids.size(1) > self.max_position_embeddings:
-        #     joint_query_input_ids = joint_query_input_ids[:, :self.max_position_embeddings]
-        #     joint_query_attention_mask = joint_query_attention_mask[:, :self.max_position_embeddings]
 
         query_outputs = self.query(
             joint_query_input_ids,
@@ -393,17 +381,13 @@ class RerankModel(pl.LightningModule):
         else:
             reranker_attention_adj = None
 
-        logits = self.reranker(
+        logits, logits_secondary = self.reranker(
             reranker_inputs,
             attention_mask=reranker_attention_mask,
             attention_adj=reranker_attention_adj,
         )
 
-        # First document is the positive example, concatenate them all along the first dimension and use binary cross entropy
-        labels = torch.zeros(num_negative_examples + 1, 1)
-        labels[0, 0] = 1
-        labels = labels.repeat(batch_size, 1)
-        labels = labels.to(logits.device)
+        logits, labels = prepare_logits_labels(self.config, logits, logits_secondary, batch_size, num_negative_examples)
 
         loss = self.loss_fn(logits, labels)
         return EasyDict(loss=loss, logits=logits)
@@ -662,7 +646,7 @@ class InteractionRerankModel(pl.LightningModule):
 
         self.config = config
         self.init_reranker()
-        self.loss_fn = nn.BCEWithLogitsLoss()
+        self.loss_fn = initialise_loss_fn(config, self.device)
 
     def init_reranker(self):
         cross_encoder_config_base = self.config.cross_encoder_config_base
@@ -747,17 +731,13 @@ class InteractionRerankModel(pl.LightningModule):
         reranker_inputs = self.cross_encoder_input_mapping(reranker_inputs)
 
 
-        logits = self.reranker(
+        logits, logits_secondary = self.reranker(
             reranker_inputs,
             attention_mask=reranker_attention_mask,
             attention_adj=reranker_attention_adj,
         )
 
-        # First document is the positive example, concatenate them all along the first dimension and use binary cross entropy
-        labels = torch.zeros(num_negative_examples + 1, 1)
-        labels[0, 0] = 1
-        labels = labels.repeat(batch_size, 1)
-        labels = labels.to(logits.device)
-
+        logits, labels = prepare_logits_labels(self.config, logits, logits_secondary, batch_size, num_negative_examples)
+        
         loss = self.loss_fn(logits, labels)
         return EasyDict(loss=loss, logits=logits)

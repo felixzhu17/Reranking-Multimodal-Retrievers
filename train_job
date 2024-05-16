@@ -22,7 +22,7 @@
 #! Note that the job submission script will enforce no more than 32 cpus per GPU.
 #SBATCH --gres=gpu:1
 #! How much wallclock time will be required?
-#SBATCH --time=6:00:00
+#SBATCH --time=3:00:00
 #! What types of email messages do you wish to receive?
 #SBATCH --mail-type=NONE
 
@@ -91,7 +91,7 @@ np=$[${numnodes}*${mpi_tasks_per_node}]
 
 
 JOBID=$SLURM_JOB_ID
-CMD="$application > slurm_output 2>&1"
+CMD="$application > slurm_log_$JOBID 2>&1"
 
 echo -e "JobID: $JOBID\n======"
 echo "Time: `date`"

@@ -1,1 +1,0 @@
-python src/main.py --config configs/Rerank/okvqa_base_rerank.jsonnet --mode train

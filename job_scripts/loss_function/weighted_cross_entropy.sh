@@ -1,0 +1,1 @@
+python src/main.py --config configs/Rerank/loss_function/weighted_cross_entropy.jsonnet --mode train --reset --override

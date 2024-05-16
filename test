@@ -9,7 +9,7 @@ python src/main.py --config configs/FLMR/okvqa_FLMR.jsonnet --mode train
 python src/main.py --config configs/FLMR/okvqa_FLMR.jsonnet --mode test --test_suffix index --experiment_name OKVQA_PreFLMR_v2
 
 
-python src/main.py --config configs/Rerank/okvqa_base_rerank.jsonnet --mode train --reset --override
+python src/main.py --config configs/Rerank/loss_function/negative_sampling.jsonnet --mode train
 python src/main.py --config configs/Rerank/okvqa_rerank.jsonnet --mode test
 
 

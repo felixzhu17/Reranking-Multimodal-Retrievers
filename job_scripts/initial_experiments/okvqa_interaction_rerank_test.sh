@@ -1,0 +1,1 @@
+python src/main.py --config configs/Rerank/initial_experiments/okvqa_interaction_rerank.jsonnet --mode test --experiment_name OKVQA_Interaction_Reranker_test --test_suffix model_step_3002 --opts train.load_model_path="experiments/OKVQA_Interaction_Reranker/train/saved_models/model_step_3002.ckpt"

@@ -1,5 +1,5 @@
-local meta = import '../meta_configs/hpc_meta_config.libsonnet';
-local data = import '../data/okvqa_data.libsonnet';
+local meta = import '../../meta_configs/hpc_meta_config.libsonnet';
+local data = import '../../data/okvqa_data.libsonnet';
 local merge_data = data.merge_data_pipeline;
 
 local pretrained_ckpt_path = "LinWeizheDragon/PreFLMR_ViT-B";
@@ -97,7 +97,7 @@ local validation_indexing_source = ["okvqa_passages"];
 local data_pipeline = std.mergePatch(merge_data, data_loader);
 
 {
-    experiment_name: 'OKVQA_Retrieve_Reranker',
+    experiment_name: 'OKVQA_Reranker_Two_Head_BCE',
     test_suffix: 'default_test',
     meta: meta.default_meta,
     data_pipeline: data_pipeline,
@@ -115,7 +115,8 @@ local data_pipeline = std.mergePatch(merge_data, data_loader);
           "pretrain_model_version": reranker_pretrained_ckpt_path,
           "cross_encoder_config_base": "bert-base-uncased",
           "cross_encoder_num_hidden_layers": 3,
-          "cross_encoder_max_position_embeddings": 750
+          "cross_encoder_max_position_embeddings": 750,
+          "loss_fn": "two_head_binary_cross_entropy"
 
         },
         "Ks": [5, 10, 20, 50, 100],
@@ -126,7 +127,7 @@ local data_pipeline = std.mergePatch(merge_data, data_loader);
         "pretrained": 1,
         "modules": [
             "separate_query_and_item_encoders",
-            "train_with_retrieved_docs"
+            "full_validation",
         ],
         "index_files": index_files,
         "nbits": 8,
@@ -186,7 +187,7 @@ local data_pipeline = std.mergePatch(merge_data, data_loader);
             val_check_interval: 250,
             log_every_n_steps: 10,
             // limit_train_batches: 2,
-            // limit_val_batches: 2,
+            limit_val_batches: 50,
         },
         model_checkpoint_callback_paras: {
             monitor: 'valid/OKVQADatasetForDPR.test/loss',
@@ -199,7 +200,7 @@ local data_pipeline = std.mergePatch(merge_data, data_loader);
             save_on_train_epoch_end: false,
         },
         early_stopping_callback_paras: {
-            patience: 1,
+            patience: 3,
             verbose: true,
             mode: "min",
         },

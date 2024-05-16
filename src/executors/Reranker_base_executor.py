@@ -159,6 +159,12 @@ class RerankerBaseExecutor(BaseExecutor, MetricsProcessor):
         else:
             assert RerankerClass == RerankModel, "RerankModel is required when interaction_reranker is not used"
         self.prepared_data = self.dp.get_data([self.use_data_node], explode=True)
+        
+        if "weighted_regression" in self.model_config.modules:
+            reranker_config.pos_weight = self.model_config.num_negative_samples + 1
+        else:
+            reranker_config.pos_weight = None
+        
         self.reranker = RerankerClass(reranker_config)
         print("Freezing Reranker vision encoders")
         if RerankerClass == RerankModel:
@@ -531,6 +537,7 @@ class RerankerBaseExecutor(BaseExecutor, MetricsProcessor):
         data_to_return = {
             "loss": batch_loss,
         }
+        
         return data_to_return
 
     def validation_step(self, sample_batched, batch_idx, dataloader_idx=0):
@@ -547,7 +554,10 @@ class RerankerBaseExecutor(BaseExecutor, MetricsProcessor):
         for i in range(len(self.val_dataloader())):
             validation_step_output = validation_step_outputs[i]
             validation_batch = validation_batches[i]
-            log_dict = self.fast_evaluate_outputs(validation_step_output, validation_batch)
+            if "full_validation" in self.model_config.modules:
+                log_dict = self.evaluate_outputs(validation_step_output, validation_batch)
+            else:
+                log_dict = self.fast_evaluate_outputs(validation_step_output, validation_batch)
             self.logging_results(log_dict, prefix=self.val_dataloader_names[i])
         self.validation_step_outputs = defaultdict(list)
         self.validation_batch = defaultdict(list)
@@ -870,8 +880,8 @@ class RerankerBaseExecutor(BaseExecutor, MetricsProcessor):
     def static_retrieve(self, question_id):
 
         n_docs = self.config.model_config.docs_to_rerank
-
         annotation = self.questionId2topPassages.get(str(question_id), None)
+        assert n_docs <= len(annotation), "Number of retrieved docs must be less than the total number of docs."
         if annotation is None:
             raise ValueError(
                 f"Question {question_id} not found in the static retrieval results."

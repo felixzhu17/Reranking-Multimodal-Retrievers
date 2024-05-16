@@ -1,0 +1,1 @@
+python src/main.py --config configs/Rerank/loss_function/two_head_binary_cross_entropy.jsonnet --mode train --reset --override
