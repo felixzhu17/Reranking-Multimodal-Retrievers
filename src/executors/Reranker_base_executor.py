@@ -454,6 +454,12 @@ class RerankerBaseExecutor(BaseExecutor, MetricsProcessor):
 
     def training_step(self, sample_batched, batch_idx):
         retrieval_results = None
+        
+        # Save sample_batched to a pickle file
+        with open('sample_batched.pkl', 'wb') as f:
+            pickle.dump(sample_batched, f)
+        raise ValueError
+        
         train_batch = {
             "query_input_ids": sample_batched["input_ids"].to(self.device),
             "query_attention_mask": sample_batched["attention_mask"].to(self.device),
