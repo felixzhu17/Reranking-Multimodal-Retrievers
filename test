@@ -1,17 +1,5 @@
-python src/main.py --config configs/FLMR/evqa_FLMR.jsonnet --mode train --reset --override
-python src/main.py --config configs/FLMR/evqa_FLMR.jsonnet --mode test --test_suffix model_step_1000 --opts train.load_model_path="/home/fz288/rds/hpc-work/PreFLMR/experiments/default_DPR/train/saved_models/model_step_1000.ckpt" 
-python src/main.py --config configs/RAG/okvqa_RAG.jsonnet --mode train
-
-
-python src/main.py --config configs/FLMR/okvqa_FLMR.jsonnet --mode train
-
-
-python src/main.py --config configs/FLMR/okvqa_FLMR.jsonnet --mode test --test_suffix index --experiment_name OKVQA_PreFLMR_v2
-
 
 python src/main.py --config configs/Rerank/loss_function/negative_sampling.jsonnet --mode train
 python src/main.py --config configs/Rerank/okvqa_rerank.jsonnet --mode test
-
-
 
 python src/main.py --config configs/Rerank/okvqa_base_rerank.jsonnet --mode test --test_suffix model_step_500 --opts train.load_model_path="experiments/OKVQA_Reranker/train/saved_models/model_step_500.ckpt" 

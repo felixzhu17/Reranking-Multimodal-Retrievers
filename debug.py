@@ -38,13 +38,13 @@ import pickle
 # assert all(length == lengths[0] for length in lengths)
 
 # with open("/home/fz288/rds/hpc-work/PreFLMR/question_ids.pkl", 'rb') as f:
-#     questions = pickle.load(f)
+# #     questions = pickle.load(f)
 
-with open("reranker_attention_mask.pkl", 'rb') as f:
-    reranker_attention_mask = pickle.load(f)
+# with open("reranker_attention_mask.pkl", 'rb') as f:
+#     reranker_attention_mask = pickle.load(f)
     
-with open("reranker_attention_adj.pkl", 'rb') as f:
-    reranker_attention_adj = pickle.load(f)
+with open("sample_batched.pkl", 'rb') as f:
+    batch = pickle.load(f)
 
 
 
