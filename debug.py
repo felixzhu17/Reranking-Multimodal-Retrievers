@@ -24,7 +24,7 @@ for i, input_text in enumerate(input_text_sequences):
     for j in range(5):
         context_index = i * 5 + j
         context_text = context_text_sequences[context_index]
-        concatenated_sequence = input_text + " " + context_text
+        concatenated_sequence = f"Query: {input_text} Document: {context_text} Relevant:"
         concatenated_sequences.append(concatenated_sequence)
         # First of each group of 5 gets 'yes', the others 'no'
         if j == 0:
