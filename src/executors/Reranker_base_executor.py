@@ -56,6 +56,7 @@ from src.models.flmr import (
 from src.models.flmr import index_custom_collection
 from src.models.flmr import search_custom_collection, create_searcher
 from src.models.rerank.rerank_model import RerankModel, InteractionRerankModel
+from src.models.rerank.decoder_rerank_model import DecoderRerankModel
 
 from src.metrics import MetricsProcessor
 from src.utils.dirs import *
@@ -154,10 +155,15 @@ class RerankerBaseExecutor(BaseExecutor, MetricsProcessor):
         """
         reranker_config = model_config.reranker_config
         RerankerClass = globals()[reranker_config.RerankerClass]
-        if "interaction_reranker" in self.model_config.modules:
+        
+        if "decoder_reranker" in self.model_config.modules:
+            assert RerankerClass == DecoderRerankModel, "Only DecoderRerankModel supports interaction_reranker"
+            assert "preflmr_attention_fusion" not in self.model_config.modules and "interaction_reranker" not in self.model_config.modules
+        elif "interaction_reranker" in self.model_config.modules:
             assert RerankerClass == InteractionRerankModel, "Only InteractionRerankModel supports interaction_reranker"
         else:
-            assert RerankerClass == RerankModel, "RerankModel is required when interaction_reranker is not used"
+            assert RerankerClass == RerankModel, "Only RerankModel"
+            
         self.prepared_data = self.dp.get_data([self.use_data_node], explode=True)
         
         if "weighted_regression" in self.model_config.modules:
@@ -455,21 +461,7 @@ class RerankerBaseExecutor(BaseExecutor, MetricsProcessor):
     def training_step(self, sample_batched, batch_idx):
         retrieval_results = None
         
-        # Save sample_batched to a pickle file
-        with open('sample_batched.pkl', 'wb') as f:
-            pickle.dump(sample_batched, f)
-        raise ValueError
-        
-        train_batch = {
-            "query_input_ids": sample_batched["input_ids"].to(self.device),
-            "query_attention_mask": sample_batched["attention_mask"].to(self.device),
-            "context_input_ids": sample_batched["decoder_input_ids"].to(self.device),
-            "context_attention_mask": sample_batched["decoder_input_attention_mask"].to(
-                self.device
-            ),
-            "query_pixel_values": sample_batched["pixel_values"].to(self.device),
-            "num_negative_examples": self.model_config.num_negative_samples,
-        }
+        train_batch = self.get_model_inputs(sample_batched)
 
         if "train_with_retrieved_docs" in self.model_config.modules:
             context_input_ids, context_attention_masks = [], []
@@ -500,15 +492,19 @@ class RerankerBaseExecutor(BaseExecutor, MetricsProcessor):
                 retrieved_docs = random.sample(positive_docs, 1) + random.sample(
                     negative_docs, self.model_config.num_negative_samples
                 )
+                retrieved_docs = [i["content"] for i in retrieved_docs]
                 context_input_id, context_attention_mask = self.tokenize_retrieved_docs(
                     retrieved_docs
                 )
                 context_input_ids.append(context_input_id)
                 context_attention_masks.append(context_attention_mask)
-            train_batch["context_input_ids"] = torch.cat(context_input_ids, dim=0)
-            train_batch["context_attention_mask"] = torch.cat(
-                context_attention_masks, dim=0
-            )
+            if "decoder_reranker" in self.model_config.modules:
+                train_batch["context_text_sequences"] = retrieved_docs
+            else:
+                train_batch["context_input_ids"] = torch.cat(context_input_ids, dim=0)
+                train_batch["context_attention_mask"] = torch.cat(
+                    context_attention_masks, dim=0
+                )
 
         if "interaction_reranker" in self.model_config.modules:
             retrieval_results = self.retriever(**train_batch)
@@ -610,23 +606,15 @@ class RerankerBaseExecutor(BaseExecutor, MetricsProcessor):
 
     def _compute_loss(self, sample_batched, batch_idx, dataloader_idx=0):
         retrieval_results = None
-        test_batch = {
+        batch_info = {
             "query_input_ids": sample_batched["input_ids"].to(self.device),
             "query_attention_mask": sample_batched["attention_mask"].to(self.device),
-            "context_input_ids": sample_batched["decoder_input_ids"].to(self.device),
-            "context_attention_mask": sample_batched["decoder_input_attention_mask"].to(
-                self.device
-            ),
             "query_pixel_values": sample_batched["pixel_values"].to(self.device),
-            "num_negative_examples": self.model_config.num_negative_samples,
+            "query_text_sequences": sample_batched["input_text_sequences"],
         }
         
-        batch_info = {
-            "query_input_ids": test_batch["query_input_ids"],
-            "query_attention_mask": test_batch["query_attention_mask"],
-            "query_pixel_values": test_batch["query_pixel_values"],
-        }
-
+        test_batch = self.get_model_inputs(sample_batched)
+        
         if "interaction_reranker" in self.model_config.modules:
             retrieval_results = self.retriever(**test_batch)
             test_batch = {
@@ -674,43 +662,18 @@ class RerankerBaseExecutor(BaseExecutor, MetricsProcessor):
         # Batching every validation step outputs
         # n_queries x hidden_size
 
-        question_ids = []
-        pos_item_ids = []
-        neg_item_ids = []
-        questions = []
-        batch_loss = []
-        query_input_ids = []
-        query_attention_masks = []
-        query_pixel_values = []
+        (
+            question_ids,
+            pos_item_ids,
+            neg_item_ids,
+            questions,
+            batch_loss,
+            query_input_ids,
+            query_attention_masks,
+            query_pixel_values,
+            query_text_sequences
+        ) = self.process_step_outputs_and_batches(step_outputs, current_batches)
 
-        for step_output in step_outputs:
-            batch_loss.append(step_output["loss"])
-            question_ids += step_output["question_ids"]
-            pos_item_ids.extend(step_output["pos_item_ids"])
-            neg_item_ids.extend(step_output["neg_item_ids"])
-            questions.extend(step_output["questions"])
-
-        for current_batch in current_batches:
-            split_input_ids = current_batch["query_input_ids"].split(1, dim=0)
-            split_attention_masks = current_batch["query_attention_mask"].split(
-                1, dim=0
-            )
-            split_pixel_values = current_batch["query_pixel_values"].split(1, dim=0)
-
-            # Extend the lists with the newly split tensors
-            query_input_ids.extend(split_input_ids)
-            query_attention_masks.extend(split_attention_masks)
-            query_pixel_values.extend(split_pixel_values)
-
-        assert (
-            len(question_ids)
-            == len(pos_item_ids)
-            == len(neg_item_ids)
-            == len(questions)
-            == len(query_input_ids)
-            == len(query_attention_masks)
-            == len(query_pixel_values)
-        ), "All lists must have the same length."
 
         Ks = self.model_config.Ks
         max_K = max(Ks)
@@ -727,6 +690,7 @@ class RerankerBaseExecutor(BaseExecutor, MetricsProcessor):
             query_input_id,
             query_attention_mask,
             query_pixel_value,
+            query_text_sequence
         ) in tqdm(zip(
             question_ids,
             pos_item_ids,
@@ -734,37 +698,50 @@ class RerankerBaseExecutor(BaseExecutor, MetricsProcessor):
             query_input_ids,
             query_attention_masks,
             query_pixel_values,
+            query_text_sequences
         )):
             
             retrieval_results = None
             
             retrieved_docs = self.static_retrieve(question_id).retrieved_docs
+            retrieved_docs = [i["content"] for i in retrieved_docs]
             context_input_ids, context_attention_masks = self.tokenize_retrieved_docs(
                 retrieved_docs
             )
-            batch_input = {
-                "query_input_ids": query_input_id,
-                "query_attention_mask": query_attention_mask,
-                "query_pixel_values": query_pixel_value,
-                "context_input_ids": context_input_ids,
-                "context_attention_mask": context_attention_masks,
-                "num_negative_examples": context_input_ids.shape[0] - query_input_id.shape[0]
-            }
+            
+            if "decoder_reranker" in self.model_config.modules:
+                batch_input = {
+                    "query_text_sequences": [query_text_sequence],
+                    "query_pixel_values": query_pixel_value,
+                    "context_text_sequences": retrieved_docs,
+                    "num_negative_examples": context_input_ids.shape[0] - query_input_id.shape[0],
+                }
+                    
+
+            else:
+                batch_input = {
+                    "query_input_ids": query_input_id,
+                    "query_attention_mask": query_attention_mask,
+                    "query_pixel_values": query_pixel_value,
+                    "context_input_ids": context_input_ids,
+                    "context_attention_mask": context_attention_masks,
+                    "num_negative_examples": context_input_ids.shape[0] - query_input_id.shape[0]
+                }
 
             
-            if "interaction_reranker" in self.model_config.modules:
-                retrieval_results = self.retriever(**batch_input)
-                batch_input = {
-                    "query_late_interaction": retrieval_results.query_late_interaction_output,
-                    "context_late_interaction": retrieval_results.context_late_interaction_output,
-                    "num_negative_examples": retrieval_results.context_late_interaction_output.size(0) - retrieval_results.query_late_interaction_output.size(0),
-                }
-                
-                
-            if "preflmr_attention_fusion" in self.model_config.modules:
-                preflmr_scores = retrieval_results.scores_raw if retrieval_results is not None else self.retriever(**batch_input).scores_raw
-                batch_input["preflmr_scores"] = preflmr_scores
-                batch_input["fusion_multiplier"] = self.model_config.fusion_multiplier
+                if "interaction_reranker" in self.model_config.modules:
+                    retrieval_results = self.retriever(**batch_input)
+                    batch_input = {
+                        "query_late_interaction": retrieval_results.query_late_interaction_output,
+                        "context_late_interaction": retrieval_results.context_late_interaction_output,
+                        "num_negative_examples": retrieval_results.context_late_interaction_output.size(0) - retrieval_results.query_late_interaction_output.size(0),
+                    }
+                    
+                    
+                if "preflmr_attention_fusion" in self.model_config.modules:
+                    preflmr_scores = retrieval_results.scores_raw if retrieval_results is not None else self.retriever(**batch_input).scores_raw
+                    batch_input["preflmr_scores"] = preflmr_scores
+                    batch_input["fusion_multiplier"] = self.model_config.fusion_multiplier
 
 
             all_logits = self.reranker(
@@ -909,7 +886,7 @@ class RerankerBaseExecutor(BaseExecutor, MetricsProcessor):
 
     def tokenize_retrieved_docs(self, retrieved_docs):
         encoding = self.decoder_tokenizer(
-            [i["content"] for i in retrieved_docs],
+            retrieved_docs,
             padding="max_length",
             max_length=self.model_config.max_decoder_source_length,
             truncation=True,
@@ -977,3 +954,75 @@ class RerankerBaseExecutor(BaseExecutor, MetricsProcessor):
                     artifacts_to_log.to_write_data, json_f, indent=4, cls=NpEncoder
                 )
                 logger.info("Predictions have been saved to {}".format(json_path))
+
+    def get_model_inputs(self, sample_batched):
+        if "decoder_reranker" in self.model_config.modules:
+            return {
+                "query_text_sequences": sample_batched["input_text_sequences"],
+                "query_pixel_values": sample_batched["pixel_values"].to(self.device),
+                "context_text_sequences": sample_batched["decoder_input_text_sequences"],
+                "num_negative_examples": self.model_config.num_negative_samples,
+            }
+        else:
+            return {
+                "query_input_ids": sample_batched["input_ids"].to(self.device),
+                "query_attention_mask": sample_batched["attention_mask"].to(self.device),
+                "context_input_ids": sample_batched["decoder_input_ids"].to(self.device),
+                "context_attention_mask": sample_batched["decoder_input_attention_mask"].to(
+                    self.device
+                ),
+                "query_pixel_values": sample_batched["pixel_values"].to(self.device),
+                "num_negative_examples": self.model_config.num_negative_samples,
+            }
+            
+    def process_step_outputs_and_batches(self, step_outputs, current_batches):
+        question_ids = []
+        pos_item_ids = []
+        neg_item_ids = []
+        questions = []
+        batch_loss = []
+        query_input_ids = []
+        query_attention_masks = []
+        query_pixel_values = []
+        query_text_sequences = []
+
+        for step_output in step_outputs:
+            batch_loss.append(step_output["loss"])
+            question_ids += step_output["question_ids"]
+            pos_item_ids.extend(step_output["pos_item_ids"])
+            neg_item_ids.extend(step_output["neg_item_ids"])
+            questions.extend(step_output["questions"])
+
+        for current_batch in current_batches:
+            split_input_ids = current_batch["query_input_ids"].split(1, dim=0)
+            split_attention_masks = current_batch["query_attention_mask"].split(1, dim=0)
+            split_pixel_values = current_batch["query_pixel_values"].split(1, dim=0)
+
+            # Extend the lists with the newly split tensors
+            query_input_ids.extend(split_input_ids)
+            query_attention_masks.extend(split_attention_masks)
+            query_pixel_values.extend(split_pixel_values)
+            query_text_sequences.extend(current_batch["query_text_sequences"])
+
+        assert (
+            len(question_ids)
+            == len(pos_item_ids)
+            == len(neg_item_ids)
+            == len(questions)
+            == len(query_input_ids)
+            == len(query_attention_masks)
+            == len(query_pixel_values)
+            == len(query_text_sequences)
+        ), "All lists must have the same length."
+
+        return (
+            question_ids,
+            pos_item_ids,
+            neg_item_ids,
+            questions,
+            batch_loss,
+            query_input_ids,
+            query_attention_masks,
+            query_pixel_values,
+            query_text_sequences
+        )

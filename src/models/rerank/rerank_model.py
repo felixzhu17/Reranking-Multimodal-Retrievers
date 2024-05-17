@@ -69,7 +69,7 @@ from src.models.flmr.models.flmr.modeling_flmr import (
 )
 from transformers.models.bert.modeling_bert import BertEncoder
 from transformers import BertConfig
-
+from src.models.rerank.utils import initialise_loss_fn, prepare_logits_labels
 
 class CrossEncoder(nn.Module):
     base_model_prefix = "reranker"
@@ -107,42 +107,6 @@ class CrossEncoder(nn.Module):
         logits2 = self.classifier2(cls_output)
 
         return logits1, logits2
-
-def initialise_loss_fn(config, device):
-    if config.loss_fn in ["binary_cross_entropy", "two_head_binary_cross_entropy"]:
-        pos_weight = torch.tensor([config.pos_weight], device=device) if config.pos_weight is not None else None
-        if pos_weight is not None:
-            print("Weighted BCE Loss", config.pos_weight)
-        loss_fn = nn.BCEWithLogitsLoss(pos_weight=pos_weight)
-    elif config.loss_fn == "negative_sampling":
-        print("Negative Sampling Loss")
-        loss_fn = nn.CrossEntropyLoss()
-    else:
-        raise ValueError(f"Unknown loss function {config.loss_fn}")
-    return loss_fn
-
-def prepare_logits_labels(config, logits, logits_secondary, batch_size, num_negative_examples):
-    if config.loss_fn in ["binary_cross_entropy", "two_head_binary_cross_entropy"]:
-        # First document is the positive example, concatenate them all along the first dimension and use binary cross entropy
-        labels = torch.zeros(num_negative_examples + 1, 1)
-        labels[0, 0] = 1
-        labels = labels.repeat(batch_size, 1)
-        labels = labels.to(logits.device)
-        if config.loss_fn == "two_head_binary_cross_entropy":
-            # Concatenate logits from both heads
-            logits = torch.cat((logits, logits_secondary), dim=1)
-            # Apply softmax across the concatenated logits
-            logits = F.softmax(logits, dim=1)
-            # Use only the probability of the positive class (assume positive class is the first one)
-            logits = logits[:, 0].unsqueeze(1)
-    elif config.loss_fn == "negative_sampling":
-        logits = logits.view(-1, num_negative_examples + 1)
-        labels = torch.zeros(batch_size, dtype=torch.long, device=logits.device)
-    else:
-        raise ValueError(f"Unknown loss function {config.loss_fn}")
-    return logits, labels
-
-
 
 class RerankModel(pl.LightningModule):
     """
