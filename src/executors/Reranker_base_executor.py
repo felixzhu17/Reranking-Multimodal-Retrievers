@@ -56,7 +56,7 @@ from src.models.flmr import (
 from src.models.flmr import index_custom_collection
 from src.models.flmr import search_custom_collection, create_searcher
 from src.models.rerank.rerank_model import RerankModel, InteractionRerankModel
-from src.models.rerank.decoder_rerank_model import DecoderRerankModel
+from src.models.rerank.decoder_rerank_model import DecoderRerankModel, DecoderHeadRerankModel
 
 from src.metrics import MetricsProcessor
 from src.utils.dirs import *
@@ -157,7 +157,7 @@ class RerankerBaseExecutor(BaseExecutor, MetricsProcessor):
         RerankerClass = globals()[reranker_config.RerankerClass]
         
         if "decoder_reranker" in self.model_config.modules:
-            assert RerankerClass == DecoderRerankModel, "Only DecoderRerankModel supports interaction_reranker"
+            assert RerankerClass in [DecoderRerankModel, DecoderHeadRerankModel], "Only DecoderRerankModel supports interaction_reranker"
             assert "preflmr_attention_fusion" not in self.model_config.modules and "interaction_reranker" not in self.model_config.modules
         elif "interaction_reranker" in self.model_config.modules:
             assert RerankerClass == InteractionRerankModel, "Only InteractionRerankModel supports interaction_reranker"

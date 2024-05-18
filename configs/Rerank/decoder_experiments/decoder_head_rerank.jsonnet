@@ -97,7 +97,7 @@ local validation_indexing_source = ["okvqa_passages"];
 local data_pipeline = std.mergePatch(merge_data, data_loader);
 
 {
-    experiment_name: 'OKVQA_Decoder_Reranker',
+    experiment_name: 'OKVQA_Decoder_Head_Reranker',
     test_suffix: 'default_test',
     meta: meta.default_meta,
     data_pipeline: data_pipeline,
@@ -109,12 +109,13 @@ local data_pipeline = std.mergePatch(merge_data, data_loader);
           "ModelVersion": pretrained_ckpt_path,
         },
         "reranker_config":{
-          "RerankerClass":"DecoderRerankModel",
-          "GeneratorModelClass": "Blip2ForConditionalGeneration", // answer generator
+          "RerankerClass":"DecoderHeadRerankModel",
+          "GeneratorModelClass": "Blip2ForConditionalGeneration", 
           "GeneratorConfigClass": "Blip2Config",
-          "GeneratorModelVersion": "Salesforce/blip2-flan-t5-xl",
+          "GeneratorModelVersion": "Salesforce/blip2-opt-2.7b",
           "max_query_length": 32,
           "max_decoder_source_length": 512,
+          "loss_fn": "binary_cross_entropy"
         },
         "Ks": [5, 10, 20, 50, 100],
         "num_negative_samples": 4,
