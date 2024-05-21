@@ -1,0 +1,1 @@
+python src/main.py --config configs/Rerank/decoder_experiments/decoder_rerank.jsonnet --mode test --reset --override --experiment_name OKVQA_BLIP2_YesNo_test --opts train.load_model_path="experiments/OKVQA_Decoder_Reranker/train/saved_models/model_step_1502.ckpt"

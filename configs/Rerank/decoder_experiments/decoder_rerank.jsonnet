@@ -227,7 +227,7 @@ local data_pipeline = std.mergePatch(merge_data, data_loader);
             devices: 'auto',
             strategy: 'ddp_find_unused_parameters_true',
             precision: 'bf16',
-            // limit_test_batches: 2,
+            limit_test_batches: 65,
         },
         batch_size: 16,
         num_dataloader_workers: 0,

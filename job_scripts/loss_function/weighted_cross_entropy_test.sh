@@ -1,0 +1,1 @@
+python src/main.py --config configs/Rerank/loss_function/weighted_cross_entropy.jsonnet --mode test --reset --override --experiment_name OKVQA_Reranker_Weighted_BCE_test --opts test.load_model_path="experiments/OKVQA_Reranker_Weighted_BCE/train/saved_models/model_step_750.ckpt"

@@ -860,7 +860,6 @@ class MetricsProcessor:
         for metrics_name, np_array in result.items():
             for index, K in enumerate(Ks):
                 log_result[f"{field}_{metrics_name}_at_{K}"] = float(np_array[index])
-                log_result[f"raw_{field}_{metrics_name}_at_{K}"] = float(np_array[index])
 
         log_dict.metrics.update(log_result)
         return log_dict

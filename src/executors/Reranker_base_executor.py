@@ -492,14 +492,14 @@ class RerankerBaseExecutor(BaseExecutor, MetricsProcessor):
                 retrieved_docs = random.sample(positive_docs, 1) + random.sample(
                     negative_docs, self.model_config.num_negative_samples
                 )
-                retrieved_docs = [i["content"] for i in retrieved_docs]
+                retrieved_docs_content = [i["content"] for i in retrieved_docs]
                 context_input_id, context_attention_mask = self.tokenize_retrieved_docs(
-                    retrieved_docs
+                    retrieved_docs_content
                 )
                 context_input_ids.append(context_input_id)
                 context_attention_masks.append(context_attention_mask)
             if "decoder_reranker" in self.model_config.modules:
-                train_batch["context_text_sequences"] = retrieved_docs
+                train_batch["context_text_sequences"] = retrieved_docs_content
             else:
                 train_batch["context_input_ids"] = torch.cat(context_input_ids, dim=0)
                 train_batch["context_attention_mask"] = torch.cat(
@@ -704,16 +704,16 @@ class RerankerBaseExecutor(BaseExecutor, MetricsProcessor):
             retrieval_results = None
             
             retrieved_docs = self.static_retrieve(question_id).retrieved_docs
-            retrieved_docs = [i["content"] for i in retrieved_docs]
+            retrieved_docs_content = [i["content"] for i in retrieved_docs]
             context_input_ids, context_attention_masks = self.tokenize_retrieved_docs(
-                retrieved_docs
+                retrieved_docs_content
             )
             
             if "decoder_reranker" in self.model_config.modules:
                 batch_input = {
                     "query_text_sequences": [query_text_sequence],
                     "query_pixel_values": query_pixel_value,
-                    "context_text_sequences": retrieved_docs,
+                    "context_text_sequences": retrieved_docs_content,
                     "num_negative_examples": context_input_ids.shape[0] - query_input_id.shape[0],
                 }
                     

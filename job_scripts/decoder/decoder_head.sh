@@ -1,0 +1,1 @@
+python src/main.py --config configs/Rerank/decoder_experiments/decoder_head_rerank.jsonnet --mode train --reset --override

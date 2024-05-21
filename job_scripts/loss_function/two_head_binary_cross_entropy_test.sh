@@ -1,0 +1,1 @@
+python src/main.py --config configs/Rerank/loss_function/two_head_binary_cross_entropy.jsonnet --mode test --reset --override --experiment_name OKVQA_Reranker_Two_Head_BCE_test --opts test.load_model_path="experiments/OKVQA_Reranker_Two_Head_BCE/train/saved_models/model_step_1251.ckpt"
