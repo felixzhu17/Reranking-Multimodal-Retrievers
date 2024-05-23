@@ -206,7 +206,7 @@ local data_pipeline = std.mergePatch(merge_data, data_loader);
         optimizer_config: {
             optimizer_name: "AdamW",
             optimizer_params: {
-                lr: 0.0006,
+                lr: 1e-4,
                 eps: 1e-08,
             },
             scheduler: "none",
@@ -228,7 +228,7 @@ local data_pipeline = std.mergePatch(merge_data, data_loader);
             devices: 'auto',
             strategy: 'ddp_find_unused_parameters_true',
             precision: 'bf16',
-            // limit_test_batches: 2,
+            limit_test_batches: 65,
         },
         batch_size: 16,
         num_dataloader_workers: 0,

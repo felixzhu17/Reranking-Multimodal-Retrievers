@@ -266,7 +266,7 @@ class PrepareDataloaders(BaseTransform):
                 if mode == "train":
                     sampler = RandomSampler(dataset)
                 else:
-                    sampler = SequentialSampler(dataset)
+                    sampler = RandomSampler(dataset)
 
                 data_loader = DataLoader(
                     dataset,

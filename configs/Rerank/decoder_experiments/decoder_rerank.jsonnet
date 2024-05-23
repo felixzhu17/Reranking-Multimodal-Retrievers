@@ -205,7 +205,7 @@ local data_pipeline = std.mergePatch(merge_data, data_loader);
         optimizer_config: {
             optimizer_name: "AdamW",
             optimizer_params: {
-                lr: 0.0006,
+                lr: 1e-4,
                 eps: 1e-08,
             },
             scheduler: "none",

@@ -1,0 +1,1 @@
+python src/main.py --config configs/Rerank/evqa_experiments/evqa_interaction_rerank.jsonnet --mode train --reset --override
