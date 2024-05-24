@@ -107,7 +107,7 @@ local validation_indexing_source = ["evqa_passages"];
 local data_pipeline = std.mergePatch(merge_data, data_loader);
 
 {
-    experiment_name: 'EVQA_FLMRQueryEncoder(query+doc)_BERT(1Layer)_SingleHead_BCE',
+    experiment_name: 'EVQA_FLMRQuery_Retrieved_Rerank',
     test_suffix: 'default_test',
     meta: meta.default_meta,
     data_pipeline: data_pipeline,
@@ -137,7 +137,8 @@ local data_pipeline = std.mergePatch(merge_data, data_loader);
         "pretrained": 1,
         "modules": [
             "separate_query_and_item_encoders",
-            // "full_validation"
+            "full_validation",
+            "train_with_retrieved_docs"
         ],
         "index_files": index_files,
         "nbits": 8,

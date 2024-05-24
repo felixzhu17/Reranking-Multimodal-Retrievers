@@ -29,8 +29,6 @@ export CUDA_VISIBLE_DEVICES=$gpu_indices
 echo "CUDA_VISIBLE_DEVICES=$CUDA_VISIBLE_DEVICES"
 
 JOBID=$SLURM_JOB_ID
-CMD="python src/main.py --config configs/Rerank/evqa_experiments/evqa_base_rerank.jsonnet --mode test --reset --override --experiment_name TEST_EVQA_FLMRQuery_Rerank_ckpt_model_step_1750 --opts train.load_model_path="experiments/EVQA_FLMRQueryEncoder(query+doc)_BERT(1Layer)_SingleHead_BCE/train/saved_models/model_step_1750.ckpt" --tags "EVQA_FLMRQuery_Rerank" "test" > slurm_log_$JOBID 2>&1"
-
 echo -e "JobID: $JOBID
 ======"
 echo "Time: `date`"
@@ -40,7 +38,4 @@ echo "Running on master node: `hostname`"
 echo "Current directory: `pwd`"
 
 echo -e "\nnumtasks=$numtasks, numnodes=$numnodes, mpi_tasks_per_node=$mpi_tasks_per_node (OMP_NUM_THREADS=$OMP_NUM_THREADS)"
-
-echo -e "\nExecuting command:\n==================\n$CMD\n"
-
-eval $CMD
+python src/main.py --config configs/Rerank/evqa_experiments/evqa_base_rerank.jsonnet --mode test --reset --override --experiment_name TEST_EVQA_FLMRQuery_Rerank_ckpt_model_step_1750 --tags "EVQA_FLMRQuery_Rerank" "test" --opts train.load_model_path="experiments/EVQA_FLMRQueryEncoder(query+doc)_BERT(1Layer)_SingleHead_BCE/train/saved_models/model_step_1750.ckpt" > slurm_log_$JOBID 2>&1

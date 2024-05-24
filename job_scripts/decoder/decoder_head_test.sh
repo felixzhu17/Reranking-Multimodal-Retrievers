@@ -1,1 +1,0 @@
-python src/main.py --config configs/Rerank/decoder_experiments/decoder_head_rerank.jsonnet --mode test --reset --override --experiment_name OKVQA_Decoder_Head_test --opts test.load_model_path="experiments/OKVQA_Decoder_Head_Reranker/train/saved_models/model_step_1752.ckpt"

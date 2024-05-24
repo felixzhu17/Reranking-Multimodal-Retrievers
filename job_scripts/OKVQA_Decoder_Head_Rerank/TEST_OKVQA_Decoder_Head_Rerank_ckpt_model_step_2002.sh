@@ -29,8 +29,6 @@ export CUDA_VISIBLE_DEVICES=$gpu_indices
 echo "CUDA_VISIBLE_DEVICES=$CUDA_VISIBLE_DEVICES"
 
 JOBID=$SLURM_JOB_ID
-CMD="python src/main.py --config configs/Rerank/decoder_experiments/decoder_head_rerank.jsonnet --mode test --reset --override --experiment_name TEST_OKVQA_Decoder_Head_Rerank_ckpt_model_step_2002 --opts train.load_model_path="experiments/OKVQA_Decoder_Head_Reranker_low_lr/train/saved_models/model_step_2002.ckpt" --tags "OKVQA_Decoder_Head_Rerank" "test" > slurm_log_$JOBID 2>&1"
-
 echo -e "JobID: $JOBID
 ======"
 echo "Time: `date`"
@@ -40,7 +38,4 @@ echo "Running on master node: `hostname`"
 echo "Current directory: `pwd`"
 
 echo -e "\nnumtasks=$numtasks, numnodes=$numnodes, mpi_tasks_per_node=$mpi_tasks_per_node (OMP_NUM_THREADS=$OMP_NUM_THREADS)"
-
-echo -e "\nExecuting command:\n==================\n$CMD\n"
-
-eval $CMD
+python src/main.py --config configs/Rerank/decoder_experiments/decoder_head_rerank.jsonnet --mode test --reset --override --experiment_name TEST_OKVQA_Decoder_Head_Rerank_ckpt_model_step_2002 --tags "OKVQA_Decoder_Head_Rerank" "test" --opts train.load_model_path="experiments/OKVQA_Decoder_Head_Reranker_low_lr/train/saved_models/model_step_2002.ckpt" > log_TEST_OKVQA_Decoder_Head_Rerank_ckpt_model_step_2002 2>&1

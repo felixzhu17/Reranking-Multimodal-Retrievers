@@ -3,6 +3,6 @@
         "config_file": "configs/Rerank/evqa_experiments/evqa_interaction_rerank.jsonnet",
         "time": "5:00:00",
         "gpus": 2,
-        "ckpt_path": "experiments/EVQA_FLMRInteractionOutput_BERT(1Layer)_SingleHead_BCE/train/saved_models/model_step_5001.ckpt"
+        "ckpt_path": "experiments/EVQA_Interaction_Rerank_ckpt_model_step_5001/train/saved_models/model_step_9252.ckpt"
     }
 ]

@@ -1,1 +1,0 @@
-python src/main.py --config configs/Rerank/loss_function/negative_sampling.jsonnet --mode train --reset --override

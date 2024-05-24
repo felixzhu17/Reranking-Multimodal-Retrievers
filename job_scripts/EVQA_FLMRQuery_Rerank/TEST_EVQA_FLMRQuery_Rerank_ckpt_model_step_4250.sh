@@ -1,5 +1,5 @@
 #!/bin/bash
-#SBATCH -J EVQA_Interaction_Rerank_ckpt_model_step_5001
+#SBATCH -J TEST_EVQA_FLMRQuery_Rerank_ckpt_model_step_4250
 #SBATCH -A MLMI-fz288-SL2-GPU
 #SBATCH --nodes=1
 #SBATCH --ntasks=1
@@ -29,8 +29,6 @@ export CUDA_VISIBLE_DEVICES=$gpu_indices
 echo "CUDA_VISIBLE_DEVICES=$CUDA_VISIBLE_DEVICES"
 
 JOBID=$SLURM_JOB_ID
-
-
 echo -e "JobID: $JOBID
 ======"
 echo "Time: `date`"
@@ -40,5 +38,4 @@ echo "Running on master node: `hostname`"
 echo "Current directory: `pwd`"
 
 echo -e "\nnumtasks=$numtasks, numnodes=$numnodes, mpi_tasks_per_node=$mpi_tasks_per_node (OMP_NUM_THREADS=$OMP_NUM_THREADS)"
-
-python src/main.py --config configs/Rerank/evqa_experiments/evqa_interaction_rerank.jsonnet --mode train --experiment_name EVQA_Interaction_Rerank_ckpt_model_step_5001 --tags "EVQA_Interaction_Rerank" "train" --opts train.load_model_path="experiments/EVQA_FLMRInteractionOutput_BERT(1Layer)_SingleHead_BCE/train/saved_models/model_step_5001.ckpt" > slurm_log_$JOBID 2>&1
+python src/main.py --config configs/Rerank/evqa_experiments/evqa_base_rerank.jsonnet --mode test --reset --override --experiment_name TEST_EVQA_FLMRQuery_Rerank_ckpt_model_step_4250 --tags "EVQA_FLMRQuery_Rerank" "test" --opts train.load_model_path="experiments/EVQA_FLMRQuery_Rerank_ckpt_model_step_1750/train/saved_models/model_step_4250.ckpt" > slurm_log_$JOBID 2>&1

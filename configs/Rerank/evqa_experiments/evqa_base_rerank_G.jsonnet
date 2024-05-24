@@ -2,8 +2,8 @@ local meta = import '../../meta_configs/hpc_meta_config.libsonnet';
 local data = import '../../data/evqa_data.libsonnet';
 local merge_data = data.merge_data_pipeline;
 
-local pretrained_ckpt_path = "LinWeizheDragon/PreFLMR_ViT-B";
-local reranker_pretrained_ckpt_path = "LinWeizheDragon/PreFLMR_ViT-B";
+local pretrained_ckpt_path = "LinWeizheDragon/PreFLMR_ViT-G";
+local reranker_pretrained_ckpt_path = "LinWeizheDragon/PreFLMR_ViT-G";
 local image_processor_name = "laion/CLIP-ViT-bigG-14-laion2B-39B-b160k";
 
 local tokenizer_config = {
@@ -125,7 +125,7 @@ local data_pipeline = std.mergePatch(merge_data, data_loader);
           "pretrain_model_version": reranker_pretrained_ckpt_path,
           "cross_encoder_config_base": "bert-base-uncased",
           "cross_encoder_num_hidden_layers": 1,
-          "cross_encoder_max_position_embeddings": 750,
+          "cross_encoder_max_position_embeddings": 900,
           "loss_fn": "binary_cross_entropy"
 
         },

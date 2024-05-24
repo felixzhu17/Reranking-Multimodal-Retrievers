@@ -1,1 +1,0 @@
-python src/main.py --config configs/Rerank/initial_experiments/okvqa_base_rerank.jsonnet --mode test --experiment_name Baseline_test

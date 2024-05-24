@@ -1,5 +1,5 @@
 #!/bin/bash
-#SBATCH -J EVQA_Interaction_Rerank_ckpt_model_step_5001
+#SBATCH -J EVQA_FLMRQuery_G_Rerank
 #SBATCH -A MLMI-fz288-SL2-GPU
 #SBATCH --nodes=1
 #SBATCH --ntasks=1
@@ -41,4 +41,4 @@ echo "Current directory: `pwd`"
 
 echo -e "\nnumtasks=$numtasks, numnodes=$numnodes, mpi_tasks_per_node=$mpi_tasks_per_node (OMP_NUM_THREADS=$OMP_NUM_THREADS)"
 
-python src/main.py --config configs/Rerank/evqa_experiments/evqa_interaction_rerank.jsonnet --mode train --experiment_name EVQA_Interaction_Rerank_ckpt_model_step_5001 --tags "EVQA_Interaction_Rerank" "train" --opts train.load_model_path="experiments/EVQA_FLMRInteractionOutput_BERT(1Layer)_SingleHead_BCE/train/saved_models/model_step_5001.ckpt" > slurm_log_$JOBID 2>&1
+python src/main.py --config configs/Rerank/evqa_experiments/evqa_base_rerank_G.jsonnet --mode train --experiment_name EVQA_FLMRQuery_G_Rerank --tags "EVQA_FLMRQuery_G_Rerank" "train"  > log_EVQA_FLMRQuery_G_Rerank 2>&1

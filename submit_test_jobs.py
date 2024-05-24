@@ -61,8 +61,6 @@ export CUDA_VISIBLE_DEVICES=$gpu_indices
 echo "CUDA_VISIBLE_DEVICES=$CUDA_VISIBLE_DEVICES"
 
 JOBID=$SLURM_JOB_ID
-CMD="python src/main.py --config {config_file} --mode test --reset --override --experiment_name {experiment_name} {opts_str} --tags {tags} > slurm_log_$JOBID 2>&1"
-
 echo -e "JobID: $JOBID\n======"
 echo "Time: `date`"
 echo -e "Timestamp: $TIMESTAMP\n======"
@@ -70,10 +68,7 @@ echo "Running on master node: `hostname`"
 echo "Current directory: `pwd`"
 
 echo -e "\\nnumtasks=$numtasks, numnodes=$numnodes, mpi_tasks_per_node=$mpi_tasks_per_node (OMP_NUM_THREADS=$OMP_NUM_THREADS)"
-
-echo -e "\\nExecuting command:\\n==================\\n$CMD\\n"
-
-eval $CMD
+python src/main.py --config {config_file} --mode test --reset --override --experiment_name {experiment_name} --tags {tags} {opts_str} > log_{experiment_name} 2>&1
 """
 
 def main(config_name):
@@ -87,7 +82,9 @@ def main(config_name):
         opts = config.get("opts", "")
         model_path = config.get("ckpt_path")
         experiment_name = generate_experiment_name(base_experiment_name, opts, model_path)
-        
+        if os.path.isdir(os.path.join('experiments', experiment_name)):
+            raise ValueError("Experiment directory already exists.")
+    
         assert config["config_file"], "Config file not specified."
         assert os.path.exists(config["config_file"]), f"Config file {config['config_file']} does not exist."
         

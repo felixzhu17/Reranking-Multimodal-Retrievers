@@ -137,7 +137,7 @@ local data_pipeline = std.mergePatch(merge_data, data_loader);
         "pretrained": 1,
         "modules": [
             "separate_query_and_item_encoders",
-            "full_validation",
+            // "full_validation",
             "interaction_reranker"
         ],
         "index_files": index_files,

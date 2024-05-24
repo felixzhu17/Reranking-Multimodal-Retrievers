@@ -659,9 +659,6 @@ class RerankerBaseExecutor(BaseExecutor, MetricsProcessor):
 
 
     def evaluate_outputs(self, step_outputs, current_batches, mode="test"):
-        # Batching every validation step outputs
-        # n_queries x hidden_size
-
         (
             question_ids,
             pos_item_ids,

@@ -117,7 +117,7 @@ local data_pipeline = std.mergePatch(merge_data, data_loader);
           "max_decoder_source_length": 512,
           "loss_fn": "binary_cross_entropy"
         },
-        "Ks": [5, 10, 20, 50, 100],
+        "Ks": [5, 10, 20, 50, 80],
         "num_negative_samples": 4,
         "max_source_length": 32,
         "max_decoder_source_length": 512,
@@ -130,7 +130,7 @@ local data_pipeline = std.mergePatch(merge_data, data_loader);
         ],
         "index_files": index_files,
         "nbits": 8,
-        "docs_to_rerank": 100,
+        "docs_to_rerank": 80,
         "prepend_tokens": {
             "query_encoder": "",
             "item_encoder": "",

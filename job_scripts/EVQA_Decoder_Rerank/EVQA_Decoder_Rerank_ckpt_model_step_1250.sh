@@ -29,7 +29,7 @@ export CUDA_VISIBLE_DEVICES=$gpu_indices
 echo "CUDA_VISIBLE_DEVICES=$CUDA_VISIBLE_DEVICES"
 
 JOBID=$SLURM_JOB_ID
-CMD="python src/main.py --config configs/Rerank/evqa_experiments/evqa_decoder.jsonnet --mode train --experiment_name EVQA_Decoder_Rerank_ckpt_model_step_1250 --opts train.load_model_path="experiments/EVQA_Decoder_Reranker/train/saved_models/model_step_1250.ckpt" --tags "EVQA_Decoder_Rerank" "train" > slurm_log_$JOBID 2>&1"
+
 
 echo -e "JobID: $JOBID
 ======"
@@ -41,6 +41,4 @@ echo "Current directory: `pwd`"
 
 echo -e "\nnumtasks=$numtasks, numnodes=$numnodes, mpi_tasks_per_node=$mpi_tasks_per_node (OMP_NUM_THREADS=$OMP_NUM_THREADS)"
 
-echo -e "\nExecuting command:\n==================\n$CMD\n"
-
-eval $CMD
+python src/main.py --config configs/Rerank/evqa_experiments/evqa_decoder.jsonnet --mode train --experiment_name EVQA_Decoder_Rerank_ckpt_model_step_1250 --tags "EVQA_Decoder_Rerank" "train" --opts train.load_model_path="experiments/EVQA_Decoder_Reranker/train/saved_models/model_step_1250.ckpt" > slurm_log_$JOBID 2>&1

@@ -1,0 +1,7 @@
+[
+    {
+        "config_file": "configs/Rerank/evqa_experiments/evqa_base_rerank_G.jsonnet",
+        "time": "5:00:00",
+        "gpus": 2
+    }
+]

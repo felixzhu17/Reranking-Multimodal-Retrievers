@@ -1,1 +1,0 @@
-python src/main.py --config configs/Rerank/initial_experiments/okvqa_base_rerank.jsonnet --mode test --reset --override --experiment_name OKVQA_Reranker_test --opts test.load_model_path="experiments/OKVQA_Reranker/train/saved_models/model_step_1251.ckpt"

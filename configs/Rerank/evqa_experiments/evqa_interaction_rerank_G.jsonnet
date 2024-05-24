@@ -2,8 +2,8 @@ local meta = import '../../meta_configs/hpc_meta_config.libsonnet';
 local data = import '../../data/evqa_data.libsonnet';
 local merge_data = data.merge_data_pipeline;
 
-local pretrained_ckpt_path = "LinWeizheDragon/PreFLMR_ViT-B";
-local reranker_pretrained_ckpt_path = "LinWeizheDragon/PreFLMR_ViT-B";
+local pretrained_ckpt_path = "LinWeizheDragon/PreFLMR_ViT-G";
+local reranker_pretrained_ckpt_path = "LinWeizheDragon/PreFLMR_ViT-G";
 local image_processor_name = "laion/CLIP-ViT-bigG-14-laion2B-39B-b160k";
 
 local tokenizer_config = {
@@ -107,7 +107,7 @@ local validation_indexing_source = ["evqa_passages"];
 local data_pipeline = std.mergePatch(merge_data, data_loader);
 
 {
-    experiment_name: 'EVQA_FLMRQueryEncoder(query+doc)_BERT(1Layer)_SingleHead_BCE',
+    experiment_name: 'EVQA_FLMRInteractionOutput_BERT(1Layer)_SingleHead_BCE',
     test_suffix: 'default_test',
     meta: meta.default_meta,
     data_pipeline: data_pipeline,
@@ -121,11 +121,11 @@ local data_pipeline = std.mergePatch(merge_data, data_loader);
         "reranker_config":{
           "base_model": "FLMR",
           "pretrain_config_class": "FLMRConfig",
-          "RerankerClass": "RerankModel",
+          "RerankerClass": "InteractionRerankModel",
           "pretrain_model_version": reranker_pretrained_ckpt_path,
           "cross_encoder_config_base": "bert-base-uncased",
           "cross_encoder_num_hidden_layers": 1,
-          "cross_encoder_max_position_embeddings": 750,
+          "cross_encoder_max_position_embeddings": 900,
           "loss_fn": "binary_cross_entropy"
 
         },
@@ -137,7 +137,8 @@ local data_pipeline = std.mergePatch(merge_data, data_loader);
         "pretrained": 1,
         "modules": [
             "separate_query_and_item_encoders",
-            // "full_validation"
+            // "full_validation",
+            "interaction_reranker"
         ],
         "index_files": index_files,
         "nbits": 8,
@@ -216,7 +217,7 @@ local data_pipeline = std.mergePatch(merge_data, data_loader);
         optimizer_config: {
             optimizer_name: "AdamW",
             optimizer_params: {
-                lr: 0.00001,
+                lr: 0.0001,
                 eps: 1e-08,
             },
             scheduler: "none",

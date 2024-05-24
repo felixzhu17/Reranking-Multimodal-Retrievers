@@ -1,1 +1,0 @@
-python src/main.py --config configs/Rerank/initial_experiments/okvqa_fusion_rerank.jsonnet --mode test --reset --override --experiment_name OKVQA_Fusion_Reranker_5_test --opts model_config.fusion_multiplier=5 test.load_model_path="experiments/OKVQA_Fusion_Reranker_5/train/saved_models/model_step_1000.ckpt"

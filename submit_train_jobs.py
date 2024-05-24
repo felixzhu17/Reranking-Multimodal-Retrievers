@@ -61,7 +61,7 @@ export CUDA_VISIBLE_DEVICES=$gpu_indices
 echo "CUDA_VISIBLE_DEVICES=$CUDA_VISIBLE_DEVICES"
 
 JOBID=$SLURM_JOB_ID
-CMD="python src/main.py --config {config_file} --mode train --experiment_name {experiment_name} {opts_str} --tags {tags} > slurm_log_$JOBID 2>&1"
+
 
 echo -e "JobID: $JOBID\n======"
 echo "Time: `date`"
@@ -71,9 +71,7 @@ echo "Current directory: `pwd`"
 
 echo -e "\\nnumtasks=$numtasks, numnodes=$numnodes, mpi_tasks_per_node=$mpi_tasks_per_node (OMP_NUM_THREADS=$OMP_NUM_THREADS)"
 
-echo -e "\\nExecuting command:\\n==================\\n$CMD\\n"
-
-eval $CMD
+python src/main.py --config {config_file} --mode train --experiment_name {experiment_name} --tags {tags_str} {opts_str} > log_{experiment_name} 2>&1
 """
 
 def main(config_name):
@@ -85,8 +83,11 @@ def main(config_name):
 
     for config in configs:
         opts = config.get("opts", "")
+        
         model_path = config.get("ckpt_path")
         experiment_name = generate_experiment_name(base_experiment_name, opts, model_path)
+        if os.path.isdir(os.path.join('experiments', experiment_name)):
+            raise ValueError(f"Experiment directory {experiment_name} already exists.")
         
         assert config["config_file"], "Config file not specified."
         assert os.path.exists(config["config_file"]), f"Config file {config['config_file']} does not exist."
@@ -108,8 +109,10 @@ def main(config_name):
             opts_str=opts_str,
             time=config["time"],
             gpus=config["gpus"],
-            tags=tags_str
+            tags_str=tags_str
         )
+        
+        
         
         script_name = os.path.join('job_scripts', config_name, f"{experiment_name}.sh")
         os.makedirs(os.path.dirname(script_name), exist_ok=True)

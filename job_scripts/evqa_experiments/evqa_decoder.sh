@@ -1,1 +1,0 @@
-python src/main.py --config configs/Rerank/evqa_experiments/evqa_decoder.jsonnet --mode train --reset --override
