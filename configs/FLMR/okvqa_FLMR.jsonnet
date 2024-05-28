@@ -67,11 +67,11 @@ local data_loader = {
             },
           ],
           test: [
-            {
-              dataset_type: 'OKVQADatasetForDPR',
-              split: 'train',
-              use_column: 'okvqa_data',
-            },
+            // {
+            //   dataset_type: 'OKVQADatasetForDPR',
+            //   split: 'train',
+            //   use_column: 'okvqa_data',
+            // },
             {
               dataset_type: 'OKVQADatasetForDPR',
               split: 'test',
@@ -149,7 +149,8 @@ local data_pipeline = std.mergePatch(merge_data, data_loader);
         ExecutorClass: 'FLMRBaseExecutor',
         init_kwargs: {
             "use_data_node": "output:PrepareDataloaders",
-            "index_splits": ['train', 'valid', 'test'],
+            // "index_splits": ['train', 'valid', 'test'],
+            "index_splits": ['valid', 'test'],
             "validation_indexing_source": validation_indexing_source,
         },
     },
@@ -169,7 +170,7 @@ local data_pipeline = std.mergePatch(merge_data, data_loader);
         },
         model_checkpoint_callback_paras: {
             monitor: 'valid/OKVQADatasetForDPR.test/recall_at_5',
-            save_top_k: 3,
+            save_top_k: 5,
             mode: "max",
             filename: 'model_step_{step}',
             save_last: true,

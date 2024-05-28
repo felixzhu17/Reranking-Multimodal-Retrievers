@@ -35,8 +35,8 @@ local index_files = {
   "index_path": "",
   "embedding_path": "",
   "static_results": [
-    "/home/fz288/rds/hpc-work/PreFLMR/experiments/OKVQA_PreFLMR/test/index/index_test_OKVQADatasetForDPR.test_predictions_rank_0.pkl",
-    "/home/fz288/rds/hpc-work/PreFLMR/experiments/OKVQA_PreFLMR/test/index/index_test_OKVQADatasetForDPR.train_predictions_rank_0.pkl",
+    "/home/fz288/rds/hpc-work/PreFLMR/experiments/TEST_OKVQA_FLMR_Index_2/test/_test_OKVQADatasetForDPR.test_predictions_rank_0.pkl",
+    "/home/fz288/rds/hpc-work/PreFLMR/experiments/TEST_OKVQA_FLMR_Index/test/_test_OKVQADatasetForDPR.train_predictions_rank_0.pkl",
   ],
 };
 
@@ -115,9 +115,9 @@ local data_pipeline = std.mergePatch(merge_data, data_loader);
           "GeneratorModelVersion": "Salesforce/blip2-opt-2.7b",
           "max_query_length": 32,
           "max_decoder_source_length": 512,
-          "loss_fn": "binary_cross_entropy"
+          "loss_fn": "BCE"
         },
-        "Ks": [5, 10, 20, 50, 80],
+        "Ks": [5, 10, 20, 50],
         "num_negative_samples": 4,
         "max_source_length": 32,
         "max_decoder_source_length": 512,
@@ -130,7 +130,7 @@ local data_pipeline = std.mergePatch(merge_data, data_loader);
         ],
         "index_files": index_files,
         "nbits": 8,
-        "docs_to_rerank": 80,
+        "docs_to_rerank": 50,
         "prepend_tokens": {
             "query_encoder": "",
             "item_encoder": "",
@@ -190,7 +190,7 @@ local data_pipeline = std.mergePatch(merge_data, data_loader);
         },
         model_checkpoint_callback_paras: {
             monitor: 'valid/OKVQADatasetForDPR.test/loss',
-            save_top_k: 3,
+            save_top_k: 5,
             mode: "min",
             filename: 'model_step_{step}',
             save_last: true,

@@ -41,4 +41,4 @@ echo "Current directory: `pwd`"
 
 echo -e "\nnumtasks=$numtasks, numnodes=$numnodes, mpi_tasks_per_node=$mpi_tasks_per_node (OMP_NUM_THREADS=$OMP_NUM_THREADS)"
 
-python src/main.py --config configs/Rerank/evqa_experiments/evqa_retrieve_rerank.jsonnet --mode train --experiment_name EVQA_FLMRQuery_Retrieved_Rerank --tags "EVQA_FLMRQuery_Retrieved_Rerank" "train"  > slurm_log_$JOBID 2>&1
+python src/main.py --config configs/Rerank/evqa_experiments/evqa_retrieve_rerank.jsonnet --mode train --experiment_name EVQA_FLMRQuery_Retrieved_Rerank --tags "EVQA_FLMRQuery_Retrieved_Rerank" "train"  > log_EVQA_FLMRQuery_Retrieved_Rerank 2>&1

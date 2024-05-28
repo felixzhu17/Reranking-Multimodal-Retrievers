@@ -126,7 +126,7 @@ local data_pipeline = std.mergePatch(merge_data, data_loader);
           "cross_encoder_config_base": "bert-base-uncased",
           "cross_encoder_num_hidden_layers": 1,
           "cross_encoder_max_position_embeddings": 750,
-          "loss_fn": "binary_cross_entropy"
+          "loss_fn": "BCE"
 
         },
         "Ks": [5, 10, 20, 50, 100],
@@ -200,7 +200,7 @@ local data_pipeline = std.mergePatch(merge_data, data_loader);
         },
         model_checkpoint_callback_paras: {
             monitor: 'valid/EVQADatasetForDPR.test/loss',
-            save_top_k: 3,
+            save_top_k: 5,
             mode: "min",
             filename: 'model_step_{step}',
             save_last: true,
@@ -238,7 +238,7 @@ local data_pipeline = std.mergePatch(merge_data, data_loader);
             devices: 'auto',
             strategy: 'ddp_find_unused_parameters_true',
             precision: 'bf16',
-            // limit_test_batches: 2,
+            limit_test_batches: 60,
         },
         batch_size: 16,
         num_dataloader_workers: 0,

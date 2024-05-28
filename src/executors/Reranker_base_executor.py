@@ -55,7 +55,7 @@ from src.models.flmr import (
 )
 from src.models.flmr import index_custom_collection
 from src.models.flmr import search_custom_collection, create_searcher
-from src.models.rerank.rerank_model import RerankModel, InteractionRerankModel
+from src.models.rerank.rerank_model import RerankModel, InteractionRerankModel, FullContextRerankModel
 from src.models.rerank.decoder_rerank_model import DecoderRerankModel, DecoderHeadRerankModel
 
 from src.metrics import MetricsProcessor
@@ -147,6 +147,37 @@ class RerankerBaseExecutor(BaseExecutor, MetricsProcessor):
 
         self.init_retrieve()
 
+    def _check_reranker_class(self, RerankerClass):
+        # Define a dictionary of checks
+        checks = {
+            "decoder_reranker": (
+                [DecoderRerankModel, DecoderHeadRerankModel],
+                "Only DecoderRerankModel supports interaction_reranker",
+                ["preflmr_attention_fusion", "interaction_reranker"]
+            ),
+            "interaction_reranker": (
+                [InteractionRerankModel],
+                "Only InteractionRerankModel supports interaction_reranker",
+                []
+            ),
+            "full_context_reranker": (
+                [FullContextRerankModel],
+                "Only FullContextRerankModel",
+                ["preflmr_attention_fusion", "interaction_reranker"]
+            )
+        }
+        
+        # Check each module in the dictionary
+        for module, (valid_classes, error_message, forbidden_modules) in checks.items():
+            if module in self.model_config.modules:
+                assert RerankerClass in valid_classes, error_message
+                for forbidden_module in forbidden_modules:
+                    assert forbidden_module not in self.model_config.modules
+                break
+        else:
+            # Default case if no modules in the dictionary are found
+            assert RerankerClass == RerankModel, "Only RerankModel"
+
     def _init_model(self, model_config):
         """Initialize self.model
 
@@ -155,15 +186,7 @@ class RerankerBaseExecutor(BaseExecutor, MetricsProcessor):
         """
         reranker_config = model_config.reranker_config
         RerankerClass = globals()[reranker_config.RerankerClass]
-        
-        if "decoder_reranker" in self.model_config.modules:
-            assert RerankerClass in [DecoderRerankModel, DecoderHeadRerankModel], "Only DecoderRerankModel supports interaction_reranker"
-            assert "preflmr_attention_fusion" not in self.model_config.modules and "interaction_reranker" not in self.model_config.modules
-        elif "interaction_reranker" in self.model_config.modules:
-            assert RerankerClass == InteractionRerankModel, "Only InteractionRerankModel supports interaction_reranker"
-        else:
-            assert RerankerClass == RerankModel, "Only RerankModel"
-            
+        self._check_reranker_class(RerankerClass)
         self.prepared_data = self.dp.get_data([self.use_data_node], explode=True)
         
         if "weighted_regression" in self.model_config.modules:
@@ -458,53 +481,44 @@ class RerankerBaseExecutor(BaseExecutor, MetricsProcessor):
             },
         }
 
+    def sample_model_inputs(self, sample_batched, batch):
+        context_input_ids, context_attention_masks, context_docs, labels = [], [], [], []
+        for question_id, pos_item_ids in zip(
+            sample_batched["question_ids"], sample_batched["pos_item_ids"]
+        ):
+            retrieved_docs = self.static_retrieve(question_id).retrieved_docs
+            pos_item_ids = set(pos_item_ids)
+
+            # Sample documents
+            sampled_docs = random.sample(retrieved_docs, self.model_config.num_negative_samples + 1)
+
+            # Create labels for the sampled documents
+            question_labels = [1 if doc["passage_id"] in pos_item_ids else 0 for doc in sampled_docs]
+
+            # Extract content from sampled documents
+            retrieved_docs_content = [doc["content"] for doc in sampled_docs]
+            context_input_id, context_attention_mask = self.tokenize_retrieved_docs(retrieved_docs_content)
+            context_input_ids.append(context_input_id)
+            context_attention_masks.append(context_attention_mask)
+            context_docs.extend(retrieved_docs_content)
+            labels.extend(question_labels)
+            
+        if "decoder_reranker" in self.model_config.modules or "full_context_reranker" in self.model_config.modules:
+            batch["context_text_sequences"] = context_docs
+        else:
+            batch["context_input_ids"] = torch.cat(context_input_ids, dim=0)
+            batch["context_attention_mask"] = torch.cat(
+                context_attention_masks, dim=0
+            )
+        return batch, labels
+
     def training_step(self, sample_batched, batch_idx):
         retrieval_results = None
-        
+        labels = None
         train_batch = self.get_model_inputs(sample_batched)
 
         if "train_with_retrieved_docs" in self.model_config.modules:
-            context_input_ids, context_attention_masks = [], []
-            for question_id, pos_item_ids in zip(
-                sample_batched["question_ids"], sample_batched["pos_item_ids"]
-            ):
-                retrieved_docs = self.static_retrieve(question_id).retrieved_docs
-                pos_item_ids = set(pos_item_ids)
-                positive_docs = []
-                negative_docs = []
-
-                for doc in retrieved_docs:
-                    if doc["passage_id"] in pos_item_ids:
-                        positive_docs.append(doc)
-                    else:
-                        negative_docs.append(doc)
-
-                if len(positive_docs) == 0:
-                    passage_id = random.sample(pos_item_ids, 1)[0]
-                    positive_docs = [
-                        {
-                            "score": 10,
-                            "title": "",
-                            "content": self.passage_id2doc.get(passage_id, ""),
-                            "passage_id": passage_id,
-                        }
-                    ]
-                retrieved_docs = random.sample(positive_docs, 1) + random.sample(
-                    negative_docs, self.model_config.num_negative_samples
-                )
-                retrieved_docs_content = [i["content"] for i in retrieved_docs]
-                context_input_id, context_attention_mask = self.tokenize_retrieved_docs(
-                    retrieved_docs_content
-                )
-                context_input_ids.append(context_input_id)
-                context_attention_masks.append(context_attention_mask)
-            if "decoder_reranker" in self.model_config.modules:
-                train_batch["context_text_sequences"] = retrieved_docs_content
-            else:
-                train_batch["context_input_ids"] = torch.cat(context_input_ids, dim=0)
-                train_batch["context_attention_mask"] = torch.cat(
-                    context_attention_masks, dim=0
-                )
+            train_batch, labels = self.sample_model_inputs(sample_batched, train_batch)
 
         if "interaction_reranker" in self.model_config.modules:
             retrieval_results = self.retriever(**train_batch)
@@ -517,7 +531,13 @@ class RerankerBaseExecutor(BaseExecutor, MetricsProcessor):
         if "preflmr_attention_fusion" in self.model_config.modules:
             train_batch["preflmr_scores"] = retrieval_results.scores_raw if retrieval_results is not None else self.retriever(**train_batch).scores_raw
             train_batch["fusion_multiplier"] = self.model_config.fusion_multiplier
-
+            
+        if "train_with_retrieved_docs" in self.model_config.modules:
+            assert labels is not None
+            train_batch["labels"] = labels
+        else:
+            assert labels is None
+            
         batch_loss = self.reranker(**train_batch).loss
 
         # log the current learning rate from shedulers
@@ -604,6 +624,7 @@ class RerankerBaseExecutor(BaseExecutor, MetricsProcessor):
 
         return None
 
+
     def _compute_loss(self, sample_batched, batch_idx, dataloader_idx=0):
         retrieval_results = None
         batch_info = {
@@ -614,6 +635,7 @@ class RerankerBaseExecutor(BaseExecutor, MetricsProcessor):
         }
         
         test_batch = self.get_model_inputs(sample_batched)
+        test_batch, labels = self.sample_model_inputs(sample_batched, test_batch)
         
         if "interaction_reranker" in self.model_config.modules:
             retrieval_results = self.retriever(**test_batch)
@@ -626,7 +648,8 @@ class RerankerBaseExecutor(BaseExecutor, MetricsProcessor):
         if "preflmr_attention_fusion" in self.model_config.modules:
             test_batch["preflmr_scores"] = retrieval_results.scores_raw if retrieval_results is not None else self.retriever(**test_batch).scores_raw
             test_batch["fusion_multiplier"] = self.model_config.fusion_multiplier
-
+            
+        test_batch["labels"] = labels
         batch_loss = self.reranker(**test_batch).loss
 
         # logs metrics for each training_step,
@@ -706,7 +729,7 @@ class RerankerBaseExecutor(BaseExecutor, MetricsProcessor):
                 retrieved_docs_content
             )
             
-            if "decoder_reranker" in self.model_config.modules:
+            if "decoder_reranker" in self.model_config.modules or "full_context_reranker" in self.model_config.modules:
                 batch_input = {
                     "query_text_sequences": [query_text_sequence],
                     "query_pixel_values": query_pixel_value,
@@ -953,7 +976,7 @@ class RerankerBaseExecutor(BaseExecutor, MetricsProcessor):
                 logger.info("Predictions have been saved to {}".format(json_path))
 
     def get_model_inputs(self, sample_batched):
-        if "decoder_reranker" in self.model_config.modules:
+        if "decoder_reranker" in self.model_config.modules or "full_context_reranker" in self.model_config.modules:
             return {
                 "query_text_sequences": sample_batched["input_text_sequences"],
                 "query_pixel_values": sample_batched["pixel_values"].to(self.device),

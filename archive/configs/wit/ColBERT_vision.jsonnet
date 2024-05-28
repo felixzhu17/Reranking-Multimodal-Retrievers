@@ -194,7 +194,7 @@ local data_pipeline = std.mergePatch(wit_data, data_loader);
         },
         model_checkpoint_callback_paras: {
             monitor: 'valid/WITDatasetForDPR.valid/recall_at_10',
-            save_top_k: 3,
+            save_top_k: 5,
             mode: "max",
             filename: 'model_step_{step}',
             save_last: true,

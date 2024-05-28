@@ -90,7 +90,7 @@ local override = {
     train: {
         model_checkpoint_callback_paras: {
             monitor: 'valid/OKVQAWikipediaDatasetForDPR.test/recall_at_5',
-            save_top_k: 3,
+            save_top_k: 5,
         },
     },
 };

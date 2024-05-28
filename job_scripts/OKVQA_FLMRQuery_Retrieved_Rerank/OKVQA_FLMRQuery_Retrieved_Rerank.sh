@@ -1,5 +1,5 @@
 #!/bin/bash
-#SBATCH -J EVQA_FLMRQuery_G_Rerank
+#SBATCH -J OKVQA_FLMRQuery_Retrieved_Rerank
 #SBATCH -A MLMI-fz288-SL2-GPU
 #SBATCH --nodes=1
 #SBATCH --ntasks=1
@@ -41,4 +41,4 @@ echo "Current directory: `pwd`"
 
 echo -e "\nnumtasks=$numtasks, numnodes=$numnodes, mpi_tasks_per_node=$mpi_tasks_per_node (OMP_NUM_THREADS=$OMP_NUM_THREADS)"
 
-python src/main.py --config configs/Rerank/evqa_experiments/evqa_base_rerank_G.jsonnet --mode train --experiment_name EVQA_FLMRQuery_G_Rerank --tags "EVQA_FLMRQuery_G_Rerank" "train"  > log_EVQA_FLMRQuery_G_Rerank 2>&1
+python src/main.py --config configs/Rerank/initial_experiments/okvqa_retrieve_rerank.jsonnet --mode train --experiment_name OKVQA_FLMRQuery_Retrieved_Rerank --tags "OKVQA_FLMRQuery_Retrieved_Rerank" "train"  > log_OKVQA_FLMRQuery_Retrieved_Rerank 2>&1

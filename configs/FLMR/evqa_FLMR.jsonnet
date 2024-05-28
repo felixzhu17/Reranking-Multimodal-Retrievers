@@ -169,7 +169,7 @@ local data_pipeline = std.mergePatch(merge_data, data_loader);
         },
         model_checkpoint_callback_paras: {
             monitor: 'valid/EVQADatasetForDPR.test/recall_at_5',
-            save_top_k: 3,
+            save_top_k: 5,
             mode: "max",
             filename: 'model_step_{step}',
             save_last: true,

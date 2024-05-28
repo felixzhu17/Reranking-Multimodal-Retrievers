@@ -199,7 +199,7 @@ local data_pipeline = std.mergePatch(merge_data, data_loader);
         },
         model_checkpoint_callback_paras: {
             monitor: 'valid/EVQADatasetForDPR.test/loss',
-            save_top_k: 3,
+            save_top_k: 5,
             mode: "min",
             filename: 'model_step_{step}',
             save_last: true,

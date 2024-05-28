@@ -118,7 +118,7 @@ class DecoderRerankModel(pl.LightningModule):
         self.max_context_length = self.max_decoder_source_length - self.max_query_length - HEAD_TOKEN_LEEWAY
 
 
-    def forward(self, query_text_sequences, query_pixel_values, context_text_sequences, num_negative_examples):
+    def forward(self, query_text_sequences, query_pixel_values, context_text_sequences, num_negative_examples, labels = None):
         docs_per_query = num_negative_examples + 1
 
                     
@@ -128,11 +128,15 @@ class DecoderRerankModel(pl.LightningModule):
             self.max_decoder_source_length, docs_per_query
         )
         
-        labels = [
-            POSITIVE_LABEL if j == 0 else NEGATIVE_LABEL
-            for _ in range(len(query_text_sequences))
-            for j in range(docs_per_query)
-        ]
+        if labels is None:
+            labels = [
+                POSITIVE_LABEL if j == 0 else NEGATIVE_LABEL
+                for _ in range(len(query_text_sequences))
+                for j in range(docs_per_query)
+            ]
+        else:
+            labels = [POSITIVE_LABEL if label == 1 else NEGATIVE_LABEL for label in labels]
+        
         target_tokens = self.processor(text=labels, return_tensors="pt", padding="longest", truncation=True).input_ids
         labels = target_tokens.reshape(-1, 2) 
         
@@ -199,9 +203,10 @@ class DecoderHeadRerankModel(pl.LightningModule):
         self.max_context_length = self.max_decoder_source_length - self.max_query_length - HEAD_TOKEN_LEEWAY
 
 
-    def forward(self, query_text_sequences, query_pixel_values, context_text_sequences, num_negative_examples):
+    def forward(self, query_text_sequences, query_pixel_values, context_text_sequences, num_negative_examples, labels = None):
         docs_per_query = num_negative_examples + 1
         batch_size = len(query_text_sequences)
+
         inputs = prepare_decoder_inputs(
             query_text_sequences, context_text_sequences, self.prompt_template_func, 
             self.processor, self.max_query_length, self.max_context_length, 
@@ -222,7 +227,7 @@ class DecoderHeadRerankModel(pl.LightningModule):
         rel_position = (torch.eq(input_ids, self.gen_score_id).long().argmax(-1)).to(hidden_states.device)
         rel_hidden_states = hidden_states[torch.arange(hidden_states.size()[0], device=hidden_states.device), rel_position]
         logits, logits_secondary = self.classifier1(rel_hidden_states), self.classifier2(rel_hidden_states)
-        logits, labels = prepare_logits_labels(self.config, logits, logits_secondary, batch_size, num_negative_examples)
+        logits, labels = prepare_logits_labels(self.config, logits, logits_secondary, batch_size, num_negative_examples, labels = labels)
 
 
         loss = self.loss_fn(logits, labels)

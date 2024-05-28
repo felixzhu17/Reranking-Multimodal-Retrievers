@@ -1,0 +1,7 @@
+[
+    {
+        "config_file": "configs/Rerank/initial_experiments/okvqa_retrieve_rerank.jsonnet",
+        "time": "5:00:00",
+        "gpus": 2
+    }
+]

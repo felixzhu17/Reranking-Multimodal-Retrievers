@@ -3,3 +3,11 @@ python src/main.py --config configs/Rerank/decoder_experiments/decoder_rerank.js
 
 
 CUDA_VISIBLE_DEVICES=0,1 python src/main.py --config configs/Rerank/evqa_experiments/evqa_interaction_rerank.jsonnet --mode train --reset --override  --opts train.trainer_paras.limit_val_batches=5 train.trainer_paras.limit_train_batches=10 train.trainer_paras.max_epochs=1
+
+
+python src/main.py --config configs/FLMR/okvqa_FLMR.jsonnet --mode test --reset --override --experiment_name TEST_OKVQA_FLMR_Index --tags "OKVQA_FLMR_Index" "test" --opts test.trainer_paras.limit_test_batches=1 test.trainer_paras.max_epochs=1
+
+python src/main.py --config configs/FLMR/okvqa_FLMR.jsonnet --mode test --experiment_name TEST_OKVQA_FLMR_Index_2
+
+
+Maybe weighted loss function to encourage the model to learn the correct answer

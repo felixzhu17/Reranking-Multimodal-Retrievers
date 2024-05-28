@@ -4,7 +4,7 @@
 #SBATCH --nodes=1
 #SBATCH --ntasks=1
 #SBATCH --gres=gpu:2
-#SBATCH --time=5:00:00
+#SBATCH --time=8:00:00
 #SBATCH --mail-type=NONE
 #SBATCH -p ampere
 
@@ -38,4 +38,4 @@ echo "Running on master node: `hostname`"
 echo "Current directory: `pwd`"
 
 echo -e "\nnumtasks=$numtasks, numnodes=$numnodes, mpi_tasks_per_node=$mpi_tasks_per_node (OMP_NUM_THREADS=$OMP_NUM_THREADS)"
-python src/main.py --config configs/Rerank/evqa_experiments/evqa_decoder.jsonnet --mode test --reset --override --experiment_name TEST_EVQA_Decoder_Rerank_ckpt_model_step_2250 --tags "EVQA_Decoder_Rerank" "test" --opts train.load_model_path="experiments/EVQA_Decoder_Rerank_ckpt_model_step_1250/train/saved_models/model_step_2250.ckpt" > slurm_log_$JOBID 2>&1
+python src/main.py --config configs/Rerank/evqa_experiments/evqa_decoder.jsonnet --mode test --reset --override --experiment_name TEST_EVQA_Decoder_Rerank_ckpt_model_step_2250 --tags "EVQA_Decoder_Rerank" "test" --opts train.load_model_path="experiments/EVQA_Decoder_Rerank_ckpt_model_step_1250/train/saved_models/model_step_2250.ckpt" > log_TEST_EVQA_Decoder_Rerank_ckpt_model_step_2250 2>&1

@@ -71,6 +71,7 @@ from transformers.models.bert.modeling_bert import BertEncoder
 from transformers import BertConfig
 from src.models.rerank.utils import initialise_loss_fn, prepare_logits_labels
 
+HEAD_TOKEN_LEEWAY = 4
 class CrossEncoder(nn.Module):
     base_model_prefix = "reranker"
 
@@ -107,6 +108,7 @@ class CrossEncoder(nn.Module):
         logits2 = self.classifier2(cls_output)
 
         return logits1, logits2
+
 
 class RerankModel(pl.LightningModule):
     """
@@ -202,7 +204,6 @@ class RerankModel(pl.LightningModule):
         else:
             self.mask_instruction = False
 
-
     def forward(
         self,
         query_input_ids: torch.Tensor,
@@ -213,11 +214,14 @@ class RerankModel(pl.LightningModule):
         num_negative_examples: int,
         preflmr_scores: Optional[torch.Tensor] = None,
         fusion_multiplier: float = 1,
+        labels: Optional[List[int]] = None,
     ):
 
         batch_size = query_input_ids.size(0)
         expanded_batch_size = batch_size * (num_negative_examples + 1)
         assert expanded_batch_size == context_input_ids.size(0)
+        if labels:
+            assert len(labels) == expanded_batch_size
         query_input_ids = query_input_ids.repeat_interleave(
             num_negative_examples + 1, dim=0
         ).contiguous()
@@ -255,20 +259,23 @@ class RerankModel(pl.LightningModule):
 
 
         query_outputs = self.query(
-            joint_query_input_ids,
-            joint_query_attention_mask,
-            query_pixel_values,
-            None,
-            None,
-            None,
+            input_ids = joint_query_input_ids,
+            attention_mask = joint_query_attention_mask,
+            pixel_values = query_pixel_values,
+            image_features = None,
+            output_attentions = None,
+            output_hidden_states = None,
+            mask_instructions = self.mask_instruction,
+            token_type_ids = None,
         )
         reranker_inputs = self.cross_encoder_input_mapping(
             query_outputs.late_interaction_output
         )
-
+        
+        joint_query_attention_mask = query_outputs.query_mask.squeeze(dim=-1)
         query_image_size = reranker_inputs.size(1) - joint_query_attention_mask.size(1)
-
-        # All vision embeddings should be used in the attention
+    
+        # Include vision embeddings so they are used in the attention mask
         expand_mask = torch.ones(
             expanded_batch_size,
             query_image_size,
@@ -351,9 +358,10 @@ class RerankModel(pl.LightningModule):
             attention_adj=reranker_attention_adj,
         )
 
-        logits, labels = prepare_logits_labels(self.config, logits, logits_secondary, batch_size, num_negative_examples)
-
+        logits, labels = prepare_logits_labels(self.config, logits, logits_secondary, batch_size, num_negative_examples, labels = labels)
         loss = self.loss_fn(logits, labels)
+        if self.config.loss_fn == "2H_BCE":
+            logits = logits[:, 1].unsqueeze(1)
         return EasyDict(loss=loss, logits=logits)
 
     def query(
@@ -364,6 +372,8 @@ class RerankModel(pl.LightningModule):
         image_features: Optional[torch.Tensor] = None,
         output_attentions: Optional[bool] = None,
         output_hidden_states: Optional[bool] = None,
+        mask_instructions: bool = None,
+        token_type_ids: Optional[torch.Tensor] = None
     ):
         r"""
         Returns:
@@ -396,8 +406,10 @@ class RerankModel(pl.LightningModule):
             input_ids, attention_mask = input_ids.to(self.device), attention_mask.to(
                 self.device
             )
+            if token_type_ids is not None:
+                token_type_ids = token_type_ids.to(self.device)
             text_encoder_outputs = self.context_text_encoder(
-                input_ids, attention_mask=attention_mask
+                input_ids, attention_mask=attention_mask, token_type_ids=token_type_ids
             )
             text_encoder_hidden_states = text_encoder_outputs[
                 0
@@ -405,15 +417,17 @@ class RerankModel(pl.LightningModule):
             text_embeddings = self.context_text_encoder_linear(
                 text_encoder_hidden_states
             )  # torch.Size([80, 512, 128])
+            
+        
             mask = (
                 torch.tensor(
-                    self.query_mask(input_ids, skiplist=[]), device=self.device
+                    self.query_mask(input_ids, skiplist=[], mask_instructions = mask_instructions), device=self.device
                 )
                 .unsqueeze(2)
                 .float()
             )  # torch.Size([80, 512, 1])
             text_embeddings = text_embeddings * mask
-
+       
         if "image" in input_modality:
             if pixel_values is not None:
                 batch_size = pixel_values.shape[0]
@@ -492,62 +506,67 @@ class RerankModel(pl.LightningModule):
 
         Q = torch.cat([text_embeddings, vision_embeddings], dim=1)
 
-        vision_encoder_attentions = (
-            vision_encoder_outputs.attentions
-            if vision_encoder_outputs is not None
-            and hasattr(vision_encoder_outputs, "attentions")
-            and output_attentions
-            else None
-        )
-        vision_encoder_hidden_states = (
-            vision_encoder_outputs.hidden_states
-            if vision_encoder_outputs is not None
-            and hasattr(vision_encoder_outputs, "hidden_states")
-            and output_hidden_states
-            else None
-        )
-        text_encoder_attentions = (
-            text_encoder_outputs.attentions
-            if text_encoder_outputs is not None
-            and hasattr(text_encoder_outputs, "attentions")
-            and output_attentions
-            else None
-        )
-        text_encoder_hidden_states = (
-            text_encoder_outputs.hidden_states
-            if text_encoder_outputs is not None
-            and hasattr(text_encoder_outputs, "hidden_states")
-            and output_hidden_states
-            else None
-        )
-        transformer_mapping_network_attentions = (
-            transformer_mapping_outputs.attentions
-            if transformer_mapping_outputs is not None
-            and hasattr(transformer_mapping_outputs, "attentions")
-            and output_attentions
-            else None
-        )
-        transformer_mapping_network_hidden_states = (
-            transformer_mapping_outputs.hidden_states
-            if transformer_mapping_outputs is not None
-            and hasattr(transformer_mapping_outputs, "hidden_states")
-            and output_hidden_states
-            else None
-        )
+        # vision_encoder_attentions = (
+        #     vision_encoder_outputs.attentions
+        #     if vision_encoder_outputs is not None
+        #     and hasattr(vision_encoder_outputs, "attentions")
+        #     and output_attentions
+        #     else None
+        # )
+        # vision_encoder_hidden_states = (
+        #     vision_encoder_outputs.hidden_states
+        #     if vision_encoder_outputs is not None
+        #     and hasattr(vision_encoder_outputs, "hidden_states")
+        #     and output_hidden_states
+        #     else None
+        # )
+        # text_encoder_attentions = (
+        #     text_encoder_outputs.attentions
+        #     if text_encoder_outputs is not None
+        #     and hasattr(text_encoder_outputs, "attentions")
+        #     and output_attentions
+        #     else None
+        # )
+        # text_encoder_hidden_states = (
+        #     text_encoder_outputs.hidden_states
+        #     if text_encoder_outputs is not None
+        #     and hasattr(text_encoder_outputs, "hidden_states")
+        #     and output_hidden_states
+        #     else None
+        # )
+        # transformer_mapping_network_attentions = (
+        #     transformer_mapping_outputs.attentions
+        #     if transformer_mapping_outputs is not None
+        #     and hasattr(transformer_mapping_outputs, "attentions")
+        #     and output_attentions
+        #     else None
+        # )
+        # transformer_mapping_network_hidden_states = (
+        #     transformer_mapping_outputs.hidden_states
+        #     if transformer_mapping_outputs is not None
+        #     and hasattr(transformer_mapping_outputs, "hidden_states")
+        #     and output_hidden_states
+        #     else None
+        # )
+        
+        # return FLMRQueryEncoderOutput(
+        #     pooler_output=Q[:, 0, :],
+        #     late_interaction_output=torch.nn.functional.normalize(Q, p=2, dim=2),
+        #     vision_encoder_attentions=vision_encoder_attentions,
+        #     vision_encoder_hidden_states=vision_encoder_hidden_states,
+        #     text_encoder_attentions=text_encoder_attentions,
+        #     text_encoder_hidden_states=text_encoder_hidden_states,
+        #     transformer_mapping_network_attentions=transformer_mapping_network_attentions,
+        #     transformer_mapping_network_hidden_states=transformer_mapping_network_hidden_states,
+        # )
 
-        return FLMRQueryEncoderOutput(
-            pooler_output=Q[:, 0, :],
-            late_interaction_output=torch.nn.functional.normalize(Q, p=2, dim=2),
-            vision_encoder_attentions=vision_encoder_attentions,
-            vision_encoder_hidden_states=vision_encoder_hidden_states,
-            text_encoder_attentions=text_encoder_attentions,
-            text_encoder_hidden_states=text_encoder_hidden_states,
-            transformer_mapping_network_attentions=transformer_mapping_network_attentions,
-            transformer_mapping_network_hidden_states=transformer_mapping_network_hidden_states,
-        )
+        return EasyDict(pooler_output = Q[:, 0, :], 
+                        late_interaction_output = torch.nn.functional.normalize(Q, p=2, dim=2),
+                        query_mask = mask,)
 
-    def query_mask(self, input_ids, skiplist):
-        if not self.mask_instruction:
+    def query_mask(self, input_ids, skiplist, mask_instructions = None):
+        mask_instructions = mask_instructions if mask_instructions is not None else self.mask_instruction
+        if not mask_instructions:
             return self.mask(input_ids, skiplist)
 
         # find the position of end of instruction in input_ids
@@ -599,7 +618,84 @@ class RerankModel(pl.LightningModule):
         ) * torch.finfo(self.dtype).min
 
         return encoder_extended_attention_mask
+    
+    def mask(self, input_ids, skiplist):
+        mask = [
+            [(x not in skiplist) and (x != 0) for x in d]
+            for d in input_ids.cpu().tolist()
+        ]
+        return mask
 
+class FullContextRerankModel(RerankModel):
+    def __init__(self, config: EasyDict) -> None:
+        super().__init__(config)
+        self.max_query_length = self.config.max_query_length
+        self.max_decoder_source_length = self.config.max_decoder_source_length
+        self.max_context_length = self.max_decoder_source_length - self.max_query_length - HEAD_TOKEN_LEEWAY
+        
+    
+    def forward(self, query_text_sequences, query_pixel_values, context_text_sequences, num_negative_examples, labels = None):
+        batch_size = len(query_text_sequences)
+        expanded_batch_size = batch_size * (num_negative_examples + 1)
+        assert expanded_batch_size == len(context_text_sequences)
+        if labels:
+            assert len(labels) == expanded_batch_size
+        
+        inputs = prepare_decoder_inputs(
+            query_text_sequences, 
+            context_text_sequences, 
+            self.query_tokenizer, 
+            self.max_query_length, 
+            self.max_context_length, 
+            self.max_decoder_source_length, 
+            num_negative_examples + 1
+        )
+        query_pixel_values = query_pixel_values.repeat_interleave(
+            num_negative_examples + 1, dim=0
+        ).contiguous()
+        
+        query_outputs = self.query(
+            input_ids = inputs.input_ids,
+            attention_mask = inputs.attention_mask,
+            pixel_values = query_pixel_values,
+            image_features = None,
+            output_attentions = None,
+            output_hidden_states = None,
+            mask_instructions = False,
+            token_type_ids = inputs.token_type_ids,
+        )
+        
+        reranker_inputs = self.cross_encoder_input_mapping(
+            query_outputs.late_interaction_output
+        )
+        
+        joint_query_attention_mask = query_outputs.query_mask.squeeze(dim=-1)
+        query_image_size = reranker_inputs.size(1) - joint_query_attention_mask.size(1)
+    
+        # Include vision embeddings so they are used in the attention mask
+        expand_mask = torch.ones(
+            expanded_batch_size,
+            query_image_size,
+            dtype=joint_query_attention_mask.dtype,
+            device=joint_query_attention_mask.device,
+        )
+        
+        reranker_attention_mask = torch.cat(
+            [joint_query_attention_mask, expand_mask], dim=1
+        )  # torch.Size([80, 593])
+
+
+        logits, logits_secondary = self.reranker(
+            reranker_inputs,
+            attention_mask=reranker_attention_mask,
+        )
+
+        logits, labels = prepare_logits_labels(self.config, logits, logits_secondary, batch_size, num_negative_examples, labels = labels)
+        loss = self.loss_fn(logits, labels)
+        if self.config.loss_fn == "2H_BCE":
+            logits = logits[:, 1].unsqueeze(1)
+        return EasyDict(loss=loss, logits=logits)
+    
 class InteractionRerankModel(pl.LightningModule):
     """
     Class for RAG, re-implementation
@@ -637,6 +733,7 @@ class InteractionRerankModel(pl.LightningModule):
         num_negative_examples: int,
         preflmr_scores: Optional[torch.Tensor] = None,
         fusion_multiplier: float = 1,
+        labels: Optional[List[int]] = None,
     ):
 
 
@@ -701,7 +798,67 @@ class InteractionRerankModel(pl.LightningModule):
             attention_adj=reranker_attention_adj,
         )
 
-        logits, labels = prepare_logits_labels(self.config, logits, logits_secondary, batch_size, num_negative_examples)
+        logits, labels = prepare_logits_labels(self.config, logits, logits_secondary, batch_size, num_negative_examples, labels = labels)
         
         loss = self.loss_fn(logits, labels)
         return EasyDict(loss=loss, logits=logits)
+    
+PREFIXES = [
+    "Using the provided image, obtain documents that address the subsequent question: ",
+    "Retrieve documents that provide an answer to the question alongside the image: ",
+    "Extract documents linked to the question provided in conjunction with the image: ",
+    "Utilizing the given image, obtain documents that respond to the following question: ",
+    "Using the given image, access documents that provide insights into the following question: ",
+    "Obtain documents that correspond to the inquiry alongside the provided image: ",
+    "With the provided image, gather documents that offer a solution to the question: ",
+    "Utilizing the given image, obtain documents that respond to the following question: ",
+]
+
+def remove_prefixes(text):
+    return [remove_prefix(s) for s in text]
+
+def remove_prefix(text):
+    for prefix in PREFIXES:
+        if text.startswith(prefix):
+            return text[len(prefix):]
+    return text
+
+def prepare_decoder_inputs(query_text_sequences, context_text_sequences, tokenizer, max_query_length, max_context_length, max_decoder_source_length, docs_per_query):
+    # Tokenize and truncate query sequences
+    truncated_query = [
+        tokenizer.decode(tokenizer.encode(
+            input_text, add_special_tokens=False, 
+            max_length=max_query_length, truncation=True
+        )) for input_text in query_text_sequences
+    ]
+
+    # Tokenize and truncate context sequences
+    truncated_context = [
+        tokenizer.decode(tokenizer.encode(
+            context_text, add_special_tokens=False, 
+            max_length=max_context_length, truncation=True
+        )) for context_text in context_text_sequences
+    ]
+
+    concatenated_sequences = []
+
+    # Concatenate sequences using the provided prompt template function
+    for i, input_text in enumerate(truncated_query):
+        for j in range(docs_per_query):
+            context_index = i * docs_per_query + j
+            context_text = truncated_context[context_index]
+            concatenated_sequences.append((input_text, context_text))
+
+
+    # Process the concatenated sequences into the desired input format
+    inputs = tokenizer.batch_encode_plus(
+        concatenated_sequences, 
+        add_special_tokens=True,
+        return_tensors="pt", 
+        padding="max_length", 
+        truncation=True, 
+        max_length=max_decoder_source_length,
+        return_attention_mask=True
+    )
+
+    return inputs
