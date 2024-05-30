@@ -177,6 +177,9 @@ class RerankerBaseExecutor(BaseExecutor, MetricsProcessor):
         else:
             # Default case if no modules in the dictionary are found
             assert RerankerClass == RerankModel, "Only RerankModel"
+            
+        # if "full_context_reranker" in self.model_config.modules:
+        #     assert self.training_config.batch_size == 1, "FullContextReranker requires 1 batch size"
 
     def _init_model(self, model_config):
         """Initialize self.model
@@ -497,6 +500,9 @@ class RerankerBaseExecutor(BaseExecutor, MetricsProcessor):
 
             # Extract content from sampled documents
             retrieved_docs_content = [doc["content"] for doc in sampled_docs]
+            #MODIFIED
+            # retrieved_docs_content = [f"yes {doc['content']}" if doc["passage_id"] in pos_item_ids else f"no {doc['content']}" for doc in sampled_docs]
+            
             context_input_id, context_attention_mask = self.tokenize_retrieved_docs(retrieved_docs_content)
             context_input_ids.append(context_input_id)
             context_attention_masks.append(context_attention_mask)
@@ -725,6 +731,9 @@ class RerankerBaseExecutor(BaseExecutor, MetricsProcessor):
             
             retrieved_docs = self.static_retrieve(question_id).retrieved_docs
             retrieved_docs_content = [i["content"] for i in retrieved_docs]
+            #MODIFIED
+            # retrieved_docs_content = [f"yes {doc['content']}" if doc["passage_id"] in pos_item_ids else f"no {doc['content']}" for doc in retrieved_docs]
+
             context_input_ids, context_attention_masks = self.tokenize_retrieved_docs(
                 retrieved_docs_content
             )
@@ -771,6 +780,9 @@ class RerankerBaseExecutor(BaseExecutor, MetricsProcessor):
             # Detach and clone the logits to avoid modifying the computation graph
             all_logits = all_logits.clone().detach()
             logits_list = all_logits.squeeze().tolist()
+            
+            #MODIFIED
+            # logits_list = [1 if doc["passage_id"] in pos_item_ids else 0 for doc in retrieved_docs]
             assert len(retrieved_docs) == len(
                 logits_list
             ), "Length of retrieved_docs and all_logits must match."

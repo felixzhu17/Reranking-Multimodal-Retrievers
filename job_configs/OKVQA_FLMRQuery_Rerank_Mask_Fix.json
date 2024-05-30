@@ -3,6 +3,12 @@
         "config_file": "configs/Rerank/initial_experiments/okvqa_base_rerank.jsonnet",
         "time": "2:00:00",
         "gpus": 2,
-        "ckpt_path": "/home/fz288/rds/hpc-work/PreFLMR/experiments/OKVQA_FLMRQuery_Rerank_Mask_Fix/train/saved_models/model_step_1762.ckpt"
+        "ckpt_path": "/home/fz288/rds/hpc-work/PreFLMR/experiments/OKVQA_FLMRQuery_Rerank_Mask_Fix/train/saved_models/model_step_1510.ckpt"
+    },
+    {
+        "config_file": "configs/Rerank/initial_experiments/okvqa_base_rerank.jsonnet",
+        "time": "2:00:00",
+        "gpus": 2,
+        "ckpt_path": "/home/fz288/rds/hpc-work/PreFLMR/experiments/OKVQA_FLMRQuery_Rerank_Mask_Fix/train/saved_models/model_step_755.ckpt"
     }
 ]

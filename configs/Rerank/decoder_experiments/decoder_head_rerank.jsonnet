@@ -183,7 +183,7 @@ local data_pipeline = std.mergePatch(merge_data, data_loader);
             max_epochs: -1,
             accumulate_grad_batches: 16,
             check_val_every_n_epoch: null,
-            val_check_interval: 250,
+            val_check_interval: 500,
             log_every_n_steps: 10,
             // limit_train_batches: 2,
             limit_val_batches: 60,

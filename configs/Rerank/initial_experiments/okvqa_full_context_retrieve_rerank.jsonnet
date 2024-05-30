@@ -97,7 +97,7 @@ local validation_indexing_source = ["okvqa_passages"];
 local data_pipeline = std.mergePatch(merge_data, data_loader);
 
 {
-    experiment_name: 'OKVQA_Reranker_Two_Head_BCE',
+    experiment_name: 'OKVQA_Reranker',
     test_suffix: 'default_test',
     meta: meta.default_meta,
     data_pipeline: data_pipeline,
@@ -111,23 +111,26 @@ local data_pipeline = std.mergePatch(merge_data, data_loader);
         "reranker_config":{
           "base_model": "FLMR",
           "pretrain_config_class": "FLMRConfig",
-          "RerankerClass": "RerankModel",
+          "RerankerClass": "FullContextRerankModel",
           "pretrain_model_version": reranker_pretrained_ckpt_path,
           "cross_encoder_config_base": "bert-base-uncased",
-          "cross_encoder_num_hidden_layers": 3,
+          "cross_encoder_num_hidden_layers": 1,
           "cross_encoder_max_position_embeddings": 750,
-          "loss_fn": "2H_BCE"
-
+          "loss_fn": "BCE",
+          "max_query_length": 32,
+          "max_decoder_source_length": 512,
         },
         "Ks": [5, 10, 20, 50, 100],
-        "num_negative_samples": 4,
+        "num_negative_samples": 39,
         "max_source_length": 32,
         "max_decoder_source_length": 512,
         "fusion_multiplier": 1,
         "pretrained": 1,
         "modules": [
             "separate_query_and_item_encoders",
-            "full_validation",
+            "full_context_reranker",
+            "train_with_retrieved_docs"
+            // "full_validation"
         ],
         "index_files": index_files,
         "nbits": 8,
@@ -174,7 +177,7 @@ local data_pipeline = std.mergePatch(merge_data, data_loader);
         },
     },
     train: {
-        batch_size: 8,
+        batch_size: 1,
         num_dataloader_workers: 4,
         trainer_paras: {
             accelerator: 'auto',
