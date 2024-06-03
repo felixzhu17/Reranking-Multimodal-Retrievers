@@ -1,8 +1,0 @@
-[
-    {
-        "config_file": "configs/Rerank/decoder_experiments/decoder_rerank.jsonnet",
-        "time": "5:00:00",
-        "gpus": 2,
-        "ckpt_path": "experiments/OKVQA_Decoder_Reranker_low_lr/train/saved_models/model_step_2002.ckpt"
-    }
-]

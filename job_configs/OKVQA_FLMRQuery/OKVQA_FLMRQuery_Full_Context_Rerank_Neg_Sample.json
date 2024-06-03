@@ -1,0 +1,7 @@
+[
+    {
+        "config_file": "configs/Rerank/loss_function/okvqa_full_context_rerank_neg_sample.jsonnet",
+        "time": "4:00:00",
+        "gpus": 2
+    }
+]

@@ -82,7 +82,7 @@ def initialise_loss_fn(config, device):
             print("Weighted CE Loss", class_weights)
         loss_fn = nn.CrossEntropyLoss(weight=class_weights)
     elif config.loss_fn == "negative_sampling":
-        raise NotImplementedError
+        loss_fn = nn.CrossEntropyLoss()
     else:
         raise ValueError(f"Unknown loss function {config.loss_fn}")
     return loss_fn
@@ -94,6 +94,7 @@ def prepare_logits_labels(config, logits, logits_secondary, batch_size, num_nega
     if labels is not None:
         # Assert labels are a list
         assert isinstance(labels, list), "Labels must be a list"
+        assert config.loss_fn != "negative_sampling", "Labels should not be provided for negative sampling loss function"
         # Convert labels to a PyTorch tensor and reshape to (-1, 1)
         labels = torch.tensor(labels, dtype=torch.float32, device = logits.device).reshape(-1, 1)
 
@@ -109,10 +110,8 @@ def prepare_logits_labels(config, logits, logits_secondary, batch_size, num_nega
             labels = labels.view(-1).long()
             logits = torch.cat((logits, logits_secondary), dim=1)
     elif config.loss_fn == "negative_sampling":
-        raise NotImplementedError
         logits = logits.view(-1, num_negative_examples + 1)
-        if labels is None:
-            labels = torch.zeros(batch_size, dtype=torch.long, device=logits.device)
+        labels = torch.zeros(batch_size, dtype=torch.long, device=logits.device)
     else:
         raise ValueError(f"Unknown loss function {config.loss_fn}")
 

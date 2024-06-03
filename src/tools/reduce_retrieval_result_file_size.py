@@ -2,8 +2,11 @@ import json
 from tqdm import tqdm
 
 input_files = [
-    "/home/fz288/rds/hpc-work/PreFLMR/experiments/TEST_OKVQA_FLMR_Index_2/test/_test_OKVQADatasetForDPR.test_predictions_rank_0.json",
-    "/home/fz288/rds/hpc-work/PreFLMR/experiments/TEST_OKVQA_FLMR_Index/test/_test_OKVQADatasetForDPR.train_predictions_rank_0.json",
+    # "/home/fz288/rds/hpc-work/PreFLMR/search_index/EVQA/PreFLMR-B/_test_EVQADatasetForDPR.test_predictions_rank_0.json",
+    # "/home/fz288/rds/hpc-work/PreFLMR/search_index/EVQA/PreFLMR-G/_test_EVQADatasetForDPR.test_predictions_rank_0.json",
+    # "/home/fz288/rds/hpc-work/PreFLMR/search_index/EVQA/PreFLMR-L/_test_EVQADatasetForDPR.test_predictions_rank_0.json",
+    "/home/fz288/rds/hpc-work/PreFLMR/search_index/OKVQA/PreFLMR-G/_test_OKVQADatasetForDPR.test_predictions_rank_0.json",
+    "/home/fz288/rds/hpc-work/PreFLMR/search_index/OKVQA/PreFLMR-L/_test_OKVQADatasetForDPR.test_predictions_rank_0.json"
 ]
 
 for file_path in input_files:

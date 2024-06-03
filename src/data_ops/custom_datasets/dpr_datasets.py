@@ -146,6 +146,8 @@ class CommonDatasetForDPR(DPRBaseDataset, ModuleParser):
         item = sample
         # these two belong to a positive sample (in annotations)
 
+        print(item.pos_item_ids)
+
         selected_pos_index = random.sample(range(len(item.pos_item_ids)), k=1)[0]
         passage_id = item.pos_item_ids[selected_pos_index]
         passage_content = item.pos_item_contents[
@@ -264,12 +266,15 @@ class EVQADatasetForDPR(CommonDatasetForDPR, ModuleParser):
 
         answers = [sample.answers for sample in batch]
         gold_answers = [sample.gold_answer for sample in batch]
+        all_pos_item_ids = [sample.pos_item_ids for sample in batch]
+        
 
         batched_data.update(
             EasyDict(
                 {
                     "answers": answers,
                     "gold_answers": gold_answers,
+                    "all_pos_item_ids": all_pos_item_ids,
                 }
             )
         )

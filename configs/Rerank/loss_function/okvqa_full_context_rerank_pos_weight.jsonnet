@@ -128,6 +128,7 @@ local data_pipeline = std.mergePatch(merge_data, data_loader);
         "pretrained": 1,
         "modules": [
             "separate_query_and_item_encoders",
+            "full_context_reranker",
             "weighted_regression"
             // "full_validation"
         ],
@@ -186,7 +187,7 @@ local data_pipeline = std.mergePatch(merge_data, data_loader);
             max_epochs: -1,
             accumulate_grad_batches: 8,
             check_val_every_n_epoch: null,
-            val_check_interval: 500,
+            val_check_interval: 1000,
             log_every_n_steps: 10,
             limit_val_batches: 50,
         },

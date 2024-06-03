@@ -153,12 +153,12 @@ class RerankerBaseExecutor(BaseExecutor, MetricsProcessor):
             "decoder_reranker": (
                 [DecoderRerankModel, DecoderHeadRerankModel],
                 "Only DecoderRerankModel supports interaction_reranker",
-                ["preflmr_attention_fusion", "interaction_reranker"]
+                ["preflmr_attention_fusion", "interaction_reranker", "freeze_reranker_vision_encoder"]
             ),
             "interaction_reranker": (
                 [InteractionRerankModel],
                 "Only InteractionRerankModel supports interaction_reranker",
-                []
+                ["freeze_reranker_vision_encoder"]
             ),
             "full_context_reranker": (
                 [FullContextRerankModel],
@@ -198,8 +198,9 @@ class RerankerBaseExecutor(BaseExecutor, MetricsProcessor):
             reranker_config.pos_weight = None
         
         self.reranker = RerankerClass(reranker_config)
-        print("Freezing Reranker vision encoders")
-        if RerankerClass == RerankModel:
+        
+        if "freeze_reranker_vision_encoder" in self.model_config.modules:
+            print("Freezing Reranker vision encoders")
             for name, param in self.reranker.context_vision_encoder.named_parameters():
                 param.requires_grad = False
 
@@ -237,7 +238,6 @@ class RerankerBaseExecutor(BaseExecutor, MetricsProcessor):
             print("Freezing Retriever")
             for name, param in self.retriever.named_parameters():
                 param.requires_grad = False
-
 
     def init_retrieve(self):
 
@@ -487,7 +487,7 @@ class RerankerBaseExecutor(BaseExecutor, MetricsProcessor):
     def sample_model_inputs(self, sample_batched, batch):
         context_input_ids, context_attention_masks, context_docs, labels = [], [], [], []
         for question_id, pos_item_ids in zip(
-            sample_batched["question_ids"], sample_batched["pos_item_ids"]
+            sample_batched["question_ids"], sample_batched["all_pos_item_ids"]
         ):
             retrieved_docs = self.static_retrieve(question_id).retrieved_docs
             pos_item_ids = set(pos_item_ids)
@@ -500,9 +500,7 @@ class RerankerBaseExecutor(BaseExecutor, MetricsProcessor):
 
             # Extract content from sampled documents
             retrieved_docs_content = [doc["content"] for doc in sampled_docs]
-            #MODIFIED
-            # retrieved_docs_content = [f"yes {doc['content']}" if doc["passage_id"] in pos_item_ids else f"no {doc['content']}" for doc in sampled_docs]
-            
+
             context_input_id, context_attention_mask = self.tokenize_retrieved_docs(retrieved_docs_content)
             context_input_ids.append(context_input_id)
             context_attention_masks.append(context_attention_mask)
@@ -593,7 +591,8 @@ class RerankerBaseExecutor(BaseExecutor, MetricsProcessor):
         return None
 
     def test_step(self, sample_batched, batch_idx, dataloader_idx=0):
-        pred, batch = self._compute_loss(sample_batched, batch_idx, dataloader_idx)
+        # pred, batch = self._compute_loss(sample_batched, batch_idx, dataloader_idx)
+        pred, batch = self._dummy_loss(sample_batched, batch_idx, dataloader_idx)
         self.test_step_outputs[dataloader_idx].append(pred)
         self.test_batch[dataloader_idx].append(batch)
         return pred
@@ -630,18 +629,41 @@ class RerankerBaseExecutor(BaseExecutor, MetricsProcessor):
 
         return None
 
-
-    def _compute_loss(self, sample_batched, batch_idx, dataloader_idx=0):
-        retrieval_results = None
+    def _dummy_loss(self, sample_batched, batch_idx, dataloader_idx=0):
         batch_info = {
             "query_input_ids": sample_batched["input_ids"].to(self.device),
             "query_attention_mask": sample_batched["attention_mask"].to(self.device),
             "query_pixel_values": sample_batched["pixel_values"].to(self.device),
             "query_text_sequences": sample_batched["input_text_sequences"],
+            "btach_idx": batch_idx,
+            "question_ids": sample_batched["question_ids"],
+            "questions": sample_batched["questions"],
+            "pos_item_ids": sample_batched["all_pos_item_ids"],
+            "neg_item_ids": sample_batched["neg_item_ids"],
+        }
+        
+        data_to_return = {"loss": torch.tensor(0.0).to("cpu")}
+        return data_to_return, batch_info
+
+    def _compute_loss(self, sample_batched, batch_idx, dataloader_idx=0):
+        retrieval_results = None
+        labels = None
+        batch_info = {
+            "query_input_ids": sample_batched["input_ids"].to(self.device),
+            "query_attention_mask": sample_batched["attention_mask"].to(self.device),
+            "query_pixel_values": sample_batched["pixel_values"].to(self.device),
+            "query_text_sequences": sample_batched["input_text_sequences"],
+            "btach_idx": batch_idx,
+            "question_ids": sample_batched["question_ids"],
+            "questions": sample_batched["questions"],
+            "pos_item_ids": sample_batched["all_pos_item_ids"],
+            "neg_item_ids": sample_batched["neg_item_ids"],
         }
         
         test_batch = self.get_model_inputs(sample_batched)
-        test_batch, labels = self.sample_model_inputs(sample_batched, test_batch)
+        
+        if "test_with_retrieved_docs" in self.model_config.modules:
+            test_batch, labels = self.sample_model_inputs(sample_batched, test_batch)
         
         if "interaction_reranker" in self.model_config.modules:
             retrieval_results = self.retriever(**test_batch)
@@ -655,7 +677,11 @@ class RerankerBaseExecutor(BaseExecutor, MetricsProcessor):
             test_batch["preflmr_scores"] = retrieval_results.scores_raw if retrieval_results is not None else self.retriever(**test_batch).scores_raw
             test_batch["fusion_multiplier"] = self.model_config.fusion_multiplier
             
-        test_batch["labels"] = labels
+        if "test_with_retrieved_docs" in self.model_config.modules:
+            assert labels is not None
+            test_batch["labels"] = labels
+        else:
+            assert labels is None
         batch_loss = self.reranker(**test_batch).loss
 
         # logs metrics for each training_step,
@@ -663,11 +689,11 @@ class RerankerBaseExecutor(BaseExecutor, MetricsProcessor):
         self.log("valid/loss", batch_loss, on_step=True, logger=True, sync_dist=True)
 
         data_to_return = {
-            "btach_idx": batch_idx,
-            "question_ids": sample_batched["question_ids"],
-            "questions": sample_batched["questions"],
-            "pos_item_ids": sample_batched["pos_item_ids"],
-            "neg_item_ids": sample_batched["neg_item_ids"],
+            # "btach_idx": batch_idx,
+            # "question_ids": sample_batched["question_ids"],
+            # "questions": sample_batched["questions"],
+            # "pos_item_ids": sample_batched["all_pos_item_ids"],
+            # "neg_item_ids": sample_batched["neg_item_ids"],
             "loss": batch_loss.detach().cpu(),
         }
 
@@ -731,9 +757,6 @@ class RerankerBaseExecutor(BaseExecutor, MetricsProcessor):
             
             retrieved_docs = self.static_retrieve(question_id).retrieved_docs
             retrieved_docs_content = [i["content"] for i in retrieved_docs]
-            #MODIFIED
-            # retrieved_docs_content = [f"yes {doc['content']}" if doc["passage_id"] in pos_item_ids else f"no {doc['content']}" for doc in retrieved_docs]
-
             context_input_ids, context_attention_masks = self.tokenize_retrieved_docs(
                 retrieved_docs_content
             )
@@ -781,8 +804,6 @@ class RerankerBaseExecutor(BaseExecutor, MetricsProcessor):
             all_logits = all_logits.clone().detach()
             logits_list = all_logits.squeeze().tolist()
             
-            #MODIFIED
-            # logits_list = [1 if doc["passage_id"] in pos_item_ids else 0 for doc in retrieved_docs]
             assert len(retrieved_docs) == len(
                 logits_list
             ), "Length of retrieved_docs and all_logits must match."
@@ -824,6 +845,8 @@ class RerankerBaseExecutor(BaseExecutor, MetricsProcessor):
                 batched_data["answers"] = list(query_item.answers)
             if query_item.get("gold_answer", None) is not None:
                 batched_data["gold_answer"] = query_item.gold_answer
+            if query_item.get("question", None) is not None:
+                batched_data["question"] = query_item.question
             batch_result.append(batched_data)
 
         print("Reranking done.")
@@ -896,11 +919,11 @@ class RerankerBaseExecutor(BaseExecutor, MetricsProcessor):
 
         n_docs = self.config.model_config.docs_to_rerank
         annotation = self.questionId2topPassages.get(str(question_id), None)
-        assert n_docs <= len(annotation), "Number of retrieved docs must be less than the total number of docs."
         if annotation is None:
             raise ValueError(
                 f"Question {question_id} not found in the static retrieval results."
             )
+        assert n_docs <= len(annotation), "Number of retrieved docs must be less than the total number of docs."
         top_passages = annotation[:n_docs]
 
         for p in top_passages:
@@ -1020,12 +1043,13 @@ class RerankerBaseExecutor(BaseExecutor, MetricsProcessor):
 
         for step_output in step_outputs:
             batch_loss.append(step_output["loss"])
-            question_ids += step_output["question_ids"]
-            pos_item_ids.extend(step_output["pos_item_ids"])
-            neg_item_ids.extend(step_output["neg_item_ids"])
-            questions.extend(step_output["questions"])
+
 
         for current_batch in current_batches:
+            question_ids += current_batch["question_ids"]
+            pos_item_ids.extend(current_batch["pos_item_ids"])
+            neg_item_ids.extend(current_batch["neg_item_ids"])
+            questions.extend(current_batch["questions"])
             split_input_ids = current_batch["query_input_ids"].split(1, dim=0)
             split_attention_masks = current_batch["query_attention_mask"].split(1, dim=0)
             split_pixel_values = current_batch["query_pixel_values"].split(1, dim=0)

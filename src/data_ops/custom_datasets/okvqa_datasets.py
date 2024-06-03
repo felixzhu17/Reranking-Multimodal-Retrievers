@@ -284,6 +284,7 @@ class OKVQADatasetForDPR(DPRBaseDataset, ModuleParser):
         passage_ids = [sample.passage_id for sample in batch]
         pos_item_ids = [sample.passage_id for sample in batch]
         neg_item_ids = [sample.neg_passage_ids for sample in batch]
+        all_pos_item_ids = [sample.pos_item_ids for sample in batch]
 
         batched_data.update(
             EasyDict(
@@ -295,6 +296,7 @@ class OKVQADatasetForDPR(DPRBaseDataset, ModuleParser):
                     "passage_ids": passage_ids,
                     "pos_item_ids": pos_item_ids,
                     "neg_item_ids": neg_item_ids,
+                    "all_pos_item_ids": all_pos_item_ids
                 }
             )
         )

@@ -426,6 +426,7 @@ class RerankModel(pl.LightningModule):
                 .unsqueeze(2)
                 .float()
             )  # torch.Size([80, 512, 1])
+            
             text_embeddings = text_embeddings * mask
        
         if "image" in input_modality:

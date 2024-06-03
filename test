@@ -2,12 +2,7 @@ python src/main.py --config configs/Rerank/evqa_experiments/evqa_decoder.jsonnet
 python src/main.py --config configs/Rerank/decoder_experiments/decoder_rerank.jsonnet --mode test --reset --override --experiment_name OKVQA_BLIP2_YesNo_test --opts test.load_model_path="experiments/OKVQA_Decoder_Reranker/train/saved_models/model_step_1502.ckpt" test.trainer_paras.limit_test_batches=1 test.trainer_paras.max_epochs=1
 
 
-CUDA_VISIBLE_DEVICES=0,1 python src/main.py --config configs/Rerank/evqa_experiments/evqa_interaction_rerank.jsonnet --mode train --reset --override  --opts train.trainer_paras.limit_val_batches=5 train.trainer_paras.limit_train_batches=10 train.trainer_paras.max_epochs=1
 
 
-python src/main.py --config configs/FLMR/okvqa_FLMR.jsonnet --mode test --reset --override --experiment_name TEST_OKVQA_FLMR_Index --tags "OKVQA_FLMR_Index" "test" --opts test.trainer_paras.limit_test_batches=1 test.trainer_paras.max_epochs=1
-
-python src/main.py --config configs/FLMR/okvqa_FLMR.jsonnet --mode test --experiment_name TEST_OKVQA_FLMR_Index_2
-
-
-Maybe weighted loss function to encourage the model to learn the correct answer
+python src/main.py --config configs/Rerank/initial_experiments/okvqa_full_context_rerank.jsonnet --mode train --experiment_name DEBUGDUMMY --reset --override  --opts train.trainer_paras.limit_val_batches=2 train.trainer_paras.limit_train_batches=5 train.trainer_paras.max_epochs=1
+python src/main.py --config configs/Rerank/initial_experiments/okvqa_full_context_rerank.jsonnet --mode test --experiment_name DEBUGDUMMY --reset --override  --opts test.trainer_paras.limit_test_batches=1 test.trainer_paras.max_epochs=1 test.batch_size=3

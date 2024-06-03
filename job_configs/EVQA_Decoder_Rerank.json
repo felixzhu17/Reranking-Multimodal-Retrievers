@@ -1,8 +1,0 @@
-[
-    {
-        "config_file": "configs/Rerank/evqa_experiments/evqa_decoder.jsonnet",
-        "time": "8:00:00",
-        "gpus": 2,
-        "ckpt_path": "experiments/EVQA_Decoder_Rerank_ckpt_model_step_1250/train/saved_models/model_step_2250.ckpt"
-    }
-]

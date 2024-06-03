@@ -598,7 +598,12 @@ class MetricsProcessor:
         }
 
         for re in tqdm(batch_result):
+
+            
+            
             top_ranking_passages = re["top_ranking_passages"]
+            
+
             pos_item_ids = re[field]
 
             hit = []
@@ -726,6 +731,13 @@ class MetricsProcessor:
         }
 
         for re in tqdm(batch_result):
+            #DEBUG PSEUDO vs POSITEM
+            # print("============================== Question ==============================")
+            # print(re["question"])
+            # print("============================== Answers ==============================")
+            # print(re["answers"])
+            # print("============================== Matched PSEUDO ==============================")
+            
             if "answers" not in re.keys():
                 # This metric cannot be evaluated
                 return log_dict
@@ -744,6 +756,9 @@ class MetricsProcessor:
                 for passage_data in top_ranking_passages[:K]:
                     for answer in answers:
                         if answer.lower() in passage_data["content"].lower():
+                            #DEBUG PSEUDO vs POSITEM
+                            # print(passage_data["content"])
+                            # print("...")
                             found_answers.append(answer)
                             break
                     if gold_answer.lower() in passage_data["content"].lower():
@@ -819,15 +834,26 @@ class MetricsProcessor:
         }
 
         for re in tqdm(batch_result):
+            #DEBUG PSEUDO vs POSITEM
+            # print("============================== Question ==============================")
+            # print(re["question"])
+            # print("============================== Answers ==============================")
+            # print(re["answers"])
+            # print("============================== Matched POS_ITEM_ID ==============================")
             top_ranking_passages = re["top_ranking_passages"]
             raw_top_ranking_passages = re["raw_top_ranking_passages"]
             pos_item_ids = re[field]
+            
+            # print(f"Question ID: {re['question_id']} | Positive Item IDs: {re['pos_item_ids']}")
 
             hit = []
             raw_hit = []
 
             for passage_data in top_ranking_passages[:max_K]:
                 if passage_data["passage_id"] in pos_item_ids:
+                    #DEBUG PSEUDO vs POSITEM
+                    # print(passage_data["content"])
+                    # print("...")
                     hit.append(1)
                 else:
                     hit.append(0)

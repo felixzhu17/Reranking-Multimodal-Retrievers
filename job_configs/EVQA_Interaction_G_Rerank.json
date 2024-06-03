@@ -1,8 +1,0 @@
-[
-    {
-        "config_file": "configs/Rerank/evqa_experiments/evqa_interaction_rerank_G.jsonnet",
-        "time": "3:00:00",
-        "gpus": 2,
-        "ckpt_path": "experiments/EVQA_Interaction_G_Rerank/train/saved_models/model_step_750.ckpt"
-    }
-]

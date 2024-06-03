@@ -150,7 +150,7 @@ local data_pipeline = std.mergePatch(merge_data, data_loader);
         init_kwargs: {
             "use_data_node": "output:PrepareDataloaders",
             // "index_splits": ['train', 'valid', 'test'],
-            "index_splits": ['valid', 'test'],
+            "index_splits": ['test'],
             "validation_indexing_source": validation_indexing_source,
         },
     },
@@ -165,7 +165,7 @@ local data_pipeline = std.mergePatch(merge_data, data_loader);
             max_epochs: -1,
             accumulate_grad_batches: 8,
             check_val_every_n_epoch: null,
-            val_check_interval: 500,
+            val_check_interval: 1000,
             log_every_n_steps: 10,
         },
         model_checkpoint_callback_paras: {
@@ -207,7 +207,7 @@ local data_pipeline = std.mergePatch(merge_data, data_loader);
             accelerator: 'auto',
             devices: 'auto',
             strategy: 'ddp_find_unused_parameters_true',
-            precision: 'bf16',
+            precision: 'bf16'
         },
         batch_size: 16,
         num_dataloader_workers: 0,
