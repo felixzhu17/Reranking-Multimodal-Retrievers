@@ -530,6 +530,8 @@ class RerankerBaseExecutor(BaseExecutor, MetricsProcessor):
                 "query_late_interaction": retrieval_results.query_late_interaction_output,
                 "context_late_interaction": retrieval_results.context_late_interaction_output,
                 "num_negative_examples": self.model_config.num_negative_samples,
+                "query_mask": retrieval_results.query_mask,
+                "context_mask": retrieval_results.context_mask,
             }
                         
         if "preflmr_attention_fusion" in self.model_config.modules:
@@ -671,6 +673,8 @@ class RerankerBaseExecutor(BaseExecutor, MetricsProcessor):
                 "query_late_interaction": retrieval_results.query_late_interaction_output,
                 "context_late_interaction": retrieval_results.context_late_interaction_output,
                 "num_negative_examples": self.model_config.num_negative_samples,
+                "query_mask": retrieval_results.query_mask,
+                "context_mask": retrieval_results.context_mask,
             }
             
         if "preflmr_attention_fusion" in self.model_config.modules:
@@ -787,6 +791,8 @@ class RerankerBaseExecutor(BaseExecutor, MetricsProcessor):
                         "query_late_interaction": retrieval_results.query_late_interaction_output,
                         "context_late_interaction": retrieval_results.context_late_interaction_output,
                         "num_negative_examples": retrieval_results.context_late_interaction_output.size(0) - retrieval_results.query_late_interaction_output.size(0),
+                        "query_mask": retrieval_results.query_mask,
+                        "context_mask": retrieval_results.context_mask,
                     }
                     
                     

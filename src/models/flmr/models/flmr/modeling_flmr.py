@@ -21,7 +21,7 @@ import pathlib
 import string
 from dataclasses import dataclass
 from typing import Optional, Tuple, Union
-
+from easydict import EasyDict
 import torch
 import torch.distributed as dist
 from torch import Tensor, nn
@@ -1069,7 +1069,7 @@ class FLMRModelForRetrieval(FLMRPretrainedModelForRetrieval):
                     context_outputs.late_interaction_output,
                 )
 
-        return FLMRModelForRetrievalOutput(
+        return EasyDict(
             loss=loss,
             scores=scores,
             scores_raw=scores_raw,
@@ -1082,6 +1082,8 @@ class FLMRModelForRetrieval(FLMRPretrainedModelForRetrieval):
             context_hidden_states=(
                 context_hidden_states if output_hidden_states else None
             ),
+            query_mask = query_outputs.query_mask,
+            context_mask = context_outputs.context_mask,
         )
 
     def compute_ib_loss_new(
@@ -1399,7 +1401,7 @@ class FLMRModelForRetrieval(FLMRPretrainedModelForRetrieval):
             else None
         )
 
-        return FLMRQueryEncoderOutput(
+        return EasyDict(
             pooler_output=Q[:, 0, :],
             late_interaction_output=torch.nn.functional.normalize(Q, p=2, dim=2),
             vision_encoder_attentions=vision_encoder_attentions,
@@ -1408,6 +1410,7 @@ class FLMRModelForRetrieval(FLMRPretrainedModelForRetrieval):
             text_encoder_hidden_states=text_encoder_hidden_states,
             transformer_mapping_network_attentions=transformer_mapping_network_attentions,
             transformer_mapping_network_hidden_states=transformer_mapping_network_hidden_states,
+            query_mask = mask
         )
 
     @add_start_docstrings_to_model_forward(FLMR_MODEL_CONTEXT_INPUTS_DOCSTRING)

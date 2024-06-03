@@ -1,6 +1,8 @@
 """
 MORES on BERT base.
 """
+
+# https://github.com/luyug/MORES/blob/dev/bert_mores.py
 import os
 import warnings
 
@@ -15,163 +17,77 @@ from torch import nn
 from bert_mores import MORES_BertLayer
 from arguments import ModelArguments, DataArguments, \
     MORESTrainingArguments as TrainingArguments
-import logging
+from torch import nn
+from transformers.models.bert.modeling_bert import  apply_chunking_to_forward, BertLayer
 
-logger = logging.getLogger(__name__)
+
+class MORES_BertLayer(BertLayer):
+    def forward(
+        self,
+        hidden_states,
+        attention_mask=None,
+        head_mask=None,
+        encoder_hidden_states=None,
+        encoder_attention_mask=None,
+        past_key_value=None,
+        output_attentions=False,
+    ):
+        cross_attention_outputs = self.crossattention(
+            hidden_states,
+            attention_mask,
+            head_mask,
+            encoder_hidden_states,
+            encoder_attention_mask,
+            past_key_value,
+            output_attentions,
+        )
+        attention_output = cross_attention_outputs[0]
+        outputs = cross_attention_outputs[1:]  # add cross attentions if we output attention weights
+
+        self_attention_outputs = self.attention(
+            attention_output,
+            attention_mask,
+            head_mask,
+            output_attentions=output_attentions,
+        )
+        attention_output = self_attention_outputs[0]
+        outputs = outputs + self_attention_outputs[1:]
+
+        layer_output = apply_chunking_to_forward(
+            self.feed_forward_chunk, self.chunk_size_feed_forward, self.seq_len_dim, attention_output
+        )
+        outputs = (layer_output,) + outputs
+        return outputs
 
 
 class MORESSym(nn.Module):
-    def __init__(self, bert: BertModel, model_args: ModelArguments, data_args: DataArguments,
-                 train_args: TrainingArguments):
+    def __init__(self, config):
         super().__init__()
-        self.bert = bert
-        config_m: BertConfig = copy.deepcopy(bert.config)
-        config_m.is_decoder = True
-        config_m.add_cross_attention = True
+        config.is_decoder = True
+        config.add_cross_attention = True
         self.interaction_module = nn.ModuleList(
-            [MORES_BertLayer(config_m) for _ in range(model_args.n_ibs)]
+            [MORES_BertLayer(config) for _ in range(config.num_hidden_layers)]
         )
-        self.interaction_module.apply(bert._init_weights)
+        self.proj = nn.Linear(config.hidden_size, 2)
 
-        if model_args.use_pooler:
-            self.pooler = BertPooler(config_m)
+    def forward(self, qry, doc, qry_mask, cross_mask, attention_adj = None):
 
-        if model_args.copy_weight_to_ib:
-            for i in range(model_args.n_ibs):
-                self.interaction_module[i].attention =\
-                    copy.deepcopy(self.bert.encoder.layer[-1].attention)
-                self.interaction_module[i].crossattention = \
-                    copy.deepcopy(self.bert.encoder.layer[-1].attention)
-                self.interaction_module[i].intermediate = \
-                    copy.deepcopy(self.bert.encoder.layer[-1].intermediate)
-                self.interaction_module[i].output = \
-                    copy.deepcopy(self.bert.encoder.layer[-1].output)
 
-        self.proj = nn.Linear(config_m.hidden_size, 2)
-        self.cross_entropy = nn.CrossEntropyLoss(reduction='mean')
-
-        self.model_args = model_args
-        self.train_args = train_args
-        self.data_args = data_args
-
-    def forward(self, qry, doc, labels=None):
-        qry_out: BaseModelOutputWithPoolingAndCrossAttentions = self._encode_query(qry)
-        doc_out: BaseModelOutputWithPoolingAndCrossAttentions = self._encode_document(doc)
-
-        self_mask = self.bert.get_extended_attention_mask(
-            qry['attention_mask'], qry['attention_mask'].shape, qry['attention_mask'].device)
-        cross_mask = self.bert.get_extended_attention_mask(
-            doc['attention_mask'], doc['attention_mask'].shape, doc['attention_mask'].device)
-
-        hidden_states = qry_out.last_hidden_state
-        interaction_self_attention = ()
-        interaction_cross_attention = ()
+        hidden_states = qry
         for i, ib_layer in enumerate(self.interaction_module):
             layer_outputs = ib_layer(
                 hidden_states,
-                attention_mask=self_mask,
-                encoder_hidden_states=doc_out.last_hidden_state,
+                attention_mask=qry_mask,
+                encoder_hidden_states=doc,
                 encoder_attention_mask=cross_mask,
                 output_attentions=self.bert.config.output_attentions,
             )
             hidden_states = layer_outputs[0]
-            if self.bert.config.output_attentions:
-                interaction_self_attention = interaction_self_attention + (layer_outputs[1],)
-                if self.config.add_cross_attention:
-                    interaction_cross_attention = interaction_cross_attention + (layer_outputs[2],)
 
-        if self.model_args.use_pooler:
-            cls_reps = self.pooler(hidden_states)  # use bert pooler to pool the hiddens
-        else:
-            cls_reps = hidden_states[:, 0]
-        scores = self.proj(cls_reps)
+        cls_reps = hidden_states[:, 0]
 
-        if self.training:
-            loss = self.cross_entropy(scores, labels)
-        else:
-            loss = None
+        # Pass the CLS token's output through the classifier to get the logits
+        logits1 = self.classifier1(cls_reps)
+        logits2 = self.classifier2(cls_reps)
 
-        all_attentions = (
-            doc_out.attentions,
-            qry_out.attentions,
-            interaction_self_attention,
-            interaction_cross_attention
-        ) if self.bert.config.output_attentions else None
-        return SequenceClassifierOutput(
-            loss=loss,
-            logits=scores,
-            attentions=all_attentions,
-        )
-
-    def _encode_document(self, doc):
-        return self.bert(**doc, return_dict=True)
-
-    def _encode_query(self, qry):
-        return self.bert(**qry, return_dict=True)
-
-    @classmethod
-    def from_pretrained(
-            cls, model_args: ModelArguments, data_args: DataArguments, train_args: TrainingArguments,
-            *args, **kwargs
-    ):
-        hf_model = AutoModel.from_pretrained(*args, **kwargs)
-        mores = cls(hf_model, model_args, data_args, train_args)
-        path = args[0]
-        if os.path.exists(os.path.join(path, 'model.pt')):
-            logger.info('loading extra weights from local files')
-            model_dict = torch.load(os.path.join(path, 'model.pt'), map_location="cpu")
-            load_result = mores.load_state_dict(model_dict, strict=False)
-            print(load_result, flush=True)
-        return mores
-
-    def save_pretrained(self, output_dir: str):
-        self.bert.save_pretrained(output_dir)
-        model_dict = self.state_dict()
-        hf_weight_keys = [k for k in model_dict.keys() if k.startswith('bert')]
-        warnings.warn(f'omiting {len(hf_weight_keys)} transformer weights')
-        for k in hf_weight_keys:
-            model_dict.pop(k)
-        torch.save(model_dict, os.path.join(output_dir, 'model.pt'))
-        torch.save([self.data_args, self.model_args, self.train_args], os.path.join(output_dir, 'args.pt'))
-
-
-class MORES(MORESSym):
-    def __init__(self, bert: BertModel, model_args: ModelArguments, data_args: DataArguments,
-                 train_args: TrainingArguments):
-        super().__init__(bert, model_args, data_args, train_args)
-        self.bert = bert
-        self.q_bert = copy.deepcopy(bert)
-        config_m: BertConfig = copy.deepcopy(bert.config)
-        config_m.is_decoder = True
-        config_m.add_cross_attention = True
-        self.interaction_module = nn.ModuleList(
-            [MORES_BertLayer(config_m) for _ in range(model_args.n_ibs)]
-        )
-        self.interaction_module.apply(bert._init_weights)
-
-        if model_args.copy_weight_to_ib:
-            for i in range(model_args.n_ibs):
-                self.interaction_module[i].attention =\
-                    copy.deepcopy(self.bert.encoder.layer[12 - model_args.n_ibs + i].attention)
-                self.interaction_module[i].crossattention = \
-                    copy.deepcopy(self.bert.encoder.layer[12 - model_args.n_ibs + i].attention)
-                self.interaction_module[i].intermediate = \
-                    copy.deepcopy(self.bert.encoder.layer[12 - model_args.n_ibs + i].intermediate)
-                self.interaction_module[i].output = \
-                    copy.deepcopy(self.bert.encoder.layer[12 - model_args.n_ibs + i].output)
-
-        self.q_bert.encoder.layer = nn.ModuleList(
-            [self.bert.encoder.layer[i] for i in range(12 - model_args.n_ibs)])
-
-        self.proj = nn.Linear(config_m.hidden_size, 2)
-        self.cross_entropy = nn.CrossEntropyLoss(reduction='mean')
-
-        self.model_args = model_args
-        self.train_args = train_args
-        self.data_args = data_args
-
-    def _encode_query(self, qry):
-        return self.q_bert(**qry, return_dict=True)
-
-    def _encode_document(self, doc):
-        return self.bert(**doc, return_dict=True)
+        return logits1, logits2

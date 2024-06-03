@@ -751,6 +751,7 @@ class InteractionRerankModel(pl.LightningModule):
         ).contiguous()
 
         reranker_inputs = torch.cat((query_late_interaction, context_late_interaction), dim=1)
+        raise ValueError
         reranker_attention_mask = torch.ones((expanded_batch_size, query_length + context_length), device=self.device)
 
         if preflmr_scores is not None:
