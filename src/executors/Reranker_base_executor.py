@@ -55,8 +55,9 @@ from src.models.flmr import (
 )
 from src.models.flmr import index_custom_collection
 from src.models.flmr import search_custom_collection, create_searcher
-from src.models.rerank.rerank_model import RerankModel, InteractionRerankModel, FullContextRerankModel
+from src.models.rerank.rerank_model import RerankModel, FullContextRerankModel
 from src.models.rerank.decoder_rerank_model import DecoderRerankModel, DecoderHeadRerankModel
+from src.models.rerank.interaction_rerank_model import InteractionRerankModel
 
 from src.metrics import MetricsProcessor
 from src.utils.dirs import *
@@ -152,8 +153,8 @@ class RerankerBaseExecutor(BaseExecutor, MetricsProcessor):
         checks = {
             "decoder_reranker": (
                 [DecoderRerankModel, DecoderHeadRerankModel],
-                "Only DecoderRerankModel supports interaction_reranker",
-                ["preflmr_attention_fusion", "interaction_reranker", "freeze_reranker_vision_encoder"]
+                "Only DecoderRerankModel supports decoder_reranker",
+                ["preflmr_attention_fusion", "interaction_reranker", "freeze_reranker_vision_encoder", "text_only"]
             ),
             "interaction_reranker": (
                 [InteractionRerankModel],
@@ -545,6 +546,9 @@ class RerankerBaseExecutor(BaseExecutor, MetricsProcessor):
         else:
             assert labels is None
             
+        if "text_only" in self.model_config.modules:
+            train_batch["query_pixel_values"] = None
+            
         batch_loss = self.reranker(**train_batch).loss
 
         # log the current learning rate from shedulers
@@ -686,6 +690,10 @@ class RerankerBaseExecutor(BaseExecutor, MetricsProcessor):
             test_batch["labels"] = labels
         else:
             assert labels is None
+            
+        if "text_only" in self.model_config.modules:
+            test_batch["query_pixel_values"] = None
+            
         batch_loss = self.reranker(**test_batch).loss
 
         # logs metrics for each training_step,
@@ -800,6 +808,9 @@ class RerankerBaseExecutor(BaseExecutor, MetricsProcessor):
                     preflmr_scores = retrieval_results.scores_raw if retrieval_results is not None else self.retriever(**batch_input).scores_raw
                     batch_input["preflmr_scores"] = preflmr_scores
                     batch_input["fusion_multiplier"] = self.model_config.fusion_multiplier
+                    
+                if "text_only" in self.model_config.modules:
+                    batch_input["query_pixel_values"] = None
 
 
             all_logits = self.reranker(

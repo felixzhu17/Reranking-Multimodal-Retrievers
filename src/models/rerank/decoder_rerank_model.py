@@ -69,7 +69,7 @@ from src.models.flmr.models.flmr.modeling_flmr import (
 )
 from transformers.models.bert.modeling_bert import BertEncoder
 from transformers import BertConfig
-from src.models.rerank.utils import initialise_loss_fn, prepare_logits_labels
+from src.models.rerank.utils import initialise_loss_fn, prepare_logits_labels, prepare_decoder_inputs
 from transformers import Blip2ForConditionalGeneration, Blip2Config, Blip2Processor
 
 POSITIVE_LABEL = "yes"
@@ -235,41 +235,3 @@ class DecoderHeadRerankModel(pl.LightningModule):
         
         
         
-def prepare_decoder_inputs(query_text_sequences, context_text_sequences, prompt_template_func, processor, max_query_length, max_context_length, max_decoder_source_length, docs_per_query):
-    # Tokenize and truncate query sequences
-    truncated_query = [
-        processor.tokenizer.decode(processor.tokenizer.encode(
-            f"Query: {input_text}", add_special_tokens=False, 
-            max_length=max_query_length, truncation=True
-        )) for input_text in query_text_sequences
-    ]
-
-    # Tokenize and truncate context sequences
-    truncated_context = [
-        processor.tokenizer.decode(processor.tokenizer.encode(
-            f"Document: {context_text}", add_special_tokens=False, 
-            max_length=max_context_length, truncation=True
-        )) for context_text in context_text_sequences
-    ]
-
-    concatenated_sequences = []
-
-    # Concatenate sequences using the provided prompt template function
-    for i, input_text in enumerate(truncated_query):
-        for j in range(docs_per_query):
-            context_index = i * docs_per_query + j
-            context_text = truncated_context[context_index]
-            concatenated_sequence = prompt_template_func(input_text, context_text)
-            concatenated_sequences.append(concatenated_sequence)
-
-    # Process the concatenated sequences into the desired input format
-    inputs = processor(
-        text=concatenated_sequences, 
-        return_tensors="pt", 
-        padding="longest", 
-        truncation=True, 
-        max_length=max_decoder_source_length
-    )
-
-    return inputs
-    

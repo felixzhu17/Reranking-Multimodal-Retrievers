@@ -69,47 +69,10 @@ from src.models.flmr.models.flmr.modeling_flmr import (
 )
 from transformers.models.bert.modeling_bert import BertEncoder
 from transformers import BertConfig
-from src.models.rerank.utils import initialise_loss_fn, prepare_logits_labels
+from src.models.rerank.utils import initialise_loss_fn, prepare_logits_labels, prepare_full_context_inputs, CrossEncoder, invert_attention_mask
 from src.models.rerank.mores_model import MORESSym
 
 HEAD_TOKEN_LEEWAY = 4
-class CrossEncoder(nn.Module):
-    base_model_prefix = "reranker"
-
-    def __init__(self, config):
-        super().__init__()
-        # Initialize the BERT model with a pooling layer
-        self.bert_model = AttentionFusionBertModel(config, add_pooling_layer=True)
-        # Define two classifier layers which project the CLS token's embedding
-        self.classifier1 = nn.Linear(config.hidden_size, 1)
-        self.classifier2 = nn.Linear(config.hidden_size, 1)
-        # Define a sigmoid activation function to output a probability score
-
-    def forward(
-        self,
-        inputs_embeds,
-        attention_mask=None,
-        attention_adj=None,
-        token_type_ids=None,
-    ):
-        # Forward pass through BERT model
-        outputs = self.bert_model(
-            inputs_embeds=inputs_embeds,
-            attention_mask=attention_mask,
-            attention_adj=attention_adj,
-            token_type_ids=token_type_ids,
-            return_dict=True,
-        )
-
-        # Get the CLS token's output (first token of sequence output)
-        cls_output = outputs.last_hidden_state[:, 0]
-
-        # Pass the CLS token's output through the classifier to get the logits
-        logits1 = self.classifier1(cls_output)
-        logits2 = self.classifier2(cls_output)
-
-        return logits1, logits2
-
 class RerankModel(pl.LightningModule):
     """
     Class for RAG, re-implementation
@@ -217,6 +180,8 @@ class RerankModel(pl.LightningModule):
         labels: Optional[List[int]] = None,
     ):
 
+        if query_pixel_values is None:
+            raise NotImplementedError("text_only is not implemented for this model")
         batch_size = query_input_ids.size(0)
         expanded_batch_size = batch_size * (num_negative_examples + 1)
         assert expanded_batch_size == context_input_ids.size(0)
@@ -267,6 +232,7 @@ class RerankModel(pl.LightningModule):
             output_hidden_states = None,
             mask_instructions = self.mask_instruction,
             token_type_ids = None,
+            text_only=text_only
         )
         reranker_inputs = self.cross_encoder_input_mapping(
             query_outputs.late_interaction_output
@@ -373,7 +339,7 @@ class RerankModel(pl.LightningModule):
         output_attentions: Optional[bool] = None,
         output_hidden_states: Optional[bool] = None,
         mask_instructions: bool = None,
-        token_type_ids: Optional[torch.Tensor] = None
+        token_type_ids: Optional[torch.Tensor] = None,
     ):
         r"""
         Returns:
@@ -479,8 +445,8 @@ class RerankModel(pl.LightningModule):
                 encoder_mask = encoder_mask[:, :cross_attention_length]
 
             # Obtain cross attention mask
-            encoder_extended_attention_mask = self.invert_attention_mask(
-                encoder_mask.squeeze(-1)
+            encoder_extended_attention_mask = invert_attention_mask(
+                encoder_mask.squeeze(-1), self.dtype
             )  # torch.Size([80, 1, 1, 32])
 
             # Pass through the transformer mapping
@@ -504,7 +470,10 @@ class RerankModel(pl.LightningModule):
                 [vision_embeddings, transformer_mapping_output_features], dim=1
             )  # 32, 49, torch.Size([80, 81, 128])
 
-        Q = torch.cat([text_embeddings, vision_embeddings], dim=1)
+        if "image" in input_modality:
+            Q = torch.cat([text_embeddings, vision_embeddings], dim=1)
+        else:
+            Q = text_embeddings
         
 
         return EasyDict(pooler_output = Q[:, 0, :], 
@@ -537,34 +506,6 @@ class RerankModel(pl.LightningModule):
             for seq_index, d in enumerate(input_ids.cpu().tolist())
         ]
         return mask
-
-    def invert_attention_mask(self, encoder_attention_mask):
-        """
-        Invert an attention mask (e.g., switches 0. and 1.).
-
-        Args:
-            encoder_attention_mask (`torch.Tensor`): An attention mask.
-
-        Returns:
-            `torch.Tensor`: The inverted attention mask.
-        """
-        if encoder_attention_mask.dim() == 3:
-            encoder_extended_attention_mask = encoder_attention_mask[:, None, :, :]
-        if encoder_attention_mask.dim() == 2:
-            encoder_extended_attention_mask = encoder_attention_mask[:, None, None, :]
-        # T5 has a mask that can compare sequence ids, we can simulate this here with this transposition
-        # Cf. https://github.com/tensorflow/mesh/blob/8d2465e9bc93129b913b5ccc6a59aa97abd96ec6/mesh_tensorflow
-        # /transformer/transformer_layers.py#L270
-        # encoder_extended_attention_mask = (encoder_extended_attention_mask ==
-        # encoder_extended_attention_mask.transpose(-1, -2))
-        encoder_extended_attention_mask = encoder_extended_attention_mask.to(
-            dtype=self.dtype
-        )  # fp16 compatibility
-        encoder_extended_attention_mask = (
-            1.0 - encoder_extended_attention_mask
-        ) * torch.finfo(self.dtype).min
-
-        return encoder_extended_attention_mask
     
     def mask(self, input_ids, skiplist):
         mask = [
@@ -582,13 +523,14 @@ class FullContextRerankModel(RerankModel):
         
     
     def forward(self, query_text_sequences, query_pixel_values, context_text_sequences, num_negative_examples, labels = None):
+        text_only = query_pixel_values is None
         batch_size = len(query_text_sequences)
         expanded_batch_size = batch_size * (num_negative_examples + 1)
         assert expanded_batch_size == len(context_text_sequences)
         if labels:
             assert len(labels) == expanded_batch_size
         
-        inputs = prepare_decoder_inputs(
+        inputs = prepare_full_context_inputs(
             query_text_sequences, 
             context_text_sequences, 
             self.query_tokenizer, 
@@ -597,6 +539,7 @@ class FullContextRerankModel(RerankModel):
             self.max_decoder_source_length, 
             num_negative_examples + 1
         )
+        
         query_pixel_values = query_pixel_values.repeat_interleave(
             num_negative_examples + 1, dim=0
         ).contiguous()
@@ -616,21 +559,23 @@ class FullContextRerankModel(RerankModel):
             query_outputs.late_interaction_output
         )
         
-        joint_query_attention_mask = query_outputs.query_mask.squeeze(dim=-1)
-        raise ValueError(joint_query_attention_mask[0], inputs.attention_mask[0])
-        query_image_size = reranker_inputs.size(1) - joint_query_attention_mask.size(1)
-    
-        # Include vision embeddings so they are used in the attention mask
-        expand_mask = torch.ones(
-            expanded_batch_size,
-            query_image_size,
-            dtype=joint_query_attention_mask.dtype,
-            device=joint_query_attention_mask.device,
-        )
+        if text_only:
+            reranker_attention_mask = query_outputs.query_mask.squeeze(dim=-1)
+        else:
+            joint_query_attention_mask = query_outputs.query_mask.squeeze(dim=-1)
+            query_image_size = reranker_inputs.size(1) - joint_query_attention_mask.size(1)
         
-        reranker_attention_mask = torch.cat(
-            [joint_query_attention_mask, expand_mask], dim=1
-        )  # torch.Size([80, 593])
+            # Include vision embeddings so they are used in the attention mask
+            expand_mask = torch.ones(
+                expanded_batch_size,
+                query_image_size,
+                dtype=joint_query_attention_mask.dtype,
+                device=joint_query_attention_mask.device,
+            )
+            
+            reranker_attention_mask = torch.cat(
+                [joint_query_attention_mask, expand_mask], dim=1
+            )  # torch.Size([80, 593])
 
 
         logits, logits_secondary = self.reranker(
@@ -644,280 +589,3 @@ class FullContextRerankModel(RerankModel):
             logits = logits[:, 1].unsqueeze(1)
         return EasyDict(loss=loss, logits=logits)
     
-class InteractionRerankModel(pl.LightningModule):
-
-    def __init__(self, config: EasyDict) -> None:
-        super().__init__()
-
-        self.config = config
-        self.init_reranker()
-        self.loss_fn = initialise_loss_fn(config, self.device)
-
-    def init_reranker(self):
-        cross_encoder_config_base = self.config.cross_encoder_config_base
-        cross_encoder_config = BertConfig.from_pretrained(cross_encoder_config_base)
-        cross_encoder_config.num_hidden_layers = (
-            self.config.cross_encoder_num_hidden_layers
-        )
-        cross_encoder_config.max_position_embeddings = (
-            self.config.cross_encoder_max_position_embeddings
-        )
-        self.reranker = CrossEncoder(cross_encoder_config)
-        pretrain_config = FLMRConfig.from_pretrained(
-            self.config.pretrain_model_version, trust_remote_code=True
-        )
-        self.late_interaction_embedding_size = pretrain_config.dim
-        self.cross_encoder_input_mapping = nn.Linear(
-            self.late_interaction_embedding_size, cross_encoder_config.hidden_size
-        )
-
-    def forward(
-        self,
-        query_late_interaction: torch.Tensor,
-        context_late_interaction: torch.Tensor,
-        num_negative_examples: int,
-        query_mask: torch.Tensor,
-        context_mask: torch.Tensor,
-        preflmr_scores: Optional[torch.Tensor] = None,
-        fusion_multiplier: float = 1,
-        labels: Optional[List[int]] = None,
-    ):
-
-
-        
-        batch_size = query_late_interaction.size(0)
-        expanded_batch_size = batch_size * (num_negative_examples + 1)
-        assert expanded_batch_size == context_late_interaction.size(0), f"{query_late_interaction.shape}, {context_late_interaction.shape}, {num_negative_examples}"
-        
-        query_length = query_late_interaction.size(1)
-        context_length = context_late_interaction.size(1)
-
-        query_late_interaction = query_late_interaction.repeat_interleave(
-            num_negative_examples + 1, dim=0
-        ).contiguous()
-        query_mask = query_mask.repeat_interleave(
-            num_negative_examples + 1, dim=0
-        ).contiguous()
-
-
-        reranker_inputs = torch.cat((query_late_interaction, context_late_interaction), dim=1)
-        reranker_attention_mask = torch.cat((query_mask, context_mask), dim=1)
-        
-        if preflmr_scores is not None:
-
-            # Query Self-Attention Mask
-            upper_left = torch.zeros(
-                (
-                    expanded_batch_size,
-                    query_length,
-                    query_length,
-                ), device = self.device
-            )
-            
-            # Context Self-Attention Mask
-            bottom_right = torch.zeros(
-                (
-                    expanded_batch_size,
-                    context_length,
-                    context_length,
-                ), device = self.device
-            )
-            
-            # Cross-Attention Fusion
-            upper_right = F.softmax(preflmr_scores.permute(0, 2, 1), dim=-1)
-            bottom_left = F.softmax(preflmr_scores, dim=-1)
-            
-      
-            reranker_attention_adj = torch.cat(
-                [
-                    torch.cat([upper_left, upper_right], dim=2),
-                    torch.cat([bottom_left, bottom_right], dim=2),
-                ],
-                dim=1,
-            ) * fusion_multiplier
-
-            
-        else:
-            reranker_attention_adj = None
-
-        reranker_inputs = self.cross_encoder_input_mapping(reranker_inputs)
-
-
-        logits, logits_secondary = self.reranker(
-            reranker_inputs,
-            attention_mask=reranker_attention_mask,
-            attention_adj=reranker_attention_adj,
-        )
-
-        logits, labels = prepare_logits_labels(self.config, logits, logits_secondary, batch_size, num_negative_examples, labels = labels)
-        
-        loss = self.loss_fn(logits, labels)
-        return EasyDict(loss=loss, logits=logits)
-    
-class MORESInteractionRerankModel(pl.LightningModule):
-
-    def __init__(self, config: EasyDict) -> None:
-        super().__init__()
-
-        self.config = config
-        self.init_reranker()
-        self.loss_fn = initialise_loss_fn(config, self.device)
-
-    def init_reranker(self):
-        cross_encoder_config_base = self.config.cross_encoder_config_base
-        cross_encoder_config = BertConfig.from_pretrained(cross_encoder_config_base)
-        cross_encoder_config.num_hidden_layers = (
-            self.config.cross_encoder_num_hidden_layers
-        )
-        cross_encoder_config.max_position_embeddings = (
-            self.config.cross_encoder_max_position_embeddings
-        )
-        self.reranker = MORESSym(cross_encoder_config)
-        pretrain_config = FLMRConfig.from_pretrained(
-            self.config.pretrain_model_version, trust_remote_code=True
-        )
-        self.late_interaction_embedding_size = pretrain_config.dim
-        self.cross_encoder_input_mapping = nn.Linear(
-            self.late_interaction_embedding_size, cross_encoder_config.hidden_size
-        )
-
-    def forward(
-        self,
-        query_late_interaction: torch.Tensor,
-        context_late_interaction: torch.Tensor,
-        num_negative_examples: int,
-        query_mask: torch.Tensor,
-        context_mask: torch.Tensor,
-        preflmr_scores: Optional[torch.Tensor] = None,
-        fusion_multiplier: float = 1,
-        labels: Optional[List[int]] = None,
-    ):
-
-
-        
-        batch_size = query_late_interaction.size(0)
-        expanded_batch_size = batch_size * (num_negative_examples + 1)
-        assert expanded_batch_size == context_late_interaction.size(0), f"{query_late_interaction.shape}, {context_late_interaction.shape}, {num_negative_examples}"
-        
-        query_length = query_late_interaction.size(1)
-        context_length = context_late_interaction.size(1)
-
-        query_late_interaction = query_late_interaction.repeat_interleave(
-            num_negative_examples + 1, dim=0
-        ).contiguous()
-        query_mask = query_mask.repeat_interleave(
-            num_negative_examples + 1, dim=0
-        ).contiguous()
-
-        if preflmr_scores is not None:
-
-            # Query Self-Attention Mask
-            upper_left = torch.zeros(
-                (
-                    expanded_batch_size,
-                    query_length,
-                    query_length,
-                ), device = self.device
-            )
-            
-            # Context Self-Attention Mask
-            bottom_right = torch.zeros(
-                (
-                    expanded_batch_size,
-                    context_length,
-                    context_length,
-                ), device = self.device
-            )
-            
-            # Cross-Attention Fusion
-            upper_right = F.softmax(preflmr_scores.permute(0, 2, 1), dim=-1)
-            bottom_left = F.softmax(preflmr_scores, dim=-1)
-            
-      
-            reranker_attention_adj = torch.cat(
-                [
-                    torch.cat([upper_left, upper_right], dim=2),
-                    torch.cat([bottom_left, bottom_right], dim=2),
-                ],
-                dim=1,
-            ) * fusion_multiplier
-
-            
-        else:
-            reranker_attention_adj = None
-
-        reranker_inputs = self.cross_encoder_input_mapping(reranker_inputs)
-
-
-        logits, logits_secondary = self.reranker(
-            qry = query_late_interaction, 
-            doc = context_late_interaction, 
-            qry_mask = query_mask, 
-            cross_mask = context_mask, 
-            attention_adj = reranker_attention_adj
-        )
-
-        logits, labels = prepare_logits_labels(self.config, logits, logits_secondary, batch_size, num_negative_examples, labels = labels)
-        
-        loss = self.loss_fn(logits, labels)
-        return EasyDict(loss=loss, logits=logits)
-    
-PREFIXES = [
-    "Using the provided image, obtain documents that address the subsequent question: ",
-    "Retrieve documents that provide an answer to the question alongside the image: ",
-    "Extract documents linked to the question provided in conjunction with the image: ",
-    "Utilizing the given image, obtain documents that respond to the following question: ",
-    "Using the given image, access documents that provide insights into the following question: ",
-    "Obtain documents that correspond to the inquiry alongside the provided image: ",
-    "With the provided image, gather documents that offer a solution to the question: ",
-    "Utilizing the given image, obtain documents that respond to the following question: ",
-]
-
-def remove_prefixes(text):
-    return [remove_prefix(s) for s in text]
-
-def remove_prefix(text):
-    for prefix in PREFIXES:
-        if text.startswith(prefix):
-            return text[len(prefix):]
-    return text
-
-def prepare_decoder_inputs(query_text_sequences, context_text_sequences, tokenizer, max_query_length, max_context_length, max_decoder_source_length, docs_per_query):
-    # Tokenize and truncate query sequences
-    truncated_query = [
-        tokenizer.decode(tokenizer.encode(
-            input_text, add_special_tokens=False, 
-            max_length=max_query_length, truncation=True
-        )) for input_text in query_text_sequences
-    ]
-
-    # Tokenize and truncate context sequences
-    truncated_context = [
-        tokenizer.decode(tokenizer.encode(
-            context_text, add_special_tokens=False, 
-            max_length=max_context_length, truncation=True
-        )) for context_text in context_text_sequences
-    ]
-
-    concatenated_sequences = []
-
-    # Concatenate sequences using the provided prompt template function
-    for i, input_text in enumerate(truncated_query):
-        for j in range(docs_per_query):
-            context_index = i * docs_per_query + j
-            context_text = truncated_context[context_index]
-            concatenated_sequences.append((input_text, context_text))
-
-
-    # Process the concatenated sequences into the desired input format
-    inputs = tokenizer.batch_encode_plus(
-        concatenated_sequences, 
-        add_special_tokens=True,
-        return_tensors="pt", 
-        padding="max_length", 
-        truncation=True, 
-        max_length=max_decoder_source_length,
-        return_attention_mask=True
-    )
-
-    return inputs
