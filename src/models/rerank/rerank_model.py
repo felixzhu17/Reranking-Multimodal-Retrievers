@@ -110,7 +110,6 @@ class CrossEncoder(nn.Module):
 
         return logits1, logits2
 
-
 class RerankModel(pl.LightningModule):
     """
     Class for RAG, re-implementation
@@ -427,7 +426,6 @@ class RerankModel(pl.LightningModule):
                 .unsqueeze(2)
                 .float()
             )  # torch.Size([80, 512, 1])
-            
             text_embeddings = text_embeddings * mask
        
         if "image" in input_modality:
@@ -507,60 +505,7 @@ class RerankModel(pl.LightningModule):
             )  # 32, 49, torch.Size([80, 81, 128])
 
         Q = torch.cat([text_embeddings, vision_embeddings], dim=1)
-
-        # vision_encoder_attentions = (
-        #     vision_encoder_outputs.attentions
-        #     if vision_encoder_outputs is not None
-        #     and hasattr(vision_encoder_outputs, "attentions")
-        #     and output_attentions
-        #     else None
-        # )
-        # vision_encoder_hidden_states = (
-        #     vision_encoder_outputs.hidden_states
-        #     if vision_encoder_outputs is not None
-        #     and hasattr(vision_encoder_outputs, "hidden_states")
-        #     and output_hidden_states
-        #     else None
-        # )
-        # text_encoder_attentions = (
-        #     text_encoder_outputs.attentions
-        #     if text_encoder_outputs is not None
-        #     and hasattr(text_encoder_outputs, "attentions")
-        #     and output_attentions
-        #     else None
-        # )
-        # text_encoder_hidden_states = (
-        #     text_encoder_outputs.hidden_states
-        #     if text_encoder_outputs is not None
-        #     and hasattr(text_encoder_outputs, "hidden_states")
-        #     and output_hidden_states
-        #     else None
-        # )
-        # transformer_mapping_network_attentions = (
-        #     transformer_mapping_outputs.attentions
-        #     if transformer_mapping_outputs is not None
-        #     and hasattr(transformer_mapping_outputs, "attentions")
-        #     and output_attentions
-        #     else None
-        # )
-        # transformer_mapping_network_hidden_states = (
-        #     transformer_mapping_outputs.hidden_states
-        #     if transformer_mapping_outputs is not None
-        #     and hasattr(transformer_mapping_outputs, "hidden_states")
-        #     and output_hidden_states
-        #     else None
-        # )
         
-        # return FLMRQueryEncoderOutput(
-        #     pooler_output=Q[:, 0, :],
-        #     late_interaction_output=torch.nn.functional.normalize(Q, p=2, dim=2),
-        #     vision_encoder_attentions=vision_encoder_attentions,
-        #     vision_encoder_hidden_states=vision_encoder_hidden_states,
-        #     text_encoder_attentions=text_encoder_attentions,
-        #     text_encoder_hidden_states=text_encoder_hidden_states,
-        #     transformer_mapping_network_attentions=transformer_mapping_network_attentions,
-        #     transformer_mapping_network_hidden_states=transformer_mapping_network_hidden_states,
-        # )
 
         return EasyDict(pooler_output = Q[:, 0, :], 
                         late_interaction_output = torch.nn.functional.normalize(Q, p=2, dim=2),
@@ -672,6 +617,7 @@ class FullContextRerankModel(RerankModel):
         )
         
         joint_query_attention_mask = query_outputs.query_mask.squeeze(dim=-1)
+        raise ValueError(joint_query_attention_mask[0], inputs.attention_mask[0])
         query_image_size = reranker_inputs.size(1) - joint_query_attention_mask.size(1)
     
         # Include vision embeddings so they are used in the attention mask
@@ -699,9 +645,6 @@ class FullContextRerankModel(RerankModel):
         return EasyDict(loss=loss, logits=logits)
     
 class InteractionRerankModel(pl.LightningModule):
-    """
-    Class for RAG, re-implementation
-    """
 
     def __init__(self, config: EasyDict) -> None:
         super().__init__()
@@ -759,8 +702,7 @@ class InteractionRerankModel(pl.LightningModule):
 
         reranker_inputs = torch.cat((query_late_interaction, context_late_interaction), dim=1)
         reranker_attention_mask = torch.cat((query_mask, context_mask), dim=1)
-        raise ValueError(reranker_inputs.shape, reranker_attention_mask.shape)
-
+        
         if preflmr_scores is not None:
 
             # Query Self-Attention Mask
@@ -812,11 +754,7 @@ class InteractionRerankModel(pl.LightningModule):
         loss = self.loss_fn(logits, labels)
         return EasyDict(loss=loss, logits=logits)
     
-
 class MORESInteractionRerankModel(pl.LightningModule):
-    """
-    Class for RAG, re-implementation
-    """
 
     def __init__(self, config: EasyDict) -> None:
         super().__init__()

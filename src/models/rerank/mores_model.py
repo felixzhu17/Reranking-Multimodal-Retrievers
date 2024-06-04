@@ -13,10 +13,6 @@ from transformers import BertModel, BertConfig, AutoModel
 from transformers.models.bert.modeling_bert import BertPooler, BertPreTrainingHeads
 from transformers.modeling_outputs import SequenceClassifierOutput, BaseModelOutputWithPoolingAndCrossAttentions
 from torch import nn
-
-from bert_mores import MORES_BertLayer
-from arguments import ModelArguments, DataArguments, \
-    MORESTrainingArguments as TrainingArguments
 from torch import nn
 from transformers.models.bert.modeling_bert import  apply_chunking_to_forward, BertLayer
 
@@ -74,6 +70,7 @@ class MORESSym(nn.Module):
 
         qry_mask = self.get_extended_attention_mask(qry_mask, qry_mask.size(), qry.device)
         cross_mask = self.get_extended_attention_mask(cross_mask, doc.size(), qry.device)
+        raise ValueError(qry_mask.size(), cross_mask.size())
 
         hidden_states = qry
         for i, ib_layer in enumerate(self.interaction_module):

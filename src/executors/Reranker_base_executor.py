@@ -561,7 +561,7 @@ class RerankerBaseExecutor(BaseExecutor, MetricsProcessor):
 
         # logs metrics for each training_step,
         # and the average across the epoch, to the progress bar and logger
-        self.log("train/loss", batch_loss, on_step=True, logger=True, sync_dist=True)
+        self.log("train/loss", batch_loss, on_epoch=True, on_step=True, logger=True, sync_dist=True)
 
         data_to_return = {
             "loss": batch_loss,

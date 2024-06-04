@@ -1,1670 +1,0 @@
-[rank: 0] Seed set to 2022
-[38;20m[INFO] - runway_for_ml.experiment : Config file saved to experiments/TEST_OKVQA_FLMRQuery_Full_Context_Rerank_L_Freeze_Vision_ckpt_model_step_3021/test/config.json[0m
-[38;20m[INFO] - runway_for_ml.experiment : init wandb logger with the following settings: {'entity': 'byrne-lab', 'project': 'PreFLMR MLMI', 'tags': ['OKVQA_FLMRQuery_Full_Context_Rerank_L_Freeze_Vision', 'test', 'NoBaseModelInfo']}[0m
-[38;20m[INFO] - runway_for_ml.data_module.data_pipeline : Using dummy data? False[0m
-Could not find image processor class in the image processor config or the model config. Loading based on pattern matching with the model's feature extractor configuration. Please open a PR/issue to update `preprocessor_config.json` to use `image_processor_type` instead of `feature_extractor_type`. This warning will be removed in v4.40.
-[38;20m[INFO] - src.data_ops.custom_datasets.vg_datasets : Running PrepareDataloaders[0m
-[38;20m[INFO] - src.data_ops.custom_datasets.base_datasets : initialising OKVQADatasetForDPR...[0m
-[38;20m[INFO] - src.data_ops.custom_datasets.okvqa_datasets : passages prepared. used 1.6927719116210938e-05 secs.[0m
-[38;20m[INFO] - src.data_ops.custom_datasets.vg_datasets : [Data Statistics]: test data loader: test/OKVQADatasetForDPR.test 316[0m
-The argument `trust_remote_code` is to be used with Auto classes. It has no effect here and is ignored.
-The argument `trust_remote_code` is to be used with Auto classes. It has no effect here and is ignored.
-[38;20m[INFO] - root : Train with LoRA = False[0m
-[38;20m[INFO] - src.executors.Reranker_base_executor : Loading static retrieval results from /home/fz288/rds/hpc-work/PreFLMR/search_index/OKVQA/PreFLMR-L/_test_OKVQADatasetForDPR.test_predictions_rank_0.pkl[0m
-[38;20m[INFO] - src.executors.Reranker_base_executor : Loaded 5046 static retrieval results.[0m
-/home/fz288/rds/hpc-work/PreFLMR/VQA/lib/python3.8/site-packages/lightning_fabric/connector.py:563: `precision=bf16` is supported for historical reasons but its usage is discouraged. Please set your precision to bf16-mixed instead!
-Using bfloat16 Automatic Mixed Precision (AMP)
-GPU available: True (cuda), used: True
-TPU available: False, using: 0 TPU cores
-IPU available: False, using: 0 IPUs
-HPU available: False, using: 0 HPUs
-[38;20m[INFO] - runway_for_ml.experiment : additional arguments passed to trainer: {'accelerator': 'auto', 'devices': 'auto', 'limit_test_batches': 65, 'precision': 'bf16', 'strategy': 'ddp_find_unused_parameters_true', 'default_root_dir': PosixPath('experiments/TEST_OKVQA_FLMRQuery_Full_Context_Rerank_L_Freeze_Vision_ckpt_model_step_3021/test'), 'logger': [<pytorch_lightning.loggers.tensorboard.TensorBoardLogger object at 0x148251d147c0>, <pytorch_lightning.loggers.wandb.WandbLogger object at 0x148251d1ebe0>]}[0m
-[31;20m[ERROR] - runway_for_ml.experiment : No checkpoints are specified.[0m
-[31;20m[ERROR] - runway_for_ml.experiment : No checkpoint found. Please check your config file.[0m
-[31;20m[ERROR] - runway_for_ml.experiment : !!! Testing continues with untrained checkpoints (also useful when applying pre-trained checkpoints directly)[0m
-You are using a CUDA device ('NVIDIA A100-SXM4-80GB') that has Tensor Cores. To properly utilize them, you should set `torch.set_float32_matmul_precision('medium' | 'high')` which will trade-off precision for performance. For more details, read https://pytorch.org/docs/stable/generated/torch.set_float32_matmul_precision.html#torch.set_float32_matmul_precision
-[rank: 0] Seed set to 2022
-Initializing distributed: GLOBAL_RANK: 0, MEMBER: 1/1
-----------------------------------------------------------------------------------------------------
-distributed_backend=nccl
-All distributed processes registered. Starting with 1 processes
-----------------------------------------------------------------------------------------------------
-
-Missing logger folder: experiments/TEST_OKVQA_FLMRQuery_Full_Context_Rerank_L_Freeze_Vision_ckpt_model_step_3021/test/lightning_logs
-wandb: Currently logged in as: fz288 (byrne-lab). Use `wandb login --relogin` to force relogin
-wandb: wandb version 0.17.0 is available!  To upgrade, please run:
-wandb:  $ pip install wandb --upgrade
-wandb: Tracking run with wandb version 0.16.6
-wandb: Run data is saved locally in ./wandb/run-20240604_001753-0g769eeu
-wandb: Run `wandb offline` to turn off syncing.
-wandb: Syncing run TEST_OKVQA_FLMRQuery_Full_Context_Rerank_L_Freeze_Vision_ckpt_model_step_3021
-wandb: ⭐️ View project at https://wandb.ai/byrne-lab/PreFLMR%20MLMI
-wandb: 🚀 View run at https://wandb.ai/byrne-lab/PreFLMR%20MLMI/runs/0g769eeu
-[38;20m[INFO] - src.executors.Reranker_base_executor : Preparing 114809 passage data in id2doc...[0m
-Runway main started.
-input value {} is not a number, parse to string.
-Configuration Loaded.
-{'args': {'config': 'configs/Rerank/initial_experiments/okvqa_full_context_rerank_L_freeze_vision.jsonnet',
-          'experiment_name': 'TEST_OKVQA_FLMRQuery_Full_Context_Rerank_L_Freeze_Vision_ckpt_model_step_3021',
-          'from_experiment': '',
-          'log_prediction_tables': False,
-          'log_prediction_tables_with_images': False,
-          'mode': 'test',
-          'modules': [],
-          'opts': ['train.load_model_path=/home/fz288/rds/hpc-work/PreFLMR/experiments/OKVQA_FLMRQuery_Full_Context_Rerank_L_Freeze_Vision_ckpt_model_step_1007/train/saved_models/model_step_3021.ckpt'],
-          'override': True,
-          'reset': True,
-          'tags': ['OKVQA_FLMRQuery_Full_Context_Rerank_L_Freeze_Vision',
-                   'test'],
-          'test_suffix': '',
-          'use_dummy_data': False,
-          'wandb_artifacts': 'weizhelin/vqa-images-open/VQAv2-Images:v0'},
- 'data_pipeline': {'do_inspect': True,
-                   'name': 'MergeDataPipeline',
-                   'regenerate': False,
-                   'transforms': {'output:PrepareDataloaders': {'cache': True,
-                                                                'input_node': ['process:ConcatenatePassageDatasets',
-                                                                               'process:WrapOutputIntoKeys'],
-                                                                'regenerate': True,
-                                                                'setup_kwargs': {'datasets_config': {'test': [{'dataset_type': 'OKVQADatasetForDPR',
-                                                                                                               'split': 'test',
-                                                                                                               'use_column': 'okvqa_data'}],
-                                                                                                     'train': [{'dataset_type': 'OKVQADatasetForDPR',
-                                                                                                                'split': 'train',
-                                                                                                                'use_column': 'okvqa_data'}],
-                                                                                                     'valid': [{'dataset_type': 'OKVQADatasetForDPR',
-                                                                                                                'split': 'test',
-                                                                                                                'use_column': 'okvqa_data'}]},
-                                                                                 'extra_columns': {'passages': 'train_passages',
-                                                                                                   'valid_passages': 'valid_passages'},
-                                                                                 'feature_extractor_config': {},
-                                                                                 'image_processor_config': {'vit_image_processor': {'ImageProcessorClass': 'AutoImageProcessor',
-                                                                                                                                    'ImageProcessorModelVersion': 'laion/CLIP-ViT-bigG-14-laion2B-39B-b160k'}},
-                                                                                 'pass_columns': {'test_passages': 'test_passages',
-                                                                                                  'train_passages': 'train_passages',
-                                                                                                  'valid_passages': 'valid_passages',
-                                                                                                  'vqa_data_with_dpr_output': 'okvqa_data'},
-                                                                                 'tokenizer_config': {'decoder_tokenizer': {'SPECIAL_TOKENS': {'additional_special_tokens': []},
-                                                                                                                            'TokenizerClass': 'FLMRContextEncoderTokenizer',
-                                                                                                                            'TokenizerModelVersion': 'LinWeizheDragon/PreFLMR_ViT-L'},
-                                                                                                      'tokenizer': {'SPECIAL_TOKENS': {'additional_special_tokens': []},
-                                                                                                                    'TokenizerClass': 'FLMRQueryEncoderTokenizer',
-                                                                                                                    'TokenizerModelVersion': 'LinWeizheDragon/PreFLMR_ViT-L'}}},
-                                                                'transform_name': 'PrepareDataloaders'},
-                                  'process:ConcatenatePassageDatasets': {'cache': True,
-                                                                         'input_node': ['process:LoadOKVQAData'],
-                                                                         'regenerate': False,
-                                                                         'setup_kwargs': {'concat_splits': {'test_passages': [True],
-                                                                                                            'train_passages': [True],
-                                                                                                            'valid_passages': [True]},
-                                                                                          'names': ['okvqa_passages']},
-                                                                         'transform_name': 'ConcatenatePassageDatasets'},
-                                  'process:LoadOKVQAData': {'cache': True,
-                                                            'regenerate': False,
-                                                            'setup_kwargs': {'add_instruction': ['Using '
-                                                                                                 'the '
-                                                                                                 'provided '
-                                                                                                 'image, '
-                                                                                                 'obtain '
-                                                                                                 'documents '
-                                                                                                 'that '
-                                                                                                 'address '
-                                                                                                 'the '
-                                                                                                 'subsequent '
-                                                                                                 'question: ',
-                                                                                                 'Retrieve '
-                                                                                                 'documents '
-                                                                                                 'that '
-                                                                                                 'provide '
-                                                                                                 'an '
-                                                                                                 'answer '
-                                                                                                 'to '
-                                                                                                 'the '
-                                                                                                 'question '
-                                                                                                 'alongside '
-                                                                                                 'the '
-                                                                                                 'image: ',
-                                                                                                 'Extract '
-                                                                                                 'documents '
-                                                                                                 'linked '
-                                                                                                 'to '
-                                                                                                 'the '
-                                                                                                 'question '
-                                                                                                 'provided '
-                                                                                                 'in '
-                                                                                                 'conjunction '
-                                                                                                 'with '
-                                                                                                 'the '
-                                                                                                 'image: ',
-                                                                                                 'Utilizing '
-                                                                                                 'the '
-                                                                                                 'given '
-                                                                                                 'image, '
-                                                                                                 'obtain '
-                                                                                                 'documents '
-                                                                                                 'that '
-                                                                                                 'respond '
-                                                                                                 'to '
-                                                                                                 'the '
-                                                                                                 'following '
-                                                                                                 'question: ',
-                                                                                                 'Using '
-                                                                                                 'the '
-                                                                                                 'given '
-                                                                                                 'image, '
-                                                                                                 'access '
-                                                                                                 'documents '
-                                                                                                 'that '
-                                                                                                 'provide '
-                                                                                                 'insights '
-                                                                                                 'into '
-                                                                                                 'the '
-                                                                                                 'following '
-                                                                                                 'question: ',
-                                                                                                 'Obtain '
-                                                                                                 'documents '
-                                                                                                 'that '
-                                                                                                 'correspond '
-                                                                                                 'to '
-                                                                                                 'the '
-                                                                                                 'inquiry '
-                                                                                                 'alongside '
-                                                                                                 'the '
-                                                                                                 'provided '
-                                                                                                 'image: ',
-                                                                                                 'With '
-                                                                                                 'the '
-                                                                                                 'provided '
-                                                                                                 'image, '
-                                                                                                 'gather '
-                                                                                                 'documents '
-                                                                                                 'that '
-                                                                                                 'offer '
-                                                                                                 'a '
-                                                                                                 'solution '
-                                                                                                 'to '
-                                                                                                 'the '
-                                                                                                 'question: ',
-                                                                                                 'Utilizing '
-                                                                                                 'the '
-                                                                                                 'given '
-                                                                                                 'image, '
-                                                                                                 'obtain '
-                                                                                                 'documents '
-                                                                                                 'that '
-                                                                                                 'respond '
-                                                                                                 'to '
-                                                                                                 'the '
-                                                                                                 'following '
-                                                                                                 'question: '],
-                                                                             'data_path': 'BByrneLab/multi_task_multi_modal_knowledge_retrieval_benchmark_M2KR///OKVQA_data',
-                                                                             'image_root_folder': '/home/fz288/rds/rds-cvnlp-hirYTW1FQIw/shared_space/vqa_data/KBVQA_data/ok-vqa',
-                                                                             'passage_path': 'BByrneLab/multi_task_multi_modal_knowledge_retrieval_benchmark_M2KR///OKVQA_passages'},
-                                                            'transform_name': 'LoadPreprocessedData_v2'},
-                                  'process:WrapOutputIntoKeys': {'cache': True,
-                                                                 'input_node': ['process:LoadOKVQAData'],
-                                                                 'regenerate': True,
-                                                                 'setup_kwargs': {'output_keys': ['okvqa_data']},
-                                                                 'transform_name': 'WrapOutputIntoKeys'}}},
- 'eval': {'eval_op_name': 'Your eval op name'},
- 'executor': {'ExecutorClass': 'RerankerBaseExecutor',
-              'init_kwargs': {'index_splits': ['train', 'valid', 'test'],
-                              'use_data_node': 'output:PrepareDataloaders',
-                              'validation_indexing_source': ['okvqa_passages']}},
- 'experiment_name': 'TEST_OKVQA_FLMRQuery_Full_Context_Rerank_L_Freeze_Vision_ckpt_model_step_3021',
- 'from_experiment': '',
- 'log_prediction_tables': False,
- 'meta': {'DATA_FOLDER': 'data',
-          'EXPERIMENT_FOLDER': 'experiments',
-          'TENSORBOARD_FOLDER': 'tensorboards',
-          'WANDB': {'CACHE_DIR': 'cache/wandb_cache/',
-                    'entity': 'byrne-lab',
-                    'project': 'PreFLMR MLMI',
-                    'tags': ['OKVQA_FLMRQuery_Full_Context_Rerank_L_Freeze_Vision',
-                             'test']},
-          'default_cache_dir': 'cache/',
-          'logger_enable': ['tensorboard', 'wandb'],
-          'platform_type': 'pytorch',
-          'seed': 2022,
-          'use_versioning': False},
- 'metrics': [{'name': 'compute_rerank_DPR_scores'},
-             {'name': 'compute_rerank_DPR_scores_with_pos_ids'}],
- 'mode': 'test',
- 'model_config': {'Ks': [5, 10, 20, 50, 100],
-                  'decoder_input_modules': {'module_list': [{'option': 'default',
-                                                             'separation_tokens': {'end': '',
-                                                                                   'start': ''},
-                                                             'type': 'KnowledgeInput'}],
-                                            'postprocess_module_list': [{'option': 'default',
-                                                                         'type': 'PostProcessFLMRItemInputTokenization'}]},
-                  'docs_to_rerank': 100,
-                  'fusion_multiplier': 1,
-                  'index_files': {'embedding_path': '',
-                                  'index_path': '',
-                                  'static_results': ['/home/fz288/rds/hpc-work/PreFLMR/search_index/OKVQA/PreFLMR-L/_test_OKVQADatasetForDPR.test_predictions_rank_0.pkl']},
-                  'input_modules': {'module_list': [{'option': 'from_file',
-                                                     'type': 'VisionInput'},
-                                                    {'option': 'default',
-                                                     'separation_tokens': {'end': '',
-                                                                           'start': ''},
-                                                     'type': 'InstructionInput'}],
-                                    'postprocess_module_list': [{'option': 'default',
-                                                                 'type': 'PostProcessVisionInputProcessing'},
-                                                                {'option': 'default',
-                                                                 'type': 'PostProcessFLMRQuestionInputTokenization'}]},
-                  'max_decoder_source_length': 512,
-                  'max_source_length': 32,
-                  'modules': ['separate_query_and_item_encoders',
-                              'full_context_reranker',
-                              'freeze_reranker_vision_encoder'],
-                  'nbits': 8,
-                  'num_negative_samples': 4,
-                  'output_modules': {'module_list': [{'option': 'default',
-                                                      'type': 'SimilarityOutput'}],
-                                     'postprocess_module_list': [{'option': 'default',
-                                                                  'type': 'PostProcessConcatenateLabels'}]},
-                  'prepend_tokens': {'item_encoder': '', 'query_encoder': ''},
-                  'pretrained': 1,
-                  'reranker_config': {'RerankerClass': 'FullContextRerankModel',
-                                      'base_model': 'FLMR',
-                                      'cross_encoder_config_base': 'bert-base-uncased',
-                                      'cross_encoder_max_position_embeddings': 900,
-                                      'cross_encoder_num_hidden_layers': 1,
-                                      'loss_fn': 'BCE',
-                                      'max_decoder_source_length': 512,
-                                      'max_query_length': 32,
-                                      'pretrain_config_class': 'FLMRConfig',
-                                      'pretrain_model_version': 'LinWeizheDragon/PreFLMR_ViT-L'},
-                  'retriever_config': {'ConfigClass': 'FLMRConfig',
-                                       'ModelClass': 'FLMRModelForRetrieval',
-                                       'ModelVersion': 'LinWeizheDragon/PreFLMR_ViT-L',
-                                       'base_model': 'FLMR'}},
- 'override': True,
- 'reset': True,
- 'test': {'batch_size': 16,
-          'checkpoint_name': '',
-          'load_best_model': False,
-          'load_model_path': '',
-          'num_dataloader_workers': 0,
-          'trainer_paras': {'accelerator': 'auto',
-                            'devices': 'auto',
-                            'limit_test_batches': 65,
-                            'precision': 'bf16',
-                            'strategy': 'ddp_find_unused_parameters_true'}},
- 'test_suffix': '',
- 'train': {'batch_size': 8,
-           'early_stopping_callback_paras': {'mode': 'min',
-                                             'patience': 3,
-                                             'verbose': True},
-           'load_model_path': '/home/fz288/rds/hpc-work/PreFLMR/experiments/OKVQA_FLMRQuery_Full_Context_Rerank_L_Freeze_Vision_ckpt_model_step_1007/train/saved_models/model_step_3021.ckpt',
-           'model_checkpoint_callback_paras': {'auto_insert_metric_name': False,
-                                               'filename': 'model_step_{step}',
-                                               'mode': 'min',
-                                               'monitor': 'valid/OKVQADatasetForDPR.test/loss',
-                                               'save_last': True,
-                                               'save_on_train_epoch_end': False,
-                                               'save_top_k': 5,
-                                               'verbose': True},
-           'num_dataloader_workers': 4,
-           'optimizer_config': {'optimizer_name': 'AdamW',
-                                'optimizer_params': {'eps': 1e-08, 'lr': 1e-05},
-                                'scheduler': 'none',
-                                'scheduler_params': {'num_warmup_steps': 0}},
-           'trainer_paras': {'accelerator': 'auto',
-                             'accumulate_grad_batches': 8,
-                             'check_val_every_n_epoch': None,
-                             'devices': 'auto',
-                             'limit_val_batches': 25,
-                             'log_every_n_steps': 10,
-                             'max_epochs': -1,
-                             'precision': 'bf16',
-                             'strategy': 'ddp_find_unused_parameters_true',
-                             'val_check_interval': 1000}},
- 'use_dummy_data': False,
- 'valid': {'batch_size': 16, 'num_dataloader_workers': 0}}
-User modules imported
-Runway Testing...
-test-directory: experiments/TEST_OKVQA_FLMRQuery_Full_Context_Rerank_L_Freeze_Vision_ckpt_model_step_3021/test
-Using loggers: ['tensorboard', 'wandb']
-[<pytorch_lightning.loggers.tensorboard.TensorBoardLogger object at 0x148251d147c0>, <pytorch_lightning.loggers.wandb.WandbLogger object at 0x148251d1ebe0>]
-Saving testing results to: experiments/TEST_OKVQA_FLMRQuery_Full_Context_Rerank_L_Freeze_Vision_ckpt_model_step_3021/test/test_case.txt
-======================================================================================================================================================
-                                                                     MODEL CONFIG                                                                     
-{'Ks': [5, 10, 20, 50, 100], 'decoder_input_modules': {'module_list': [{'option': 'default', 'separation_tokens': {'end': '', 'start': ''}, 'type': 'KnowledgeInput'}], 'postprocess_module_list': [{'option': 'default', 'type': 'PostProcessFLMRItemInputTokenization'}]}, 'docs_to_rerank': 100, 'fusion_multiplier': 1, 'index_files': {'embedding_path': '', 'index_path': '', 'static_results': ['/home/fz288/rds/hpc-work/PreFLMR/search_index/OKVQA/PreFLMR-L/_test_OKVQADatasetForDPR.test_predictions_rank_0.pkl']}, 'input_modules': {'module_list': [{'option': 'from_file', 'type': 'VisionInput'}, {'option': 'default', 'separation_tokens': {'end': '', 'start': ''}, 'type': 'InstructionInput'}], 'postprocess_module_list': [{'option': 'default', 'type': 'PostProcessVisionInputProcessing'}, {'option': 'default', 'type': 'PostProcessFLMRQuestionInputTokenization'}]}, 'max_decoder_source_length': 512, 'max_source_length': 32, 'modules': ['separate_query_and_item_encoders', 'full_context_reranker', 'freeze_reranker_vision_encoder'], 'nbits': 8, 'num_negative_samples': 4, 'output_modules': {'module_list': [{'option': 'default', 'type': 'SimilarityOutput'}], 'postprocess_module_list': [{'option': 'default', 'type': 'PostProcessConcatenateLabels'}]}, 'prepend_tokens': {'item_encoder': '', 'query_encoder': ''}, 'pretrained': 1, 'reranker_config': {'RerankerClass': 'FullContextRerankModel', 'base_model': 'FLMR', 'cross_encoder_config_base': 'bert-base-uncased', 'cross_encoder_max_position_embeddings': 900, 'cross_encoder_num_hidden_layers': 1, 'loss_fn': 'BCE', 'max_decoder_source_length': 512, 'max_query_length': 32, 'pretrain_config_class': 'FLMRConfig', 'pretrain_model_version': 'LinWeizheDragon/PreFLMR_ViT-L'}, 'retriever_config': {'ConfigClass': 'FLMRConfig', 'ModelClass': 'FLMRModelForRetrieval', 'ModelVersion': 'LinWeizheDragon/PreFLMR_ViT-L', 'base_model': 'FLMR'}}
-======================================================================================================================================================
-                                                                   OPTIMIZER CONFIG                                                                   
-None
-======================================================================================================================================================
-                                                                   TRAINING CONFIG                                                                    
-{}
-======================================================================================================================================================
-                                                                     TEST CONFIG                                                                      
-{'batch_size': 16, 'checkpoint_name': '', 'load_best_model': False, 'load_model_path': '', 'num_dataloader_workers': 0, 'trainer_paras': {'accelerator': 'auto', 'devices': 'auto', 'limit_test_batches': 65, 'precision': 'bf16', 'strategy': 'ddp_find_unused_parameters_true'}}
-======================================================================================================================================================
-PrepareDataloaders
-{'cache': True, 'input_node': ['process:ConcatenatePassageDatasets', 'process:WrapOutputIntoKeys'], 'regenerate': True, 'setup_kwargs': {'datasets_config': {'test': [{'dataset_type': 'OKVQADatasetForDPR', 'split': 'test', 'use_column': 'okvqa_data'}], 'train': [{'dataset_type': 'OKVQADatasetForDPR', 'split': 'train', 'use_column': 'okvqa_data'}], 'valid': [{'dataset_type': 'OKVQADatasetForDPR', 'split': 'test', 'use_column': 'okvqa_data'}]}, 'extra_columns': {'passages': 'train_passages', 'valid_passages': 'valid_passages'}, 'feature_extractor_config': {}, 'image_processor_config': {'vit_image_processor': {'ImageProcessorClass': 'AutoImageProcessor', 'ImageProcessorModelVersion': 'laion/CLIP-ViT-bigG-14-laion2B-39B-b160k'}}, 'pass_columns': {'test_passages': 'test_passages', 'train_passages': 'train_passages', 'valid_passages': 'valid_passages', 'vqa_data_with_dpr_output': 'okvqa_data'}, 'tokenizer_config': {'decoder_tokenizer': {'SPECIAL_TOKENS': {'additional_special_tokens': []}, 'TokenizerClass': 'FLMRContextEncoderTokenizer', 'TokenizerModelVersion': 'LinWeizheDragon/PreFLMR_ViT-L'}, 'tokenizer': {'SPECIAL_TOKENS': {'additional_special_tokens': []}, 'TokenizerClass': 'FLMRQueryEncoderTokenizer', 'TokenizerModelVersion': 'LinWeizheDragon/PreFLMR_ViT-L'}}}, 'transform_name': 'PrepareDataloaders'}
-dict_keys([])
-attempting to check cache exist: cache/process:ConcatenatePassageDatasets-4c3114b2ec6656f111735f2284653362.hf --> True
-attempting to check cache exist: cache/process:LoadOKVQAData-f810a301c4921c239584cdd5426ec7ac.hf --> True
-Load process:ConcatenatePassageDatasets-4c3114b2ec6656f111735f2284653362 from disk cache
-Data loaded from cache/process:ConcatenatePassageDatasets-4c3114b2ec6656f111735f2284653362.hf
-WrapOutputIntoKeys
-{'cache': True, 'input_node': ['process:LoadOKVQAData'], 'regenerate': True, 'setup_kwargs': {'output_keys': ['okvqa_data']}, 'transform_name': 'WrapOutputIntoKeys'}
-dict_keys([])
-Load process:LoadOKVQAData-f810a301c4921c239584cdd5426ec7ac from disk cache
-Data loaded from cache/process:LoadOKVQAData-f810a301c4921c239584cdd5426ec7ac.hf
-Node: process:WrapOutputIntoKeys 
-Execute Transform: WrapOutputIntoKeys
-wrapped columns: dict_keys(['okvqa_data'])
-Data saved to cache/process:WrapOutputIntoKeys-d736da6bd13f28721d585150bcfd0db6.pkl
-Node: output:PrepareDataloaders 
-Execute Transform: PrepareDataloaders
-Received data columns: dict_keys(['test_passages', 'train_passages', 'valid_passages', 'okvqa_data'])
-test_passages: Dataset({
-    features: ['passage_id', 'passage_content', 'title', 'source_name'],
-    num_rows: 114809
-})
-train_passages: Dataset({
-    features: ['passage_id', 'passage_content', 'title', 'source_name'],
-    num_rows: 114809
-})
-valid_passages: Dataset({
-    features: ['passage_id', 'passage_content', 'title', 'source_name'],
-    num_rows: 114809
-})
-okvqa_data: {'train': Dataset({
-    features: ['answers', 'gold_answer', 'question', 'question_id', 'img_path', 'img_key_full', 'img_key', 'img_file_name', 'img', 'img_caption', 'objects', 'img_ocr', 'pos_item_ids', 'pos_item_contents', 'related_item_ids', '__index_level_0__', 'instruction'],
-    num_rows: 9009
-}), 'valid': Dataset({
-    features: ['answers', 'gold_answer', 'question', 'question_id', 'img_path', 'img_key_full', 'img_key', 'img_file_name', 'img', 'img_caption', 'objects', 'img_ocr', 'pos_item_ids', 'pos_item_contents', 'related_item_ids', '__index_level_0__', 'instruction'],
-    num_rows: 5046
-}), 'test': Dataset({
-    features: ['answers', 'gold_answer', 'question', 'question_id', 'img_path', 'img_key_full', 'img_key', 'img_file_name', 'img', 'img_caption', 'objects', 'img_ocr', 'pos_item_ids', 'pos_item_contents', 'related_item_ids', '__index_level_0__', 'instruction'],
-    num_rows: 5046
-}), 'train_passages': Dataset({
-    features: ['passage_id', 'passage_content', 'title'],
-    num_rows: 114809
-}), 'valid_passages': Dataset({
-    features: ['passage_id', 'passage_content', 'title'],
-    num_rows: 114809
-}), 'test_passages': Dataset({
-    features: ['passage_id', 'passage_content', 'title'],
-    num_rows: 114809
-})}
-'Dataset' object has no attribute 'keys'
-'Dataset' object has no attribute 'keys'
-'Dataset' object has no attribute 'keys'
-First 5 image paths in dataset 'okvqa_data[train]' of length 9009 are valid.
-First 5 image paths in dataset 'okvqa_data[valid]' of length 5046 are valid.
-First 5 image paths in dataset 'okvqa_data[test]' of length 5046 are valid.
-'img_path'
-extra_column passages extra_column_from train_passages
-extra_column valid_passages extra_column_from valid_passages
-available ids 114809
-{'test_passages': 'test_passages', 'train_passages': 'train_passages', 'valid_passages': 'valid_passages', 'vqa_data_with_dpr_output': 'okvqa_data'}
-Data saved to cache/output:PrepareDataloaders-1795b35ef6c17d0deccfadb37ac7b128.pkl
-Freezing Reranker vision encoders
-Load output:PrepareDataloaders-1795b35ef6c17d0deccfadb37ac7b128 from program cache
-Load output:PrepareDataloaders-1795b35ef6c17d0deccfadb37ac7b128 from program cache
-0
-Loading lookup table...
-Rank 0 Done loading lookup table.
-formatting the test passages:   0%|          | 0/114809 [00:00<?, ?it/s]formatting the test passages:   2%|▏         | 1811/114809 [00:00<00:06, 18103.80it/s]formatting the test passages:   3%|▎         | 3721/114809 [00:00<00:05, 18688.52it/s]formatting the test passages:   5%|▍         | 5628/114809 [00:00<00:05, 18858.95it/s]formatting the test passages:   7%|▋         | 7516/114809 [00:00<00:05, 18864.83it/s]formatting the test passages:   8%|▊         | 9403/114809 [00:00<00:05, 18845.09it/s]formatting the test passages:  10%|▉         | 11295/114809 [00:00<00:05, 18868.71it/s]formatting the test passages:  12%|█▏        | 13213/114809 [00:00<00:05, 18969.68it/s]formatting the test passages:  13%|█▎        | 15128/114809 [00:00<00:05, 19025.21it/s]formatting the test passages:  15%|█▍        | 17046/114809 [00:00<00:05, 19071.22it/s]formatting the test passages:  17%|█▋        | 18978/114809 [00:01<00:05, 19146.91it/s]formatting the test passages:  18%|█▊        | 20909/114809 [00:01<00:04, 19196.12it/s]formatting the test passages:  20%|█▉        | 22829/114809 [00:01<00:04, 19147.32it/s]formatting the test passages:  22%|██▏       | 24757/114809 [00:01<00:04, 19185.37it/s]formatting the test passages:  23%|██▎       | 26681/114809 [00:01<00:04, 19200.55it/s]formatting the test passages:  25%|██▍       | 28626/114809 [00:01<00:04, 19273.95it/s]formatting the test passages:  27%|██▋       | 30565/114809 [00:01<00:04, 19306.84it/s]formatting the test passages:  28%|██▊       | 32506/114809 [00:01<00:04, 19336.65it/s]formatting the test passages:  30%|███       | 34455/114809 [00:01<00:04, 19382.30it/s]formatting the test passages:  32%|███▏      | 36398/114809 [00:01<00:04, 19395.86it/s]formatting the test passages:  33%|███▎      | 38338/114809 [00:02<00:03, 19388.70it/s]formatting the test passages:  35%|███▌      | 40277/114809 [00:02<00:03, 19379.52it/s]formatting the test passages:  37%|███▋      | 42224/114809 [00:02<00:03, 19404.95it/s]formatting the test passages:  38%|███▊      | 44165/114809 [00:02<00:03, 19276.18it/s]formatting the test passages:  40%|████      | 46111/114809 [00:02<00:03, 19330.21it/s]formatting the test passages:  42%|████▏     | 48062/114809 [00:02<00:03, 19381.49it/s]formatting the test passages:  44%|████▎     | 50006/114809 [00:02<00:03, 19397.81it/s]formatting the test passages:  45%|████▌     | 51956/114809 [00:02<00:03, 19426.62it/s]formatting the test passages:  47%|████▋     | 53907/114809 [00:02<00:03, 19451.21it/s]formatting the test passages:  49%|████▊     | 55860/114809 [00:02<00:03, 19474.03it/s]formatting the test passages:  50%|█████     | 57816/114809 [00:03<00:02, 19499.23it/s]formatting the test passages:  52%|█████▏    | 59767/114809 [00:03<00:02, 19501.60it/s]formatting the test passages:  54%|█████▍    | 61725/114809 [00:03<00:02, 19522.76it/s]formatting the test passages:  55%|█████▌    | 63684/114809 [00:03<00:02, 19542.58it/s]formatting the test passages:  57%|█████▋    | 65652/114809 [00:03<00:02, 19580.75it/s]formatting the test passages:  59%|█████▉    | 67618/114809 [00:03<00:02, 19603.93it/s]formatting the test passages:  61%|██████    | 69579/114809 [00:03<00:02, 19583.90it/s]formatting the test passages:  62%|██████▏   | 71538/114809 [00:03<00:02, 19551.74it/s]formatting the test passages:  64%|██████▍   | 73495/114809 [00:03<00:02, 19554.30it/s]formatting the test passages:  66%|██████▌   | 75460/114809 [00:03<00:02, 19582.55it/s]formatting the test passages:  67%|██████▋   | 77419/114809 [00:04<00:01, 19576.43it/s]formatting the test passages:  69%|██████▉   | 79377/114809 [00:04<00:01, 19545.52it/s]formatting the test passages:  71%|███████   | 81332/114809 [00:04<00:01, 19535.79it/s]formatting the test passages:  73%|███████▎  | 83286/114809 [00:04<00:01, 19513.61it/s]formatting the test passages:  74%|███████▍  | 85238/114809 [00:04<00:01, 19497.27it/s]formatting the test passages:  76%|███████▌  | 87191/114809 [00:04<00:01, 19506.10it/s]formatting the test passages:  78%|███████▊  | 89142/114809 [00:04<00:01, 19299.04it/s]formatting the test passages:  79%|███████▉  | 91103/114809 [00:04<00:01, 19389.44it/s]formatting the test passages:  81%|████████  | 93058/114809 [00:04<00:01, 19435.90it/s]formatting the test passages:  83%|████████▎ | 95012/114809 [00:04<00:01, 19466.64it/s]formatting the test passages:  84%|████████▍ | 96965/114809 [00:05<00:00, 19484.29it/s]formatting the test passages:  86%|████████▌ | 98922/114809 [00:05<00:00, 19509.45it/s]formatting the test passages:  88%|████████▊ | 100881/114809 [00:05<00:00, 19533.47it/s]formatting the test passages:  90%|████████▉ | 102835/114809 [00:05<00:00, 19519.73it/s]formatting the test passages:  91%|█████████▏| 104788/114809 [00:05<00:00, 19475.28it/s]formatting the test passages:  93%|█████████▎| 106736/114809 [00:05<00:00, 19467.60it/s]formatting the test passages:  95%|█████████▍| 108683/114809 [00:05<00:00, 19437.94it/s]formatting the test passages:  96%|█████████▋| 110629/114809 [00:05<00:00, 19442.16it/s]formatting the test passages:  98%|█████████▊| 112574/114809 [00:05<00:00, 19441.42it/s]formatting the test passages: 100%|█████████▉| 114519/114809 [00:05<00:00, 19442.57it/s]formatting the test passages: 100%|██████████| 114809/114809 [00:05<00:00, 19367.92it/s]
-[38;20m[INFO] - src.executors.Reranker_base_executor : passages from the source okvqa_passages has 114809[0m
-[38;20m[INFO] - src.executors.Reranker_base_executor : Passages prepared.[0m
-[38;20m[INFO] - src.executors.Reranker_base_executor : tokenizer lengths = 30522 and 30522[0m
-[38;20m[INFO] - src.executors.Reranker_base_executor : Loading from /home/fz288/rds/hpc-work/PreFLMR/experiments/OKVQA_FLMRQuery_Full_Context_Rerank_L_Freeze_Vision_ckpt_model_step_1007/train/saved_models/model_step_3021.ckpt[0m
-LOCAL_RANK: 0 - CUDA_VISIBLE_DEVICES: [0]
-SLURM auto-requeueing enabled. Setting signal handlers.
-/home/fz288/rds/hpc-work/PreFLMR/VQA/lib/python3.8/site-packages/pytorch_lightning/trainer/connectors/data_connector.py:441: The 'test_dataloader' does not have many workers which may be a bottleneck. Consider increasing the value of the `num_workers` argument` to `num_workers=31` in the `DataLoader` to improve performance.
-Testing: |          | 0/? [00:00<?, ?it/s]Testing:   0%|          | 0/65 [00:00<?, ?it/s]Testing DataLoader 0:   0%|          | 0/65 [00:00<?, ?it/s]Testing DataLoader 0:   2%|▏         | 1/65 [00:00<00:00, 1196.32it/s]Testing DataLoader 0:   3%|▎         | 2/65 [00:00<00:22,  2.85it/s]  Testing DataLoader 0:   5%|▍         | 3/65 [00:01<00:29,  2.12it/s]Testing DataLoader 0:   6%|▌         | 4/65 [00:02<00:32,  1.88it/s]Testing DataLoader 0:   8%|▊         | 5/65 [00:02<00:33,  1.77it/s]Testing DataLoader 0:   9%|▉         | 6/65 [00:03<00:34,  1.69it/s]Testing DataLoader 0:  11%|█         | 7/65 [00:04<00:35,  1.65it/s]Testing DataLoader 0:  12%|█▏        | 8/65 [00:05<00:42,  1.36it/s]Testing DataLoader 0:  14%|█▍        | 9/65 [00:07<00:48,  1.17it/s]Testing DataLoader 0:  15%|█▌        | 10/65 [00:08<00:49,  1.12it/s]Testing DataLoader 0:  17%|█▋        | 11/65 [00:10<00:50,  1.07it/s]Testing DataLoader 0:  18%|█▊        | 12/65 [00:11<00:52,  1.01it/s]Testing DataLoader 0:  20%|██        | 13/65 [00:13<00:52,  0.98it/s]Testing DataLoader 0:  22%|██▏       | 14/65 [00:14<00:53,  0.96it/s]Testing DataLoader 0:  23%|██▎       | 15/65 [00:16<00:53,  0.93it/s]Testing DataLoader 0:  25%|██▍       | 16/65 [00:17<00:54,  0.91it/s]Testing DataLoader 0:  26%|██▌       | 17/65 [00:18<00:53,  0.90it/s]Testing DataLoader 0:  28%|██▊       | 18/65 [00:20<00:54,  0.87it/s]Testing DataLoader 0:  29%|██▉       | 19/65 [00:21<00:53,  0.86it/s]Testing DataLoader 0:  31%|███       | 20/65 [00:23<00:52,  0.85it/s]Testing DataLoader 0:  32%|███▏      | 21/65 [00:24<00:52,  0.85it/s]Testing DataLoader 0:  34%|███▍      | 22/65 [00:26<00:51,  0.84it/s]Testing DataLoader 0:  35%|███▌      | 23/65 [00:27<00:50,  0.84it/s]Testing DataLoader 0:  37%|███▋      | 24/65 [00:28<00:49,  0.83it/s]Testing DataLoader 0:  38%|███▊      | 25/65 [00:30<00:48,  0.83it/s]Testing DataLoader 0:  40%|████      | 26/65 [00:31<00:47,  0.82it/s]Testing DataLoader 0:  42%|████▏     | 27/65 [00:33<00:46,  0.82it/s]Testing DataLoader 0:  43%|████▎     | 28/65 [00:34<00:45,  0.81it/s]Testing DataLoader 0:  45%|████▍     | 29/65 [00:35<00:44,  0.81it/s]Testing DataLoader 0:  46%|████▌     | 30/65 [00:37<00:43,  0.80it/s]Testing DataLoader 0:  48%|████▊     | 31/65 [00:39<00:43,  0.79it/s]Testing DataLoader 0:  49%|████▉     | 32/65 [00:40<00:42,  0.78it/s]Testing DataLoader 0:  51%|█████     | 33/65 [00:42<00:41,  0.77it/s]Testing DataLoader 0:  52%|█████▏    | 34/65 [00:44<00:40,  0.77it/s]Testing DataLoader 0:  54%|█████▍    | 35/65 [00:45<00:39,  0.77it/s]Testing DataLoader 0:  55%|█████▌    | 36/65 [00:47<00:37,  0.76it/s]Testing DataLoader 0:  57%|█████▋    | 37/65 [00:48<00:36,  0.76it/s]Testing DataLoader 0:  58%|█████▊    | 38/65 [00:49<00:35,  0.76it/s]Testing DataLoader 0:  60%|██████    | 39/65 [00:51<00:34,  0.76it/s]Testing DataLoader 0:  62%|██████▏   | 40/65 [00:52<00:32,  0.76it/s]Testing DataLoader 0:  63%|██████▎   | 41/65 [00:53<00:31,  0.76it/s]Testing DataLoader 0:  65%|██████▍   | 42/65 [00:55<00:30,  0.76it/s]Testing DataLoader 0:  66%|██████▌   | 43/65 [00:56<00:29,  0.76it/s]Testing DataLoader 0:  68%|██████▊   | 44/65 [00:58<00:27,  0.76it/s]Testing DataLoader 0:  69%|██████▉   | 45/65 [00:59<00:26,  0.76it/s]Testing DataLoader 0:  71%|███████   | 46/65 [01:00<00:25,  0.76it/s]Testing DataLoader 0:  72%|███████▏  | 47/65 [01:02<00:23,  0.76it/s]Testing DataLoader 0:  74%|███████▍  | 48/65 [01:03<00:22,  0.76it/s]Testing DataLoader 0:  75%|███████▌  | 49/65 [01:04<00:21,  0.76it/s]Testing DataLoader 0:  77%|███████▋  | 50/65 [01:05<00:19,  0.76it/s]Testing DataLoader 0:  78%|███████▊  | 51/65 [01:07<00:18,  0.76it/s]Testing DataLoader 0:  80%|████████  | 52/65 [01:09<00:17,  0.75it/s]Testing DataLoader 0:  82%|████████▏ | 53/65 [01:10<00:16,  0.75it/s]Testing DataLoader 0:  83%|████████▎ | 54/65 [01:12<00:14,  0.75it/s]Testing DataLoader 0:  85%|████████▍ | 55/65 [01:13<00:13,  0.75it/s]Testing DataLoader 0:  86%|████████▌ | 56/65 [01:15<00:12,  0.74it/s]Testing DataLoader 0:  88%|████████▊ | 57/65 [01:16<00:10,  0.74it/s]Testing DataLoader 0:  89%|████████▉ | 58/65 [01:18<00:09,  0.74it/s]Testing DataLoader 0:  91%|█████████ | 59/65 [01:19<00:08,  0.74it/s]Testing DataLoader 0:  92%|█████████▏| 60/65 [01:21<00:06,  0.74it/s]Testing DataLoader 0:  94%|█████████▍| 61/65 [01:22<00:05,  0.74it/s]Testing DataLoader 0:  95%|█████████▌| 62/65 [01:23<00:04,  0.74it/s]Testing DataLoader 0:  97%|█████████▋| 63/65 [01:25<00:02,  0.74it/s]Testing DataLoader 0:  98%|█████████▊| 64/65 [01:27<00:01,  0.73it/s]Testing DataLoader 0: 100%|██████████| 65/65 [01:28<00:00,  0.73it/s][38;20m[INFO] - src.executors.Reranker_base_executor : reading global step of the checkpoint...[0m
-Reranking the top retrieved documents...
-
-0it [00:00, ?it/s][A
-1it [00:08,  8.52s/it][A
-2it [00:11,  5.17s/it][A
-3it [00:14,  4.08s/it][A
-4it [00:16,  3.58s/it][A
-5it [00:19,  3.30s/it][A
-6it [00:22,  3.12s/it][A
-7it [00:25,  3.01s/it][A
-8it [00:28,  2.95s/it][A
-9it [00:30,  2.90s/it][A
-10it [00:33,  2.87s/it][A
-11it [00:36,  2.84s/it][A
-12it [00:39,  2.83s/it][A
-13it [00:42,  2.83s/it][A
-14it [00:44,  2.82s/it][A
-15it [00:47,  2.82s/it][A
-16it [00:50,  2.82s/it][A
-17it [00:53,  2.82s/it][A
-18it [00:56,  2.81s/it][A
-19it [00:58,  2.81s/it][A
-20it [01:01,  2.80s/it][A
-21it [01:04,  2.79s/it][A
-22it [01:07,  2.80s/it][A
-23it [01:10,  2.80s/it][A
-24it [01:12,  2.80s/it][A
-25it [01:15,  2.81s/it][A
-26it [01:18,  2.80s/it][A
-27it [01:21,  2.80s/it][A
-28it [01:24,  2.81s/it][A
-29it [01:26,  2.80s/it][A
-30it [01:29,  2.80s/it][A
-31it [01:32,  2.80s/it][A
-32it [01:35,  2.80s/it][A
-33it [01:38,  2.81s/it][A
-34it [01:40,  2.80s/it][A
-35it [01:43,  2.79s/it][A
-36it [01:46,  2.79s/it][A
-37it [01:49,  2.80s/it][A
-38it [01:52,  2.81s/it][A
-39it [01:55,  2.81s/it][A
-40it [01:57,  2.82s/it][A
-41it [02:00,  2.81s/it][A
-42it [02:03,  2.81s/it][A
-43it [02:06,  2.81s/it][A
-44it [02:09,  2.81s/it][A
-45it [02:11,  2.81s/it][A
-46it [02:14,  2.80s/it][A
-47it [02:17,  2.80s/it][A
-48it [02:20,  2.80s/it][A
-49it [02:23,  2.80s/it][A
-50it [02:25,  2.80s/it][A
-51it [02:28,  2.81s/it][A
-52it [02:31,  2.81s/it][A
-53it [02:34,  2.81s/it][A
-54it [02:37,  2.81s/it][A
-55it [02:39,  2.81s/it][A
-56it [02:42,  2.81s/it][A
-57it [02:45,  2.81s/it][A
-58it [02:48,  2.81s/it][A
-59it [02:51,  2.81s/it][A
-60it [02:53,  2.81s/it][A
-61it [02:56,  2.81s/it][A
-62it [02:59,  2.81s/it][A
-63it [03:02,  2.80s/it][A
-64it [03:05,  2.80s/it][A
-65it [03:07,  2.80s/it][A
-66it [03:10,  2.80s/it][A
-67it [03:13,  2.81s/it][A
-68it [03:16,  2.81s/it][A
-69it [03:19,  2.81s/it][A
-70it [03:22,  2.81s/it][A
-71it [03:24,  2.81s/it][A
-72it [03:27,  2.81s/it][A
-73it [03:30,  2.81s/it][A
-74it [03:33,  2.81s/it][A
-75it [03:36,  2.81s/it][A
-76it [03:38,  2.80s/it][A
-77it [03:41,  2.80s/it][A
-78it [03:44,  2.81s/it][A
-79it [03:47,  2.81s/it][A
-80it [03:50,  2.81s/it][A
-81it [03:52,  2.81s/it][A
-82it [03:55,  2.81s/it][A
-83it [03:58,  2.80s/it][A
-84it [04:01,  2.80s/it][A
-85it [04:04,  2.80s/it][A
-86it [04:06,  2.80s/it][A
-87it [04:09,  2.80s/it][A
-88it [04:12,  2.80s/it][A
-89it [04:15,  2.80s/it][A
-90it [04:18,  2.81s/it][A
-91it [04:20,  2.81s/it][A
-92it [04:23,  2.80s/it][A
-93it [04:26,  2.80s/it][A
-94it [04:29,  2.81s/it][A
-95it [04:32,  2.80s/it][A
-96it [04:34,  2.81s/it][A
-97it [04:37,  2.80s/it][A
-98it [04:40,  2.80s/it][A
-99it [04:43,  2.80s/it][A
-100it [04:46,  2.79s/it][A
-101it [04:48,  2.79s/it][A
-102it [04:51,  2.80s/it][A
-103it [04:54,  2.80s/it][A
-104it [04:57,  2.81s/it][A
-105it [05:00,  2.80s/it][A
-106it [05:02,  2.80s/it][A
-107it [05:05,  2.80s/it][A
-108it [05:08,  2.80s/it][A
-109it [05:11,  2.80s/it][A
-110it [05:14,  2.81s/it][A
-111it [05:16,  2.81s/it][A
-112it [05:19,  2.81s/it][A
-113it [05:22,  2.81s/it][A
-114it [05:25,  2.83s/it][A
-115it [05:28,  2.82s/it][A
-116it [05:31,  2.83s/it][A
-117it [05:33,  2.82s/it][A
-118it [05:36,  2.81s/it][A
-119it [05:39,  2.82s/it][A
-120it [05:42,  2.81s/it][A
-121it [05:45,  2.82s/it][A
-122it [05:47,  2.81s/it][A
-123it [05:50,  2.81s/it][A
-124it [05:53,  2.81s/it][A
-125it [05:56,  2.80s/it][A
-126it [05:59,  2.80s/it][A
-127it [06:01,  2.81s/it][A
-128it [06:04,  2.80s/it][A
-129it [06:07,  2.81s/it][A
-130it [06:10,  2.81s/it][A
-131it [06:13,  2.81s/it][A
-132it [06:15,  2.81s/it][A
-133it [06:18,  2.81s/it][A
-134it [06:21,  2.81s/it][A
-135it [06:24,  2.81s/it][A
-136it [06:27,  2.81s/it][A
-137it [06:30,  2.81s/it][A
-138it [06:32,  2.81s/it][A
-139it [06:35,  2.81s/it][A
-140it [06:38,  2.81s/it][A
-141it [06:41,  2.80s/it][A
-142it [06:44,  2.80s/it][A
-143it [06:46,  2.81s/it][A
-144it [06:49,  2.81s/it][A
-145it [06:52,  2.81s/it][A
-146it [06:55,  2.81s/it][A
-147it [06:58,  2.81s/it][A
-148it [07:00,  2.81s/it][A
-149it [07:03,  2.80s/it][A
-150it [07:06,  2.80s/it][A
-151it [07:09,  2.81s/it][A
-152it [07:12,  2.81s/it][A
-153it [07:14,  2.81s/it][A
-154it [07:17,  2.81s/it][A
-155it [07:20,  2.81s/it][A
-156it [07:23,  2.81s/it][A
-157it [07:26,  2.81s/it][A
-158it [07:28,  2.81s/it][A
-159it [07:31,  2.82s/it][A
-160it [07:34,  2.82s/it][A
-161it [07:37,  2.82s/it][A
-162it [07:40,  2.82s/it][A
-163it [07:43,  2.83s/it][A
-164it [07:45,  2.82s/it][A
-165it [07:48,  2.81s/it][A
-166it [07:51,  2.81s/it][A
-167it [07:54,  2.81s/it][A
-168it [07:57,  2.81s/it][A
-169it [07:59,  2.82s/it][A
-170it [08:02,  2.81s/it][A
-171it [08:05,  2.81s/it][A
-172it [08:08,  2.80s/it][A
-173it [08:11,  2.81s/it][A
-174it [08:14,  2.82s/it][A
-175it [08:16,  2.82s/it][A
-176it [08:19,  2.82s/it][A
-177it [08:22,  2.81s/it][A
-178it [08:25,  2.81s/it][A
-179it [08:28,  2.81s/it][A
-180it [08:30,  2.82s/it][A
-181it [08:33,  2.82s/it][A
-182it [08:36,  2.81s/it][A
-183it [08:39,  2.82s/it][A
-184it [08:42,  2.82s/it][A
-185it [08:45,  2.82s/it][A
-186it [08:47,  2.80s/it][A
-187it [08:50,  2.81s/it][A
-188it [08:53,  2.80s/it][A
-189it [08:56,  2.80s/it][A
-190it [08:59,  2.80s/it][A
-191it [09:01,  2.79s/it][A
-192it [09:04,  2.80s/it][A
-193it [09:07,  2.80s/it][A
-194it [09:10,  2.79s/it][A
-195it [09:12,  2.80s/it][A
-196it [09:15,  2.80s/it][A
-197it [09:18,  2.81s/it][A
-198it [09:21,  2.81s/it][A
-199it [09:24,  2.81s/it][A
-200it [09:27,  2.81s/it][A
-201it [09:29,  2.81s/it][A
-202it [09:32,  2.80s/it][A
-203it [09:35,  2.80s/it][A
-204it [09:38,  2.81s/it][A
-205it [09:41,  2.80s/it][A
-206it [09:43,  2.81s/it][A
-207it [09:46,  2.81s/it][A
-208it [09:49,  2.81s/it][A
-209it [09:52,  2.81s/it][A
-210it [09:55,  2.81s/it][A
-211it [09:57,  2.81s/it][A
-212it [10:00,  2.81s/it][A
-213it [10:03,  2.81s/it][A
-214it [10:06,  2.81s/it][A
-215it [10:09,  2.81s/it][A
-216it [10:11,  2.81s/it][A
-217it [10:14,  2.81s/it][A
-218it [10:17,  2.81s/it][A
-219it [10:20,  2.81s/it][A
-220it [10:23,  2.80s/it][A
-221it [10:26,  2.81s/it][A
-222it [10:28,  2.80s/it][A
-223it [10:31,  2.79s/it][A
-224it [10:34,  2.80s/it][A
-225it [10:37,  2.80s/it][A
-226it [10:39,  2.80s/it][A
-227it [10:42,  2.80s/it][A
-228it [10:45,  2.79s/it][A
-229it [10:48,  2.80s/it][A
-230it [10:51,  2.80s/it][A
-231it [10:53,  2.80s/it][A
-232it [10:56,  2.80s/it][A
-233it [10:59,  2.80s/it][A
-234it [11:02,  2.80s/it][A
-235it [11:05,  2.80s/it][A
-236it [11:08,  2.81s/it][A
-237it [11:10,  2.80s/it][A
-238it [11:13,  2.80s/it][A
-239it [11:16,  2.80s/it][A
-240it [11:19,  2.81s/it][A
-241it [11:22,  2.80s/it][A
-242it [11:24,  2.81s/it][A
-243it [11:27,  2.81s/it][A
-244it [11:30,  2.80s/it][A
-245it [11:33,  2.80s/it][A
-246it [11:36,  2.81s/it][A
-247it [11:38,  2.80s/it][A
-248it [11:41,  2.80s/it][A
-249it [11:44,  2.80s/it][A
-250it [11:47,  2.81s/it][A
-251it [11:50,  2.81s/it][A
-252it [11:52,  2.82s/it][A
-253it [11:55,  2.81s/it][A
-254it [11:58,  2.81s/it][A
-255it [12:01,  2.81s/it][A
-256it [12:04,  2.81s/it][A
-257it [12:06,  2.81s/it][A
-258it [12:09,  2.82s/it][A
-259it [12:12,  2.81s/it][A
-260it [12:15,  2.81s/it][A
-261it [12:18,  2.81s/it][A
-262it [12:21,  2.81s/it][A
-263it [12:23,  2.80s/it][A
-264it [12:26,  2.81s/it][A
-265it [12:29,  2.81s/it][A
-266it [12:32,  2.81s/it][A
-267it [12:35,  2.80s/it][A
-268it [12:37,  2.80s/it][A
-269it [12:40,  2.81s/it][A
-270it [12:43,  2.81s/it][A
-271it [12:46,  2.82s/it][A
-272it [12:49,  2.81s/it][A
-273it [12:51,  2.81s/it][A
-274it [12:54,  2.81s/it][A
-275it [12:57,  2.80s/it][A
-276it [13:00,  2.81s/it][A
-277it [13:03,  2.80s/it][A
-278it [13:05,  2.80s/it][A
-279it [13:08,  2.80s/it][A
-280it [13:11,  2.80s/it][A
-281it [13:14,  2.80s/it][A
-282it [13:17,  2.80s/it][A
-283it [13:19,  2.80s/it][A
-284it [13:22,  2.80s/it][A
-285it [13:25,  2.80s/it][A
-286it [13:28,  2.79s/it][A
-287it [13:31,  2.80s/it][A
-288it [13:33,  2.80s/it][A
-289it [13:36,  2.81s/it][A
-290it [13:39,  2.80s/it][A
-291it [13:42,  2.81s/it][A
-292it [13:45,  2.81s/it][A
-293it [13:48,  2.82s/it][A
-294it [13:50,  2.81s/it][A
-295it [13:53,  2.81s/it][A
-296it [13:56,  2.81s/it][A
-297it [13:59,  2.81s/it][A
-298it [14:02,  2.80s/it][A
-299it [14:04,  2.81s/it][A
-300it [14:07,  2.82s/it][A
-301it [14:10,  2.81s/it][A
-302it [14:13,  2.81s/it][A
-303it [14:16,  2.80s/it][A
-304it [14:18,  2.80s/it][A
-305it [14:21,  2.79s/it][A
-306it [14:24,  2.80s/it][A
-307it [14:27,  2.80s/it][A
-308it [14:30,  2.80s/it][A
-309it [14:32,  2.81s/it][A
-310it [14:35,  2.80s/it][A
-311it [14:38,  2.81s/it][A
-312it [14:41,  2.80s/it][A
-313it [14:44,  2.80s/it][A
-314it [14:46,  2.80s/it][A
-315it [14:49,  2.81s/it][A
-316it [14:52,  2.81s/it][A
-317it [14:55,  2.81s/it][A
-318it [14:58,  2.81s/it][A
-319it [15:00,  2.80s/it][A
-320it [15:03,  2.80s/it][A
-321it [15:06,  2.80s/it][A
-322it [15:09,  2.80s/it][A
-323it [15:12,  2.80s/it][A
-324it [15:14,  2.83s/it][A
-325it [15:17,  2.82s/it][A
-326it [15:20,  2.81s/it][A
-327it [15:23,  2.81s/it][A
-328it [15:26,  2.81s/it][A
-329it [15:29,  2.82s/it][A
-330it [15:31,  2.82s/it][A
-331it [15:34,  2.81s/it][A
-332it [15:37,  2.81s/it][A
-333it [15:40,  2.82s/it][A
-334it [15:43,  2.81s/it][A
-335it [15:45,  2.80s/it][A
-336it [15:48,  2.81s/it][A
-337it [15:51,  2.81s/it][A
-338it [15:54,  2.81s/it][A
-339it [15:57,  2.82s/it][A
-340it [15:59,  2.81s/it][A
-341it [16:02,  2.81s/it][A
-342it [16:05,  2.81s/it][A
-343it [16:08,  2.80s/it][A
-344it [16:11,  2.80s/it][A
-345it [16:13,  2.80s/it][A
-346it [16:16,  2.80s/it][A
-347it [16:19,  2.81s/it][A
-348it [16:22,  2.81s/it][A
-349it [16:25,  2.80s/it][A
-350it [16:27,  2.80s/it][A
-351it [16:30,  2.81s/it][A
-352it [16:33,  2.80s/it][A
-353it [16:36,  2.81s/it][A
-354it [16:39,  2.81s/it][A
-355it [16:42,  2.81s/it][A
-356it [16:44,  2.81s/it][A
-357it [16:47,  2.81s/it][A
-358it [16:50,  2.81s/it][A
-359it [16:53,  2.80s/it][A
-360it [16:56,  2.81s/it][A
-361it [16:58,  2.81s/it][A
-362it [17:01,  2.81s/it][A
-363it [17:04,  2.80s/it][A
-364it [17:07,  2.80s/it][A
-365it [17:10,  2.80s/it][A
-366it [17:12,  2.81s/it][A
-367it [17:15,  2.80s/it][A
-368it [17:18,  2.80s/it][A
-369it [17:21,  2.80s/it][A
-370it [17:24,  2.80s/it][A
-371it [17:26,  2.80s/it][A
-372it [17:29,  2.80s/it][A
-373it [17:32,  2.81s/it][A
-374it [17:35,  2.81s/it][A
-375it [17:38,  2.81s/it][A
-376it [17:40,  2.82s/it][A
-377it [17:43,  2.81s/it][A
-378it [17:46,  2.81s/it][A
-379it [17:49,  2.81s/it][A
-380it [17:52,  2.81s/it][A
-381it [17:54,  2.80s/it][A
-382it [17:57,  2.80s/it][A
-383it [18:00,  2.81s/it][A
-384it [18:03,  2.81s/it][A
-385it [18:06,  2.80s/it][A
-386it [18:09,  2.80s/it][A
-387it [18:11,  2.80s/it][A
-388it [18:14,  2.80s/it][A
-389it [18:17,  2.80s/it][A
-390it [18:20,  2.80s/it][A
-391it [18:23,  2.81s/it][A
-392it [18:25,  2.81s/it][A
-393it [18:28,  2.81s/it][A
-394it [18:31,  2.80s/it][A
-395it [18:34,  2.81s/it][A
-396it [18:37,  2.81s/it][A
-397it [18:39,  2.81s/it][A
-398it [18:42,  2.80s/it][A
-399it [18:45,  2.79s/it][A
-400it [18:48,  2.80s/it][A
-401it [18:51,  2.80s/it][A
-402it [18:53,  2.80s/it][A
-403it [18:56,  2.81s/it][A
-404it [18:59,  2.80s/it][A
-405it [19:02,  2.81s/it][A
-406it [19:05,  2.80s/it][A
-407it [19:07,  2.80s/it][A
-408it [19:10,  2.80s/it][A
-409it [19:13,  2.81s/it][A
-410it [19:16,  2.80s/it][A
-411it [19:19,  2.80s/it][A
-412it [19:21,  2.81s/it][A
-413it [19:24,  2.80s/it][A
-414it [19:27,  2.80s/it][A
-415it [19:30,  2.81s/it][A
-416it [19:33,  2.80s/it][A
-417it [19:35,  2.81s/it][A
-418it [19:38,  2.81s/it][A
-419it [19:41,  2.81s/it][A
-420it [19:44,  2.81s/it][A
-421it [19:47,  2.81s/it][A
-422it [19:49,  2.81s/it][A
-423it [19:52,  2.81s/it][A
-424it [19:55,  2.81s/it][A
-425it [19:58,  2.81s/it][A
-426it [20:01,  2.80s/it][A
-427it [20:04,  2.80s/it][A
-428it [20:06,  2.80s/it][A
-429it [20:09,  2.80s/it][A
-430it [20:12,  2.81s/it][A
-431it [20:15,  2.81s/it][A
-432it [20:18,  2.81s/it][A
-433it [20:20,  2.82s/it][A
-434it [20:23,  2.81s/it][A
-435it [20:26,  2.81s/it][A
-436it [20:29,  2.81s/it][A
-437it [20:32,  2.80s/it][A
-438it [20:34,  2.81s/it][A
-439it [20:37,  2.81s/it][A
-440it [20:40,  2.82s/it][A
-441it [20:43,  2.81s/it][A
-442it [20:46,  2.81s/it][A
-443it [20:49,  2.82s/it][A
-444it [20:51,  2.82s/it][A
-445it [20:54,  2.81s/it][A
-446it [20:57,  2.81s/it][A
-447it [21:00,  2.81s/it][A
-448it [21:03,  2.81s/it][A
-449it [21:05,  2.81s/it][A
-450it [21:08,  2.82s/it][A
-451it [21:11,  2.82s/it][A
-452it [21:14,  2.81s/it][A
-453it [21:17,  2.80s/it][A
-454it [21:19,  2.80s/it][A
-455it [21:22,  2.80s/it][A
-456it [21:25,  2.80s/it][A
-457it [21:28,  2.81s/it][A
-458it [21:31,  2.81s/it][A
-459it [21:33,  2.81s/it][A
-460it [21:36,  2.81s/it][A
-461it [21:39,  2.81s/it][A
-462it [21:42,  2.81s/it][A
-463it [21:45,  2.80s/it][A
-464it [21:47,  2.79s/it][A
-465it [21:50,  2.80s/it][A
-466it [21:53,  2.80s/it][A
-467it [21:56,  2.80s/it][A
-468it [21:59,  2.80s/it][A
-469it [22:01,  2.79s/it][A
-470it [22:04,  2.79s/it][A
-471it [22:07,  2.80s/it][A
-472it [22:10,  2.80s/it][A
-473it [22:13,  2.80s/it][A
-474it [22:15,  2.80s/it][A
-475it [22:18,  2.80s/it][A
-476it [22:21,  2.80s/it][A
-477it [22:24,  2.80s/it][A
-478it [22:27,  2.80s/it][A
-479it [22:29,  2.80s/it][A
-480it [22:32,  2.80s/it][A
-481it [22:35,  2.80s/it][A
-482it [22:38,  2.79s/it][A
-483it [22:41,  2.80s/it][A
-484it [22:43,  2.79s/it][A
-485it [22:46,  2.81s/it][A
-486it [22:49,  2.81s/it][A
-487it [22:52,  2.81s/it][A
-488it [22:55,  2.81s/it][A
-489it [22:57,  2.81s/it][A
-490it [23:00,  2.80s/it][A
-491it [23:03,  2.80s/it][A
-492it [23:06,  2.80s/it][A
-493it [23:09,  2.81s/it][A
-494it [23:11,  2.81s/it][A
-495it [23:14,  2.80s/it][A
-496it [23:17,  2.80s/it][A
-497it [23:20,  2.80s/it][A
-498it [23:23,  2.81s/it][A
-499it [23:25,  2.80s/it][A
-500it [23:28,  2.80s/it][A
-501it [23:31,  2.80s/it][A
-502it [23:34,  2.80s/it][A
-503it [23:37,  2.80s/it][A
-504it [23:39,  2.80s/it][A
-505it [23:42,  2.80s/it][A
-506it [23:45,  2.79s/it][A
-507it [23:48,  2.80s/it][A
-508it [23:51,  2.81s/it][A
-509it [23:54,  2.80s/it][A
-510it [23:56,  2.81s/it][A
-511it [23:59,  2.80s/it][A
-512it [24:02,  2.82s/it][A
-513it [24:05,  2.82s/it][A
-514it [24:08,  2.81s/it][A
-515it [24:10,  2.81s/it][A
-516it [24:13,  2.81s/it][A
-517it [24:16,  2.81s/it][A
-518it [24:19,  2.82s/it][A
-519it [24:22,  2.81s/it][A
-520it [24:24,  2.80s/it][A
-521it [24:27,  2.81s/it][A
-522it [24:30,  2.81s/it][A
-523it [24:33,  2.81s/it][A
-524it [24:36,  2.81s/it][A
-525it [24:38,  2.81s/it][A
-526it [24:41,  2.80s/it][A
-527it [24:44,  2.81s/it][A
-528it [24:47,  2.81s/it][A
-529it [24:50,  2.81s/it][A
-530it [24:53,  2.81s/it][A
-531it [24:55,  2.80s/it][A
-532it [24:58,  2.81s/it][A
-533it [25:01,  2.82s/it][A
-534it [25:04,  2.82s/it][A
-535it [25:07,  2.82s/it][A
-536it [25:09,  2.82s/it][A
-537it [25:12,  2.83s/it][A
-538it [25:15,  2.83s/it][A
-539it [25:18,  2.82s/it][A
-540it [25:21,  2.81s/it][A
-541it [25:24,  2.81s/it][A
-542it [25:26,  2.80s/it][A
-543it [25:29,  2.81s/it][A
-544it [25:32,  2.81s/it][A
-545it [25:35,  2.80s/it][A
-546it [25:38,  2.80s/it][A
-547it [25:40,  2.80s/it][A
-548it [25:43,  2.81s/it][A
-549it [25:46,  2.81s/it][A
-550it [25:49,  2.81s/it][A
-551it [25:52,  2.80s/it][A
-552it [25:54,  2.81s/it][A
-553it [25:57,  2.80s/it][A
-554it [26:00,  2.80s/it][A
-555it [26:03,  2.79s/it][A
-556it [26:06,  2.79s/it][A
-557it [26:08,  2.80s/it][A
-558it [26:11,  2.80s/it][A
-559it [26:14,  2.80s/it][A
-560it [26:17,  2.80s/it][A
-561it [26:20,  2.80s/it][A
-562it [26:22,  2.80s/it][A
-563it [26:25,  2.81s/it][A
-564it [26:28,  2.81s/it][A
-565it [26:31,  2.81s/it][A
-566it [26:34,  2.81s/it][A
-567it [26:36,  2.81s/it][A
-568it [26:39,  2.81s/it][A
-569it [26:42,  2.79s/it][A
-570it [26:45,  2.80s/it][A
-571it [26:48,  2.80s/it][A
-572it [26:50,  2.80s/it][A
-573it [26:53,  2.80s/it][A
-574it [26:56,  2.80s/it][A
-575it [26:59,  2.80s/it][A
-576it [27:02,  2.80s/it][A
-577it [27:04,  2.80s/it][A
-578it [27:07,  2.81s/it][A
-579it [27:10,  2.80s/it][A
-580it [27:13,  2.81s/it][A
-581it [27:16,  2.80s/it][A
-582it [27:18,  2.81s/it][A
-583it [27:21,  2.81s/it][A
-584it [27:24,  2.80s/it][A
-585it [27:27,  2.80s/it][A
-586it [27:30,  2.80s/it][A
-587it [27:32,  2.80s/it][A
-588it [27:35,  2.81s/it][A
-589it [27:38,  2.82s/it][A
-590it [27:41,  2.81s/it][A
-591it [27:44,  2.81s/it][A
-592it [27:47,  2.82s/it][A
-593it [27:49,  2.82s/it][A
-594it [27:52,  2.81s/it][A
-595it [27:55,  2.81s/it][A
-596it [27:58,  2.81s/it][A
-597it [28:01,  2.81s/it][A
-598it [28:03,  2.81s/it][A
-599it [28:06,  2.80s/it][A
-600it [28:09,  2.80s/it][A
-601it [28:12,  2.80s/it][A
-602it [28:15,  2.81s/it][A
-603it [28:17,  2.80s/it][A
-604it [28:20,  2.81s/it][A
-605it [28:23,  2.81s/it][A
-606it [28:26,  2.81s/it][A
-607it [28:29,  2.81s/it][A
-608it [28:31,  2.81s/it][A
-609it [28:34,  2.80s/it][A
-610it [28:37,  2.80s/it][A
-611it [28:40,  2.81s/it][A
-612it [28:43,  2.81s/it][A
-613it [28:46,  2.81s/it][A
-614it [28:48,  2.80s/it][A
-615it [28:51,  2.80s/it][A
-616it [28:54,  2.81s/it][A
-617it [28:57,  2.80s/it][A
-618it [29:00,  2.81s/it][A
-619it [29:02,  2.81s/it][A
-620it [29:05,  2.81s/it][A
-621it [29:08,  2.81s/it][A
-622it [29:11,  2.81s/it][A
-623it [29:14,  2.81s/it][A
-624it [29:16,  2.81s/it][A
-625it [29:19,  2.81s/it][A
-626it [29:22,  2.81s/it][A
-627it [29:25,  2.81s/it][A
-628it [29:28,  2.81s/it][A
-629it [29:30,  2.81s/it][A
-630it [29:33,  2.82s/it][A
-631it [29:36,  2.81s/it][A
-632it [29:39,  2.81s/it][A
-633it [29:42,  2.81s/it][A
-634it [29:44,  2.81s/it][A
-635it [29:47,  2.81s/it][A
-636it [29:50,  2.80s/it][A
-637it [29:53,  2.81s/it][A
-638it [29:56,  2.81s/it][A
-639it [29:59,  2.81s/it][A
-640it [30:01,  2.81s/it][A
-641it [30:04,  2.80s/it][A
-642it [30:07,  2.81s/it][A
-643it [30:10,  2.80s/it][A
-644it [30:13,  2.80s/it][A
-645it [30:15,  2.80s/it][A
-646it [30:18,  2.79s/it][A
-647it [30:21,  2.80s/it][A
-648it [30:24,  2.80s/it][A
-649it [30:27,  2.80s/it][A
-650it [30:29,  2.79s/it][A
-651it [30:32,  2.80s/it][A
-652it [30:35,  2.80s/it][A
-653it [30:38,  2.80s/it][A
-654it [30:41,  2.80s/it][A
-655it [30:43,  2.81s/it][A
-656it [30:46,  2.80s/it][A
-657it [30:49,  2.80s/it][A
-658it [30:52,  2.79s/it][A
-659it [30:55,  2.81s/it][A
-660it [30:57,  2.80s/it][A
-661it [31:00,  2.80s/it][A
-662it [31:03,  2.81s/it][A
-663it [31:06,  2.81s/it][A
-664it [31:09,  2.81s/it][A
-665it [31:11,  2.81s/it][A
-666it [31:14,  2.81s/it][A
-667it [31:17,  2.81s/it][A
-668it [31:20,  2.81s/it][A
-669it [31:23,  2.81s/it][A
-670it [31:25,  2.81s/it][A
-671it [31:28,  2.82s/it][A
-672it [31:31,  2.82s/it][A
-673it [31:34,  2.82s/it][A
-674it [31:37,  2.81s/it][A
-675it [31:40,  2.81s/it][A
-676it [31:42,  2.81s/it][A
-677it [31:45,  2.81s/it][A
-678it [31:48,  2.80s/it][A
-679it [31:51,  2.80s/it][A
-680it [31:54,  2.80s/it][A
-681it [31:56,  2.80s/it][A
-682it [31:59,  2.80s/it][A
-683it [32:02,  2.80s/it][A
-684it [32:05,  2.81s/it][A
-685it [32:08,  2.82s/it][A
-686it [32:10,  2.82s/it][A
-687it [32:13,  2.81s/it][A
-688it [32:16,  2.81s/it][A
-689it [32:19,  2.81s/it][A
-690it [32:22,  2.81s/it][A
-691it [32:24,  2.81s/it][A
-692it [32:27,  2.81s/it][A
-693it [32:30,  2.81s/it][A
-694it [32:33,  2.80s/it][A
-695it [32:36,  2.80s/it][A
-696it [32:38,  2.80s/it][A
-697it [32:41,  2.80s/it][A
-698it [32:44,  2.80s/it][A
-699it [32:47,  2.79s/it][A
-700it [32:50,  2.80s/it][A
-701it [32:52,  2.81s/it][A
-702it [32:55,  2.81s/it][A
-703it [32:58,  2.81s/it][A
-704it [33:01,  2.81s/it][A
-705it [33:04,  2.81s/it][A
-706it [33:07,  2.81s/it][A
-707it [33:09,  2.81s/it][A
-708it [33:12,  2.81s/it][A
-709it [33:15,  2.81s/it][A
-710it [33:18,  2.81s/it][A
-711it [33:21,  2.81s/it][A
-712it [33:23,  2.81s/it][A
-713it [33:26,  2.82s/it][A
-714it [33:29,  2.81s/it][A
-715it [33:32,  2.82s/it][A
-716it [33:35,  2.81s/it][A
-717it [33:37,  2.81s/it][A
-718it [33:41,  2.90s/it][A
-719it [33:43,  2.86s/it][A
-720it [33:46,  2.85s/it][A
-721it [33:49,  2.84s/it][A
-722it [33:52,  2.82s/it][A
-723it [33:55,  2.83s/it][A
-724it [33:57,  2.82s/it][A
-725it [34:00,  2.82s/it][A
-726it [34:03,  2.81s/it][A
-727it [34:06,  2.82s/it][A
-728it [34:09,  2.82s/it][A
-729it [34:11,  2.82s/it][A
-730it [34:14,  2.82s/it][A
-731it [34:17,  2.81s/it][A
-732it [34:20,  2.82s/it][A
-733it [34:23,  2.82s/it][A
-734it [34:26,  2.82s/it][A
-735it [34:28,  2.81s/it][A
-736it [34:31,  2.81s/it][A
-737it [34:34,  2.81s/it][A
-738it [34:37,  2.81s/it][A
-739it [34:40,  2.81s/it][A
-740it [34:42,  2.80s/it][A
-741it [34:45,  2.81s/it][A
-742it [34:48,  2.82s/it][A
-743it [34:51,  2.81s/it][A
-744it [34:54,  2.81s/it][A
-745it [34:56,  2.81s/it][A
-746it [34:59,  2.82s/it][A
-747it [35:02,  2.82s/it][A
-748it [35:05,  2.81s/it][A
-749it [35:08,  2.80s/it][A
-750it [35:10,  2.80s/it][A
-751it [35:13,  2.81s/it][A
-752it [35:16,  2.80s/it][A
-753it [35:19,  2.79s/it][A
-754it [35:22,  2.80s/it][A
-755it [35:24,  2.80s/it][A
-756it [35:27,  2.80s/it][A
-757it [35:30,  2.79s/it][A
-758it [35:33,  2.81s/it][A
-759it [35:36,  2.81s/it][A
-760it [35:39,  2.81s/it][A
-761it [35:41,  2.81s/it][A
-762it [35:44,  2.81s/it][A
-763it [35:47,  2.81s/it][A
-764it [35:50,  2.81s/it][A
-765it [35:53,  2.81s/it][A
-766it [35:55,  2.81s/it][A
-767it [35:58,  2.80s/it][A
-768it [36:01,  2.81s/it][A
-769it [36:04,  2.80s/it][A
-770it [36:07,  2.81s/it][A
-771it [36:09,  2.81s/it][A
-772it [36:12,  2.81s/it][A
-773it [36:15,  2.81s/it][A
-774it [36:18,  2.81s/it][A
-775it [36:21,  2.82s/it][A
-776it [36:23,  2.81s/it][A
-777it [36:26,  2.81s/it][A
-778it [36:29,  2.81s/it][A
-779it [36:32,  2.80s/it][A
-780it [36:35,  2.80s/it][A
-781it [36:37,  2.81s/it][A
-782it [36:40,  2.81s/it][A
-783it [36:43,  2.81s/it][A
-784it [36:46,  2.81s/it][A
-785it [36:49,  2.81s/it][A
-786it [36:52,  2.80s/it][A
-787it [36:54,  2.81s/it][A
-788it [36:57,  2.80s/it][A
-789it [37:00,  2.80s/it][A
-790it [37:03,  2.80s/it][A
-791it [37:06,  2.80s/it][A
-792it [37:08,  2.80s/it][A
-793it [37:11,  2.80s/it][A
-794it [37:14,  2.80s/it][A
-795it [37:17,  2.80s/it][A
-796it [37:20,  2.81s/it][A
-797it [37:22,  2.80s/it][A
-798it [37:25,  2.80s/it][A
-799it [37:28,  2.80s/it][A
-800it [37:31,  2.80s/it][A
-801it [37:34,  2.80s/it][A
-802it [37:36,  2.80s/it][A
-803it [37:39,  2.81s/it][A
-804it [37:42,  2.81s/it][A
-805it [37:45,  2.81s/it][A
-806it [37:48,  2.81s/it][A
-807it [37:50,  2.81s/it][A
-808it [37:53,  2.81s/it][A
-809it [37:56,  2.81s/it][A
-810it [37:59,  2.81s/it][A
-811it [38:02,  2.81s/it][A
-812it [38:04,  2.81s/it][A
-813it [38:07,  2.80s/it][A
-814it [38:10,  2.81s/it][A
-815it [38:13,  2.80s/it][A
-816it [38:16,  2.80s/it][A
-817it [38:19,  2.81s/it][A
-818it [38:21,  2.82s/it][A
-819it [38:24,  2.81s/it][A
-820it [38:27,  2.80s/it][A
-821it [38:30,  2.81s/it][A
-822it [38:33,  2.81s/it][A
-823it [38:35,  2.81s/it][A
-824it [38:38,  2.80s/it][A
-825it [38:41,  2.81s/it][A
-826it [38:44,  2.80s/it][A
-827it [38:47,  2.80s/it][A
-828it [38:49,  2.80s/it][A
-829it [38:52,  2.80s/it][A
-830it [38:55,  2.82s/it][A
-831it [38:58,  2.82s/it][A
-832it [39:01,  2.82s/it][A
-833it [39:03,  2.81s/it][A
-834it [39:06,  2.82s/it][A
-835it [39:09,  2.81s/it][A
-836it [39:12,  2.81s/it][A
-837it [39:15,  2.81s/it][A
-838it [39:17,  2.81s/it][A
-839it [39:20,  2.80s/it][A
-840it [39:23,  2.80s/it][A
-841it [39:26,  2.81s/it][A
-842it [39:29,  2.81s/it][A
-843it [39:32,  2.81s/it][A
-844it [39:34,  2.82s/it][A
-845it [39:37,  2.82s/it][A
-846it [39:40,  2.81s/it][A
-847it [39:43,  2.81s/it][A
-848it [39:46,  2.80s/it][A
-849it [39:48,  2.80s/it][A
-850it [39:51,  2.80s/it][A
-851it [39:54,  2.81s/it][A
-852it [39:57,  2.81s/it][A
-853it [40:00,  2.82s/it][A
-854it [40:02,  2.81s/it][A
-855it [40:05,  2.81s/it][A
-856it [40:08,  2.81s/it][A
-857it [40:11,  2.80s/it][A
-858it [40:14,  2.81s/it][A
-859it [40:16,  2.81s/it][A
-860it [40:19,  2.80s/it][A
-861it [40:22,  2.81s/it][A
-862it [40:25,  2.80s/it][A
-863it [40:28,  2.81s/it][A
-864it [40:31,  2.81s/it][A
-865it [40:33,  2.81s/it][A
-866it [40:36,  2.80s/it][A
-867it [40:39,  2.80s/it][A
-868it [40:42,  2.80s/it][A
-869it [40:44,  2.80s/it][A
-870it [40:47,  2.80s/it][A
-871it [40:50,  2.80s/it][A
-872it [40:53,  2.80s/it][A
-873it [40:56,  2.81s/it][A
-874it [40:59,  2.81s/it][A
-875it [41:01,  2.81s/it][A
-876it [41:04,  2.81s/it][A
-877it [41:07,  2.81s/it][A
-878it [41:10,  2.80s/it][A
-879it [41:13,  2.79s/it][A
-880it [41:15,  2.80s/it][A
-881it [41:18,  2.80s/it][A
-882it [41:21,  2.80s/it][A
-883it [41:24,  2.81s/it][A
-884it [41:27,  2.80s/it][A
-885it [41:29,  2.80s/it][A
-886it [41:32,  2.81s/it][A
-887it [41:35,  2.80s/it][A
-888it [41:38,  2.80s/it][A
-889it [41:41,  2.81s/it][A
-890it [41:43,  2.82s/it][A
-891it [41:46,  2.83s/it][A
-892it [41:49,  2.83s/it][A
-893it [41:52,  2.82s/it][A
-894it [41:55,  2.81s/it][A
-895it [41:57,  2.81s/it][A
-896it [42:00,  2.81s/it][A
-897it [42:03,  2.81s/it][A
-898it [42:06,  2.81s/it][A
-899it [42:09,  2.81s/it][A
-900it [42:12,  2.81s/it][A
-901it [42:14,  2.81s/it][A
-902it [42:17,  2.81s/it][A
-903it [42:20,  2.81s/it][A
-904it [42:23,  2.81s/it][A
-905it [42:26,  2.81s/it][A
-906it [42:28,  2.80s/it][A
-907it [42:31,  2.80s/it][A
-908it [42:34,  2.80s/it][A
-909it [42:37,  2.80s/it][A
-910it [42:40,  2.81s/it][A
-911it [42:42,  2.81s/it][A
-912it [42:45,  2.81s/it][A
-913it [42:48,  2.80s/it][A
-914it [42:51,  2.80s/it][A
-915it [42:54,  2.80s/it][A
-916it [42:56,  2.81s/it][A
-917it [42:59,  2.81s/it][A
-918it [43:02,  2.82s/it][A
-919it [43:05,  2.80s/it][A
-920it [43:08,  2.81s/it][A
-921it [43:10,  2.81s/it][A
-922it [43:13,  2.82s/it][A
-923it [43:16,  2.82s/it][A
-924it [43:19,  2.82s/it][A
-925it [43:22,  2.81s/it][A
-926it [43:25,  2.81s/it][A
-927it [43:27,  2.81s/it][A
-928it [43:30,  2.81s/it][A
-929it [43:33,  2.80s/it][A
-930it [43:36,  2.80s/it][A
-931it [43:39,  2.81s/it][A
-932it [43:41,  2.81s/it][A
-933it [43:44,  2.81s/it][A
-934it [43:47,  2.81s/it][A
-935it [43:50,  2.80s/it][A
-936it [43:53,  2.80s/it][A
-937it [43:55,  2.80s/it][A
-938it [43:58,  2.80s/it][A
-939it [44:01,  2.80s/it][A
-940it [44:04,  2.80s/it][A
-941it [44:07,  2.79s/it][A
-942it [44:09,  2.79s/it][A
-943it [44:12,  2.80s/it][A
-944it [44:15,  2.80s/it][A
-945it [44:18,  2.80s/it][A
-946it [44:21,  2.81s/it][A
-947it [44:23,  2.81s/it][A
-948it [44:26,  2.83s/it][A
-949it [44:29,  2.82s/it][A
-950it [44:32,  2.82s/it][A
-951it [44:35,  2.82s/it][A
-952it [44:38,  2.81s/it][A
-953it [44:40,  2.81s/it][A
-954it [44:43,  2.81s/it][A
-955it [44:46,  2.80s/it][A
-956it [44:49,  2.80s/it][A
-957it [44:52,  2.81s/it][A
-958it [44:54,  2.81s/it][A
-959it [44:57,  2.81s/it][A
-960it [45:00,  2.81s/it][A
-961it [45:03,  2.81s/it][A
-962it [45:06,  2.81s/it][A
-963it [45:08,  2.81s/it][A
-964it [45:11,  2.80s/it][A
-965it [45:14,  2.80s/it][A
-966it [45:17,  2.81s/it][A
-967it [45:20,  2.81s/it][A
-968it [45:22,  2.80s/it][A
-969it [45:25,  2.81s/it][A
-970it [45:28,  2.82s/it][A
-971it [45:31,  2.82s/it][A
-972it [45:34,  2.82s/it][A
-973it [45:37,  2.81s/it][A
-974it [45:39,  2.80s/it][A
-975it [45:42,  2.81s/it][A
-976it [45:45,  2.81s/it][A
-977it [45:48,  2.81s/it][A
-978it [45:51,  2.81s/it][A
-979it [45:53,  2.81s/it][A
-980it [45:56,  2.81s/it][A
-981it [45:59,  2.81s/it][A
-982it [46:02,  2.82s/it][A
-983it [46:05,  2.82s/it][A
-984it [46:07,  2.82s/it][A
-985it [46:10,  2.81s/it][A
-986it [46:13,  2.81s/it][A
-987it [46:16,  2.81s/it][A
-988it [46:19,  2.81s/it][A
-989it [46:21,  2.80s/it][A
-990it [46:24,  2.80s/it][A
-991it [46:27,  2.80s/it][A
-992it [46:30,  2.80s/it][A
-993it [46:33,  2.80s/it][A
-994it [46:35,  2.80s/it][A
-995it [46:38,  2.80s/it][A
-996it [46:41,  2.80s/it][A
-997it [46:44,  2.80s/it][A
-998it [46:47,  2.80s/it][A
-999it [46:49,  2.80s/it][A
-1000it [46:52,  2.80s/it][A
-1001it [46:55,  2.81s/it][A
-1002it [46:58,  2.80s/it][A
-1003it [47:01,  2.80s/it][A
-1004it [47:03,  2.80s/it][A
-1005it [47:06,  2.80s/it][A
-1006it [47:09,  2.81s/it][A
-1007it [47:12,  2.81s/it][A
-1008it [47:15,  2.80s/it][A
-1009it [47:18,  2.81s/it][A
-1010it [47:20,  2.81s/it][A
-1011it [47:23,  2.81s/it][A
-1012it [47:26,  2.81s/it][A
-1013it [47:29,  2.80s/it][A
-1014it [47:32,  2.81s/it][A
-1015it [47:34,  2.80s/it][A
-1016it [47:37,  2.81s/it][A
-1017it [47:40,  2.80s/it][A
-1018it [47:43,  2.79s/it][A
-1019it [47:46,  2.80s/it][A
-1020it [47:48,  2.80s/it][A
-1021it [47:51,  2.80s/it][A
-1022it [47:54,  2.80s/it][A
-1023it [47:57,  2.80s/it][A
-1024it [48:00,  2.80s/it][A
-1025it [48:02,  2.80s/it][A
-1026it [48:05,  2.80s/it][A
-1027it [48:08,  2.80s/it][A
-1028it [48:11,  2.80s/it][A
-1029it [48:14,  2.81s/it][A
-1030it [48:16,  2.80s/it][A
-1031it [48:19,  2.81s/it][A
-1032it [48:22,  2.81s/it][A
-1033it [48:25,  2.81s/it][A
-1034it [48:28,  2.81s/it][A
-1035it [48:30,  2.80s/it][A
-1036it [48:33,  2.81s/it][A
-1037it [48:36,  2.81s/it][A
-1038it [48:39,  2.81s/it][A
-1039it [48:42,  2.81s/it][A
-1040it [48:44,  2.81s/it][A1040it [48:44,  2.81s/it]
-Reranking done.
-
-  0%|          | 0/1040 [00:00<?, ?it/s][A
- 10%|█         | 108/1040 [00:00<00:00, 1070.69it/s][A
- 21%|██        | 216/1040 [00:00<00:00, 1070.47it/s][A
- 31%|███       | 324/1040 [00:00<00:00, 1073.02it/s][A
- 42%|████▏     | 432/1040 [00:00<00:00, 1071.61it/s][A
- 52%|█████▏    | 541/1040 [00:00<00:00, 1076.58it/s][A
- 62%|██████▏   | 649/1040 [00:00<00:00, 1076.93it/s][A
- 73%|███████▎  | 757/1040 [00:00<00:00, 1075.81it/s][A
- 83%|████████▎ | 865/1040 [00:00<00:00, 1073.31it/s][A
- 94%|█████████▎| 973/1040 [00:00<00:00, 1074.01it/s][A100%|██████████| 1040/1040 [00:00<00:00, 1074.19it/s]
-[38;20m[INFO] - src.metrics.metrics_processors : Running metrics {'name': 'compute_rerank_DPR_scores'}...[0m
-
-  0%|          | 0/1040 [00:00<?, ?it/s][A
-  3%|▎         | 28/1040 [00:00<00:03, 279.18it/s][A
-  5%|▌         | 56/1040 [00:00<00:03, 263.23it/s][A
-  8%|▊         | 84/1040 [00:00<00:03, 268.12it/s][A
- 11%|█         | 111/1040 [00:00<00:03, 266.70it/s][A
- 13%|█▎        | 138/1040 [00:00<00:03, 264.32it/s][A
- 16%|█▌        | 168/1040 [00:00<00:03, 272.78it/s][A
- 19%|█▉        | 196/1040 [00:00<00:03, 272.72it/s][A
- 22%|██▏       | 224/1040 [00:00<00:02, 272.45it/s][A
- 24%|██▍       | 252/1040 [00:00<00:02, 272.32it/s][A
- 27%|██▋       | 280/1040 [00:01<00:02, 263.84it/s][A
- 30%|██▉       | 308/1040 [00:01<00:02, 266.92it/s][A
- 32%|███▏      | 335/1040 [00:01<00:02, 261.29it/s][A
- 35%|███▍      | 362/1040 [00:01<00:02, 259.32it/s][A
- 38%|███▊      | 390/1040 [00:01<00:02, 264.83it/s][A
- 40%|████      | 418/1040 [00:01<00:02, 265.98it/s][A
- 43%|████▎     | 445/1040 [00:01<00:02, 262.16it/s][A
- 45%|████▌     | 472/1040 [00:01<00:02, 260.87it/s][A
- 48%|████▊     | 499/1040 [00:01<00:02, 255.61it/s][A
- 50%|█████     | 525/1040 [00:01<00:02, 251.00it/s][A
- 53%|█████▎    | 553/1040 [00:02<00:01, 258.25it/s][A
- 56%|█████▌    | 580/1040 [00:02<00:01, 259.67it/s][A
- 58%|█████▊    | 607/1040 [00:02<00:01, 262.33it/s][A
- 61%|██████    | 634/1040 [00:02<00:01, 263.24it/s][A
- 64%|██████▎   | 662/1040 [00:02<00:01, 267.83it/s][A
- 66%|██████▋   | 691/1040 [00:02<00:01, 272.26it/s][A
- 69%|██████▉   | 719/1040 [00:02<00:01, 270.23it/s][A
- 72%|███████▏  | 747/1040 [00:02<00:01, 265.15it/s][A
- 75%|███████▍  | 776/1040 [00:02<00:00, 270.00it/s][A
- 77%|███████▋  | 804/1040 [00:03<00:00, 262.28it/s][A
- 80%|███████▉  | 831/1040 [00:03<00:00, 260.90it/s][A
- 82%|████████▎ | 858/1040 [00:03<00:00, 259.79it/s][A
- 85%|████████▌ | 888/1040 [00:03<00:00, 269.67it/s][A
- 88%|████████▊ | 916/1040 [00:03<00:00, 267.73it/s][A
- 91%|█████████ | 943/1040 [00:03<00:00, 257.65it/s][A
- 93%|█████████▎| 969/1040 [00:03<00:00, 256.34it/s][A
- 96%|█████████▌| 996/1040 [00:03<00:00, 257.91it/s][A
- 98%|█████████▊| 1022/1040 [00:03<00:00, 258.50it/s][A100%|██████████| 1040/1040 [00:03<00:00, 263.82it/s]
-[38;20m[INFO] - src.metrics.metrics_processors : Running metrics {'name': 'compute_rerank_DPR_scores_with_pos_ids'}...[0m
-
-  0%|          | 0/1040 [00:00<?, ?it/s][A100%|██████████| 1040/1040 [00:00<00:00, 16869.09it/s]
-[38;20m[INFO] - src.executors.Reranker_base_executor : Evaluation results [test]: {'_test/OKVQADatasetForDPR.test/precision_at_5': 0.27903846153846107, '_test/OKVQADatasetForDPR.test/precision_at_10': 0.27749999999999947, '_test/OKVQADatasetForDPR.test/precision_at_20': 0.27370192307692354, '_test/OKVQADatasetForDPR.test/precision_at_50': 0.26315384615384646, '_test/OKVQADatasetForDPR.test/precision_at_100': 0.24752884615384638, '_test/OKVQADatasetForDPR.test/recall_at_5': 0.5326923076923077, '_test/OKVQADatasetForDPR.test/recall_at_10': 0.6778846153846154, '_test/OKVQADatasetForDPR.test/recall_at_20': 0.801923076923077, '_test/OKVQADatasetForDPR.test/recall_at_50': 0.9201923076923076, '_test/OKVQADatasetForDPR.test/recall_at_100': 0.9615384615384616, '_test/OKVQADatasetForDPR.test/gold_precision_at_5': 0.14307692307692302, '_test/OKVQADatasetForDPR.test/gold_precision_at_10': 0.1406730769230766, '_test/OKVQADatasetForDPR.test/gold_precision_at_20': 0.13620192307692286, '_test/OKVQADatasetForDPR.test/gold_precision_at_50': 0.13019230769230786, '_test/OKVQADatasetForDPR.test/gold_precision_at_100': 0.1213076923076925, '_test/OKVQADatasetForDPR.test/gold_recall_at_5': 0.32019230769230766, '_test/OKVQADatasetForDPR.test/gold_recall_at_10': 0.44519230769230766, '_test/OKVQADatasetForDPR.test/gold_recall_at_20': 0.5625, '_test/OKVQADatasetForDPR.test/gold_recall_at_50': 0.7423076923076923, '_test/OKVQADatasetForDPR.test/gold_recall_at_100': 0.8375, '_test/OKVQADatasetForDPR.test/raw_precision_at_5': 0.3465384615384611, '_test/OKVQADatasetForDPR.test/raw_precision_at_10': 0.33211538461538487, '_test/OKVQADatasetForDPR.test/raw_precision_at_20': 0.3144230769230773, '_test/OKVQADatasetForDPR.test/raw_precision_at_50': 0.27946153846153843, '_test/OKVQADatasetForDPR.test/raw_precision_at_100': 0.24752884615384638, '_test/OKVQADatasetForDPR.test/raw_recall_at_5': 0.6336538461538461, '_test/OKVQADatasetForDPR.test/raw_recall_at_10': 0.7471153846153846, '_test/OKVQADatasetForDPR.test/raw_recall_at_20': 0.8394230769230769, '_test/OKVQADatasetForDPR.test/raw_recall_at_50': 0.9288461538461539, '_test/OKVQADatasetForDPR.test/raw_recall_at_100': 0.9615384615384616, '_test/OKVQADatasetForDPR.test/raw_gold_precision_at_5': 0.19846153846153833, '_test/OKVQADatasetForDPR.test/raw_gold_precision_at_10': 0.1850961538461534, '_test/OKVQADatasetForDPR.test/raw_gold_precision_at_20': 0.16918269230769253, '_test/OKVQADatasetForDPR.test/raw_gold_precision_at_50': 0.14278846153846173, '_test/OKVQADatasetForDPR.test/raw_gold_precision_at_100': 0.1213076923076925, '_test/OKVQADatasetForDPR.test/raw_gold_recall_at_5': 0.40865384615384615, '_test/OKVQADatasetForDPR.test/raw_gold_recall_at_10': 0.5163461538461539, '_test/OKVQADatasetForDPR.test/raw_gold_recall_at_20': 0.6298076923076923, '_test/OKVQADatasetForDPR.test/raw_gold_recall_at_50': 0.7701923076923077, '_test/OKVQADatasetForDPR.test/raw_gold_recall_at_100': 0.8375, '_test/OKVQADatasetForDPR.test/pos_item_ids_precision_at_5': 0.09365384615384632, '_test/OKVQADatasetForDPR.test/pos_item_ids_precision_at_10': 0.08048076923076922, '_test/OKVQADatasetForDPR.test/pos_item_ids_precision_at_20': 0.0643749999999999, '_test/OKVQADatasetForDPR.test/pos_item_ids_precision_at_50': 0.04261538461538457, '_test/OKVQADatasetForDPR.test/pos_item_ids_precision_at_100': 0.025999999999999975, '_test/OKVQADatasetForDPR.test/pos_item_ids_recall_at_5': 0.24423076923076922, '_test/OKVQADatasetForDPR.test/pos_item_ids_recall_at_10': 0.3423076923076923, '_test/OKVQADatasetForDPR.test/pos_item_ids_recall_at_20': 0.4548076923076923, '_test/OKVQADatasetForDPR.test/pos_item_ids_recall_at_50': 0.5990384615384615, '_test/OKVQADatasetForDPR.test/pos_item_ids_recall_at_100': 0.6625, '_test/OKVQADatasetForDPR.test/pos_item_ids_raw_precision_at_5': 0.10307692307692333, '_test/OKVQADatasetForDPR.test/pos_item_ids_raw_precision_at_10': 0.08567307692307688, '_test/OKVQADatasetForDPR.test/pos_item_ids_raw_precision_at_20': 0.06721153846153839, '_test/OKVQADatasetForDPR.test/pos_item_ids_raw_precision_at_50': 0.04161538461538453, '_test/OKVQADatasetForDPR.test/pos_item_ids_raw_precision_at_100': 0.025999999999999975, '_test/OKVQADatasetForDPR.test/pos_item_ids_raw_recall_at_5': 0.27403846153846156, '_test/OKVQADatasetForDPR.test/pos_item_ids_raw_recall_at_10': 0.3721153846153846, '_test/OKVQADatasetForDPR.test/pos_item_ids_raw_recall_at_20': 0.4528846153846154, '_test/OKVQADatasetForDPR.test/pos_item_ids_raw_recall_at_50': 0.5903846153846154, '_test/OKVQADatasetForDPR.test/pos_item_ids_raw_recall_at_100': 0.6625, '_test/OKVQADatasetForDPR.test/loss': 0.0, '_test/OKVQADatasetForDPR.test/epoch': 0}[0m
-[38;20m[INFO] - src.executors.Reranker_base_executor : Predictions have been saved to experiments/TEST_OKVQA_FLMRQuery_Full_Context_Rerank_L_Freeze_Vision_ckpt_model_step_3021/test/_test_OKVQADatasetForDPR.test_predictions_rank_0.json[0m
-{'_test/OKVQADatasetForDPR.test/epoch': 0,
- '_test/OKVQADatasetForDPR.test/gold_precision_at_10': 0.1406730769230766,
- '_test/OKVQADatasetForDPR.test/gold_precision_at_100': 0.1213076923076925,
- '_test/OKVQADatasetForDPR.test/gold_precision_at_20': 0.13620192307692286,
- '_test/OKVQADatasetForDPR.test/gold_precision_at_5': 0.14307692307692302,
- '_test/OKVQADatasetForDPR.test/gold_precision_at_50': 0.13019230769230786,
- '_test/OKVQADatasetForDPR.test/gold_recall_at_10': 0.44519230769230766,
- '_test/OKVQADatasetForDPR.test/gold_recall_at_100': 0.8375,
- '_test/OKVQADatasetForDPR.test/gold_recall_at_20': 0.5625,
- '_test/OKVQADatasetForDPR.test/gold_recall_at_5': 0.32019230769230766,
- '_test/OKVQADatasetForDPR.test/gold_recall_at_50': 0.7423076923076923,
- '_test/OKVQADatasetForDPR.test/loss': 0.0,
- '_test/OKVQADatasetForDPR.test/pos_item_ids_precision_at_10': 0.08048076923076922,
- '_test/OKVQADatasetForDPR.test/pos_item_ids_precision_at_100': 0.025999999999999975,
- '_test/OKVQADatasetForDPR.test/pos_item_ids_precision_at_20': 0.0643749999999999,
- '_test/OKVQADatasetForDPR.test/pos_item_ids_precision_at_5': 0.09365384615384632,
- '_test/OKVQADatasetForDPR.test/pos_item_ids_precision_at_50': 0.04261538461538457,
- '_test/OKVQADatasetForDPR.test/pos_item_ids_raw_precision_at_10': 0.08567307692307688,
- '_test/OKVQADatasetForDPR.test/pos_item_ids_raw_precision_at_100': 0.025999999999999975,
- '_test/OKVQADatasetForDPR.test/pos_item_ids_raw_precision_at_20': 0.06721153846153839,
- '_test/OKVQADatasetForDPR.test/pos_item_ids_raw_precision_at_5': 0.10307692307692333,
- '_test/OKVQADatasetForDPR.test/pos_item_ids_raw_precision_at_50': 0.04161538461538453,
- '_test/OKVQADatasetForDPR.test/pos_item_ids_raw_recall_at_10': 0.3721153846153846,
- '_test/OKVQADatasetForDPR.test/pos_item_ids_raw_recall_at_100': 0.6625,
- '_test/OKVQADatasetForDPR.test/pos_item_ids_raw_recall_at_20': 0.4528846153846154,
- '_test/OKVQADatasetForDPR.test/pos_item_ids_raw_recall_at_5': 0.27403846153846156,
- '_test/OKVQADatasetForDPR.test/pos_item_ids_raw_recall_at_50': 0.5903846153846154,
- '_test/OKVQADatasetForDPR.test/pos_item_ids_recall_at_10': 0.3423076923076923,
- '_test/OKVQADatasetForDPR.test/pos_item_ids_recall_at_100': 0.6625,
- '_test/OKVQADatasetForDPR.test/pos_item_ids_recall_at_20': 0.4548076923076923,
- '_test/OKVQADatasetForDPR.test/pos_item_ids_recall_at_5': 0.24423076923076922,
- '_test/OKVQADatasetForDPR.test/pos_item_ids_recall_at_50': 0.5990384615384615,
- '_test/OKVQADatasetForDPR.test/precision_at_10': 0.27749999999999947,
- '_test/OKVQADatasetForDPR.test/precision_at_100': 0.24752884615384638,
- '_test/OKVQADatasetForDPR.test/precision_at_20': 0.27370192307692354,
- '_test/OKVQADatasetForDPR.test/precision_at_5': 0.27903846153846107,
- '_test/OKVQADatasetForDPR.test/precision_at_50': 0.26315384615384646,
- '_test/OKVQADatasetForDPR.test/raw_gold_precision_at_10': 0.1850961538461534,
- '_test/OKVQADatasetForDPR.test/raw_gold_precision_at_100': 0.1213076923076925,
- '_test/OKVQADatasetForDPR.test/raw_gold_precision_at_20': 0.16918269230769253,
- '_test/OKVQADatasetForDPR.test/raw_gold_precision_at_5': 0.19846153846153833,
- '_test/OKVQADatasetForDPR.test/raw_gold_precision_at_50': 0.14278846153846173,
- '_test/OKVQADatasetForDPR.test/raw_gold_recall_at_10': 0.5163461538461539,
- '_test/OKVQADatasetForDPR.test/raw_gold_recall_at_100': 0.8375,
- '_test/OKVQADatasetForDPR.test/raw_gold_recall_at_20': 0.6298076923076923,
- '_test/OKVQADatasetForDPR.test/raw_gold_recall_at_5': 0.40865384615384615,
- '_test/OKVQADatasetForDPR.test/raw_gold_recall_at_50': 0.7701923076923077,
- '_test/OKVQADatasetForDPR.test/raw_precision_at_10': 0.33211538461538487,
- '_test/OKVQADatasetForDPR.test/raw_precision_at_100': 0.24752884615384638,
- '_test/OKVQADatasetForDPR.test/raw_precision_at_20': 0.3144230769230773,
- '_test/OKVQADatasetForDPR.test/raw_precision_at_5': 0.3465384615384611,
- '_test/OKVQADatasetForDPR.test/raw_precision_at_50': 0.27946153846153843,
- '_test/OKVQADatasetForDPR.test/raw_recall_at_10': 0.7471153846153846,
- '_test/OKVQADatasetForDPR.test/raw_recall_at_100': 0.9615384615384616,
- '_test/OKVQADatasetForDPR.test/raw_recall_at_20': 0.8394230769230769,
- '_test/OKVQADatasetForDPR.test/raw_recall_at_5': 0.6336538461538461,
- '_test/OKVQADatasetForDPR.test/raw_recall_at_50': 0.9288461538461539,
- '_test/OKVQADatasetForDPR.test/recall_at_10': 0.6778846153846154,
- '_test/OKVQADatasetForDPR.test/recall_at_100': 0.9615384615384616,
- '_test/OKVQADatasetForDPR.test/recall_at_20': 0.801923076923077,
- '_test/OKVQADatasetForDPR.test/recall_at_5': 0.5326923076923077,
- '_test/OKVQADatasetForDPR.test/recall_at_50': 0.9201923076923076}
-{'predictions/step_0_MODE(test)_SET(_test/OKVQADatasetForDPR.test)_rank(0)': <wandb.data_types.Table object at 0x148147cd1f40>}
-Testing DataLoader 0: 100%|██████████| 65/65 [50:23<00:00,  0.02it/s][38;20m[INFO] - runway_for_ml.utils.eval_recorder : test-evaluation EvalRecorder saved to experiments/TEST_OKVQA_FLMRQuery_Full_Context_Rerank_L_Freeze_Vision_ckpt_model_step_3021/test/test-evaluation/eval_recorder-sample_log.json, experiments/TEST_OKVQA_FLMRQuery_Full_Context_Rerank_L_Freeze_Vision_ckpt_model_step_3021/test/test-evaluation/eval_recorder-stats_log.json, experiments/TEST_OKVQA_FLMRQuery_Full_Context_Rerank_L_Freeze_Vision_ckpt_model_step_3021/test/test-evaluation/eval_recorder-meta_config.json[0m
-
-Test evaluation recorder saved to experiments/TEST_OKVQA_FLMRQuery_Full_Context_Rerank_L_Freeze_Vision_ckpt_model_step_3021/test/test-evaluation
-────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
-                        Test metric                                                 DataLoader 0
-────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
-            _test/OKVQADatasetForDPR.test/epoch                                         0.0
-     _test/OKVQADatasetForDPR.test/gold_precision_at_10                         0.14067307114601135
-    _test/OKVQADatasetForDPR.test/gold_precision_at_100                         0.12130769342184067
-     _test/OKVQADatasetForDPR.test/gold_precision_at_20                          0.1362019181251526
-     _test/OKVQADatasetForDPR.test/gold_precision_at_5                          0.14307692646980286
-     _test/OKVQADatasetForDPR.test/gold_precision_at_50                         0.13019230961799622
-      _test/OKVQADatasetForDPR.test/gold_recall_at_10                            0.4451923072338104
-      _test/OKVQADatasetForDPR.test/gold_recall_at_100                           0.8374999761581421
-      _test/OKVQADatasetForDPR.test/gold_recall_at_20                                  0.5625
-       _test/OKVQADatasetForDPR.test/gold_recall_at_5                            0.3201923072338104
-      _test/OKVQADatasetForDPR.test/gold_recall_at_50                            0.7423076629638672
-             _test/OKVQADatasetForDPR.test/loss                                         0.0
- _test/OKVQADatasetForDPR.test/pos_item_ids_precision_at_10                     0.08048076927661896
-_test/OKVQADatasetForDPR.test/pos_item_ids_precision_at_100                     0.026000000536441803
- _test/OKVQADatasetForDPR.test/pos_item_ids_precision_at_20                     0.06437499821186066
- _test/OKVQADatasetForDPR.test/pos_item_ids_precision_at_5                       0.0936538428068161
- _test/OKVQADatasetForDPR.test/pos_item_ids_precision_at_50                      0.0426153838634491
-_test/OKVQADatasetForDPR.test/pos_item_ids_raw_precision_at_                    0.08567307889461517
-                             10
-_test/OKVQADatasetForDPR.test/pos_item_ids_raw_precision_at_                    0.026000000536441803
-                            100
-_test/OKVQADatasetForDPR.test/pos_item_ids_raw_precision_at_                    0.06721153855323792
-                             20
-_test/OKVQADatasetForDPR.test/pos_item_ids_raw_precision_at_                    0.10307691991329193
-                             5
-_test/OKVQADatasetForDPR.test/pos_item_ids_raw_precision_at_                    0.04161538556218147
-                             50
-_test/OKVQADatasetForDPR.test/pos_item_ids_raw_recall_at_10                      0.3721153736114502
-_test/OKVQADatasetForDPR.test/pos_item_ids_raw_recall_at_100                     0.6625000238418579
-_test/OKVQADatasetForDPR.test/pos_item_ids_raw_recall_at_20                     0.45288461446762085
- _test/OKVQADatasetForDPR.test/pos_item_ids_raw_recall_at_5                      0.2740384638309479
-_test/OKVQADatasetForDPR.test/pos_item_ids_raw_recall_at_50                      0.5903846025466919
-  _test/OKVQADatasetForDPR.test/pos_item_ids_recall_at_10                        0.3423076868057251
-  _test/OKVQADatasetForDPR.test/pos_item_ids_recall_at_100                       0.6625000238418579
-  _test/OKVQADatasetForDPR.test/pos_item_ids_recall_at_20                       0.45480769872665405
-   _test/OKVQADatasetForDPR.test/pos_item_ids_recall_at_5                       0.24423076212406158
-  _test/OKVQADatasetForDPR.test/pos_item_ids_recall_at_50                        0.5990384817123413
-       _test/OKVQADatasetForDPR.test/precision_at_10                             0.2775000035762787
-       _test/OKVQADatasetForDPR.test/precision_at_100                           0.24752885103225708
-       _test/OKVQADatasetForDPR.test/precision_at_20                             0.273701936006546
-        _test/OKVQADatasetForDPR.test/precision_at_5                             0.2790384590625763
-       _test/OKVQADatasetForDPR.test/precision_at_50                             0.2631538510322571
-   _test/OKVQADatasetForDPR.test/raw_gold_precision_at_10                        0.1850961595773697
-  _test/OKVQADatasetForDPR.test/raw_gold_precision_at_100                       0.12130769342184067
-   _test/OKVQADatasetForDPR.test/raw_gold_precision_at_20                        0.169182687997818
-   _test/OKVQADatasetForDPR.test/raw_gold_precision_at_5                        0.19846153259277344
-   _test/OKVQADatasetForDPR.test/raw_gold_precision_at_50                       0.14278845489025116
-    _test/OKVQADatasetForDPR.test/raw_gold_recall_at_10                          0.5163461565971375
-    _test/OKVQADatasetForDPR.test/raw_gold_recall_at_100                         0.8374999761581421
-    _test/OKVQADatasetForDPR.test/raw_gold_recall_at_20                          0.629807710647583
-     _test/OKVQADatasetForDPR.test/raw_gold_recall_at_5                          0.4086538553237915
-    _test/OKVQADatasetForDPR.test/raw_gold_recall_at_50                          0.7701923251152039
-     _test/OKVQADatasetForDPR.test/raw_precision_at_10                          0.33211538195610046
-     _test/OKVQADatasetForDPR.test/raw_precision_at_100                         0.24752885103225708
-     _test/OKVQADatasetForDPR.test/raw_precision_at_20                           0.3144230842590332
-      _test/OKVQADatasetForDPR.test/raw_precision_at_5                           0.3465384542942047
-     _test/OKVQADatasetForDPR.test/raw_precision_at_50                           0.279461532831192
-       _test/OKVQADatasetForDPR.test/raw_recall_at_10                            0.7471153736114502
-      _test/OKVQADatasetForDPR.test/raw_recall_at_100                            0.9615384340286255
-       _test/OKVQADatasetForDPR.test/raw_recall_at_20                            0.8394230604171753
-       _test/OKVQADatasetForDPR.test/raw_recall_at_5                             0.6336538195610046
-       _test/OKVQADatasetForDPR.test/raw_recall_at_50                            0.9288461804389954
-         _test/OKVQADatasetForDPR.test/recall_at_10                              0.6778846383094788
-        _test/OKVQADatasetForDPR.test/recall_at_100                              0.9615384340286255
-         _test/OKVQADatasetForDPR.test/recall_at_20                              0.8019230961799622
-         _test/OKVQADatasetForDPR.test/recall_at_5                               0.5326923131942749
-         _test/OKVQADatasetForDPR.test/recall_at_50                              0.920192301273346
-────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
-wandb: - 4.341 MB of 4.341 MB uploadedwandb: \ 4.341 MB of 4.341 MB uploadedwandb: | 4.341 MB of 4.341 MB uploadedwandb: / 4.341 MB of 4.341 MB uploadedwandb: - 8.851 MB of 8.907 MB uploaded (0.003 MB deduped)wandb: \ 8.907 MB of 8.907 MB uploaded (0.003 MB deduped)wandb: 
-wandb: Run history:
-wandb:               epoch ▁
-wandb: trainer/global_step ▁
-wandb: 
-wandb: Run summary:
-wandb:               epoch 0
-wandb: trainer/global_step 0
-wandb: 
-wandb: 🚀 View run TEST_OKVQA_FLMRQuery_Full_Context_Rerank_L_Freeze_Vision_ckpt_model_step_3021 at: https://wandb.ai/byrne-lab/PreFLMR%20MLMI/runs/0g769eeu
-wandb: ⭐️ View project at: https://wandb.ai/byrne-lab/PreFLMR%20MLMI
-wandb: Synced 7 W&B file(s), 0 media file(s), 3 artifact file(s) and 1 other file(s)
-wandb: Find logs at: ./wandb/run-20240604_001753-0g769eeu/logs
