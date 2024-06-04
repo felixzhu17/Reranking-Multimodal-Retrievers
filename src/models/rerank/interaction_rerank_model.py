@@ -160,4 +160,5 @@ class InteractionRerankModel(pl.LightningModule):
 
         logits, labels = prepare_logits_labels(self.config, logits, logits_secondary, batch_size, num_negative_examples, labels=labels)
         loss = self.loss_fn(logits, labels)
+        raise ValueError(loss)
         return EasyDict(loss=loss, logits=logits)

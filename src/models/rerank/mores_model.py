@@ -68,10 +68,11 @@ class MORESSym(nn.Module):
         self.proj = nn.Linear(config.hidden_size, 2)
 
     def forward(self, qry, doc, qry_mask, cross_mask, attention_adj = None):
+        if attention_adj is not None:
+            raise NotImplementedError("Attention adj is not implemented for MORES")
 
-        qry_mask = invert_attention_mask(qry_mask, qry.device)
-        cross_mask = invert_attention_mask(cross_mask, qry.device)
-        raise ValueError(qry_mask.size(), cross_mask.size())
+        qry_mask = invert_attention_mask(qry_mask, qry.dtype)
+        cross_mask = invert_attention_mask(cross_mask, qry.dtype)
 
         hidden_states = qry
         for i, ib_layer in enumerate(self.interaction_module):

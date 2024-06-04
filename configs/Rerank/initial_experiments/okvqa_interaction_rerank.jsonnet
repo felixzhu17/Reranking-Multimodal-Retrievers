@@ -116,7 +116,8 @@ local data_pipeline = std.mergePatch(merge_data, data_loader);
           "cross_encoder_config_base": "bert-base-uncased",
           "cross_encoder_num_hidden_layers": 3,
           "cross_encoder_max_position_embeddings": 750,
-          "loss_fn": "BCE"
+          "loss_fn": "BCE",
+          "interaction_type": "MOREsssS"
 
         },
         "Ks": [5, 10, 20, 50, 100],

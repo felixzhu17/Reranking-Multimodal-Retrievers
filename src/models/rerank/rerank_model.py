@@ -232,7 +232,6 @@ class RerankModel(pl.LightningModule):
             output_hidden_states = None,
             mask_instructions = self.mask_instruction,
             token_type_ids = None,
-            text_only=text_only
         )
         reranker_inputs = self.cross_encoder_input_mapping(
             query_outputs.late_interaction_output
@@ -341,10 +340,7 @@ class RerankModel(pl.LightningModule):
         mask_instructions: bool = None,
         token_type_ids: Optional[torch.Tensor] = None,
     ):
-        r"""
-        Returns:
-
-        """
+      
 
         input_modality = []
         if pixel_values is not None or image_features is not None:
@@ -540,9 +536,10 @@ class FullContextRerankModel(RerankModel):
             num_negative_examples + 1
         )
         
-        query_pixel_values = query_pixel_values.repeat_interleave(
-            num_negative_examples + 1, dim=0
-        ).contiguous()
+        if not text_only:
+            query_pixel_values = query_pixel_values.repeat_interleave(
+                num_negative_examples + 1, dim=0
+            ).contiguous()
         
         query_outputs = self.query(
             input_ids = inputs.input_ids,
@@ -582,7 +579,6 @@ class FullContextRerankModel(RerankModel):
             reranker_inputs,
             attention_mask=reranker_attention_mask,
         )
-
         logits, labels = prepare_logits_labels(self.config, logits, logits_secondary, batch_size, num_negative_examples, labels = labels)
         loss = self.loss_fn(logits, labels)
         if self.config.loss_fn == "2H_BCE":
