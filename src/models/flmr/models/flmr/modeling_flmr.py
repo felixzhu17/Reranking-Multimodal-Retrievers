@@ -1083,7 +1083,7 @@ class FLMRModelForRetrieval(FLMRPretrainedModelForRetrieval):
                 context_hidden_states if output_hidden_states else None
             ),
             query_mask = query_outputs.query_mask,
-            context_mask = context_outputs.context_mask,
+            context_mask = context_outputs._context_mask,
         )
 
     def compute_ib_loss_new(
@@ -1272,7 +1272,7 @@ class FLMRModelForRetrieval(FLMRPretrainedModelForRetrieval):
                 .unsqueeze(2)
                 .float()
             )
-
+            
             text_embeddings = text_embeddings * mask
 
         if "image" in input_modality:
@@ -1358,6 +1358,13 @@ class FLMRModelForRetrieval(FLMRPretrainedModelForRetrieval):
         elif concat_output_from_text_encoder:
             Q = text_embeddings
 
+        query_mask = attention_mask.unsqueeze(2) * mask
+        query_mask = (query_mask > 0).int().squeeze(2)
+        # Extract the first two dimensions from vision_embeddings
+        vision_shape = vision_embeddings.size()  
+        vision_mask = torch.ones((vision_shape[0], vision_shape[1]), dtype=torch.int, device = self.device)
+        query_mask = torch.cat((query_mask, vision_mask), dim=1)
+                
         vision_encoder_attentions = (
             vision_encoder_outputs.attentions
             if vision_encoder_outputs is not None
@@ -1401,6 +1408,7 @@ class FLMRModelForRetrieval(FLMRPretrainedModelForRetrieval):
             else None
         )
 
+        
         return EasyDict(
             pooler_output=Q[:, 0, :],
             late_interaction_output=torch.nn.functional.normalize(Q, p=2, dim=2),
@@ -1410,7 +1418,7 @@ class FLMRModelForRetrieval(FLMRPretrainedModelForRetrieval):
             text_encoder_hidden_states=text_encoder_hidden_states,
             transformer_mapping_network_attentions=transformer_mapping_network_attentions,
             transformer_mapping_network_hidden_states=transformer_mapping_network_hidden_states,
-            query_mask = mask
+            query_mask = query_mask
         )
 
     @add_start_docstrings_to_model_forward(FLMR_MODEL_CONTEXT_INPUTS_DOCSTRING)
@@ -1535,6 +1543,9 @@ class FLMRModelForRetrieval(FLMRPretrainedModelForRetrieval):
             mask = mask
 
         D = torch.nn.functional.normalize(D, p=2, dim=2)
+        
+        context_mask = attention_mask.unsqueeze(2) * mask
+        context_mask = (context_mask > 0).int().squeeze(2)
 
         if self.use_gpu:
             D = D.half()
@@ -1572,7 +1583,7 @@ class FLMRModelForRetrieval(FLMRPretrainedModelForRetrieval):
             else None
         )
 
-        return FLMRContextEncoderOutput(
+        return EasyDict(
             pooler_output=D[:, 0, :],
             late_interaction_output=D,
             context_mask=mask.bool() if return_mask else None,
@@ -1580,6 +1591,7 @@ class FLMRModelForRetrieval(FLMRPretrainedModelForRetrieval):
             vision_encoder_hidden_states=vision_encoder_hidden_states,
             text_encoder_attentions=text_encoder_attentions,
             text_encoder_hidden_states=text_encoder_hidden_states,
+            _context_mask=context_mask
         )
 
     def score(self, Q, D_padded, D_mask):

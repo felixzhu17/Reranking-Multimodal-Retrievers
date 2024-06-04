@@ -70,6 +70,7 @@ from src.models.flmr.models.flmr.modeling_flmr import (
 from transformers.models.bert.modeling_bert import BertEncoder
 from transformers import BertConfig
 from src.models.rerank.utils import initialise_loss_fn, prepare_logits_labels
+from src.models.rerank.mores_model import MORESSym
 
 HEAD_TOKEN_LEEWAY = 4
 class CrossEncoder(nn.Module):
@@ -732,6 +733,8 @@ class InteractionRerankModel(pl.LightningModule):
         query_late_interaction: torch.Tensor,
         context_late_interaction: torch.Tensor,
         num_negative_examples: int,
+        query_mask: torch.Tensor,
+        context_mask: torch.Tensor,
         preflmr_scores: Optional[torch.Tensor] = None,
         fusion_multiplier: float = 1,
         labels: Optional[List[int]] = None,
@@ -749,10 +752,14 @@ class InteractionRerankModel(pl.LightningModule):
         query_late_interaction = query_late_interaction.repeat_interleave(
             num_negative_examples + 1, dim=0
         ).contiguous()
+        query_mask = query_mask.repeat_interleave(
+            num_negative_examples + 1, dim=0
+        ).contiguous()
+
 
         reranker_inputs = torch.cat((query_late_interaction, context_late_interaction), dim=1)
-        raise ValueError
-        reranker_attention_mask = torch.ones((expanded_batch_size, query_length + context_length), device=self.device)
+        reranker_attention_mask = torch.cat((query_mask, context_mask), dim=1)
+        raise ValueError(reranker_inputs.shape, reranker_attention_mask.shape)
 
         if preflmr_scores is not None:
 
@@ -798,6 +805,118 @@ class InteractionRerankModel(pl.LightningModule):
             reranker_inputs,
             attention_mask=reranker_attention_mask,
             attention_adj=reranker_attention_adj,
+        )
+
+        logits, labels = prepare_logits_labels(self.config, logits, logits_secondary, batch_size, num_negative_examples, labels = labels)
+        
+        loss = self.loss_fn(logits, labels)
+        return EasyDict(loss=loss, logits=logits)
+    
+
+class MORESInteractionRerankModel(pl.LightningModule):
+    """
+    Class for RAG, re-implementation
+    """
+
+    def __init__(self, config: EasyDict) -> None:
+        super().__init__()
+
+        self.config = config
+        self.init_reranker()
+        self.loss_fn = initialise_loss_fn(config, self.device)
+
+    def init_reranker(self):
+        cross_encoder_config_base = self.config.cross_encoder_config_base
+        cross_encoder_config = BertConfig.from_pretrained(cross_encoder_config_base)
+        cross_encoder_config.num_hidden_layers = (
+            self.config.cross_encoder_num_hidden_layers
+        )
+        cross_encoder_config.max_position_embeddings = (
+            self.config.cross_encoder_max_position_embeddings
+        )
+        self.reranker = MORESSym(cross_encoder_config)
+        pretrain_config = FLMRConfig.from_pretrained(
+            self.config.pretrain_model_version, trust_remote_code=True
+        )
+        self.late_interaction_embedding_size = pretrain_config.dim
+        self.cross_encoder_input_mapping = nn.Linear(
+            self.late_interaction_embedding_size, cross_encoder_config.hidden_size
+        )
+
+    def forward(
+        self,
+        query_late_interaction: torch.Tensor,
+        context_late_interaction: torch.Tensor,
+        num_negative_examples: int,
+        query_mask: torch.Tensor,
+        context_mask: torch.Tensor,
+        preflmr_scores: Optional[torch.Tensor] = None,
+        fusion_multiplier: float = 1,
+        labels: Optional[List[int]] = None,
+    ):
+
+
+        
+        batch_size = query_late_interaction.size(0)
+        expanded_batch_size = batch_size * (num_negative_examples + 1)
+        assert expanded_batch_size == context_late_interaction.size(0), f"{query_late_interaction.shape}, {context_late_interaction.shape}, {num_negative_examples}"
+        
+        query_length = query_late_interaction.size(1)
+        context_length = context_late_interaction.size(1)
+
+        query_late_interaction = query_late_interaction.repeat_interleave(
+            num_negative_examples + 1, dim=0
+        ).contiguous()
+        query_mask = query_mask.repeat_interleave(
+            num_negative_examples + 1, dim=0
+        ).contiguous()
+
+        if preflmr_scores is not None:
+
+            # Query Self-Attention Mask
+            upper_left = torch.zeros(
+                (
+                    expanded_batch_size,
+                    query_length,
+                    query_length,
+                ), device = self.device
+            )
+            
+            # Context Self-Attention Mask
+            bottom_right = torch.zeros(
+                (
+                    expanded_batch_size,
+                    context_length,
+                    context_length,
+                ), device = self.device
+            )
+            
+            # Cross-Attention Fusion
+            upper_right = F.softmax(preflmr_scores.permute(0, 2, 1), dim=-1)
+            bottom_left = F.softmax(preflmr_scores, dim=-1)
+            
+      
+            reranker_attention_adj = torch.cat(
+                [
+                    torch.cat([upper_left, upper_right], dim=2),
+                    torch.cat([bottom_left, bottom_right], dim=2),
+                ],
+                dim=1,
+            ) * fusion_multiplier
+
+            
+        else:
+            reranker_attention_adj = None
+
+        reranker_inputs = self.cross_encoder_input_mapping(reranker_inputs)
+
+
+        logits, logits_secondary = self.reranker(
+            qry = query_late_interaction, 
+            doc = context_late_interaction, 
+            qry_mask = query_mask, 
+            cross_mask = context_mask, 
+            attention_adj = reranker_attention_adj
         )
 
         logits, labels = prepare_logits_labels(self.config, logits, logits_secondary, batch_size, num_negative_examples, labels = labels)

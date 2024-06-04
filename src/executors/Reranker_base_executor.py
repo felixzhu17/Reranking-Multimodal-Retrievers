@@ -533,6 +533,7 @@ class RerankerBaseExecutor(BaseExecutor, MetricsProcessor):
                 "query_mask": retrieval_results.query_mask,
                 "context_mask": retrieval_results.context_mask,
             }
+            
                         
         if "preflmr_attention_fusion" in self.model_config.modules:
             train_batch["preflmr_scores"] = retrieval_results.scores_raw if retrieval_results is not None else self.retriever(**train_batch).scores_raw
@@ -675,8 +676,7 @@ class RerankerBaseExecutor(BaseExecutor, MetricsProcessor):
                 "num_negative_examples": self.model_config.num_negative_samples,
                 "query_mask": retrieval_results.query_mask,
                 "context_mask": retrieval_results.context_mask,
-            }
-            
+            }            
         if "preflmr_attention_fusion" in self.model_config.modules:
             test_batch["preflmr_scores"] = retrieval_results.scores_raw if retrieval_results is not None else self.retriever(**test_batch).scores_raw
             test_batch["fusion_multiplier"] = self.model_config.fusion_multiplier
