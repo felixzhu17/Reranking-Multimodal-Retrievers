@@ -10,3 +10,4 @@ Running on master node: gpu-q-33
 Current directory: /home/fz288/rds/hpc-work/PreFLMR
 
 numtasks=, numnodes=, mpi_tasks_per_node= (OMP_NUM_THREADS=1)
+slurmstepd: error: *** JOB 53566241 ON gpu-q-33 CANCELLED AT 2024-06-04T21:58:27 DUE TO TIME LIMIT ***

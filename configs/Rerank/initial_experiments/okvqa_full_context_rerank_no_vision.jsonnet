@@ -189,7 +189,7 @@ local data_pipeline = std.mergePatch(merge_data, data_loader);
             check_val_every_n_epoch: null,
             val_check_interval: 1000,
             log_every_n_steps: 10,
-            limit_val_batches: 50,
+            limit_val_batches: 25,
         },
         model_checkpoint_callback_paras: {
             monitor: 'valid/OKVQADatasetForDPR.test/loss',

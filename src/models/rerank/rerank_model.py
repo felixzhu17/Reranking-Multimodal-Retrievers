@@ -164,6 +164,7 @@ class RerankModel(pl.LightningModule):
             self.instruction_token_id = self.query_tokenizer.encode(
                 pretrain_config.mask_instruction_token, add_special_tokens=False
             )[0]
+            
         else:
             self.mask_instruction = False
 
@@ -476,7 +477,7 @@ class RerankModel(pl.LightningModule):
                         late_interaction_output = torch.nn.functional.normalize(Q, p=2, dim=2),
                         query_mask = mask,)
 
-    def query_mask(self, input_ids, skiplist, mask_instructions = None):
+    def query_mask(self, input_ids, skiplist, mask_instructions = None):        
         mask_instructions = mask_instructions if mask_instructions is not None else self.mask_instruction
         if not mask_instructions:
             return self.mask(input_ids, skiplist)

@@ -1,0 +1,14 @@
+[
+    {
+        "config_file": "configs/Rerank/initial_experiments/okvqa_full_context_rerank_no_vision.jsonnet",
+        "time": "2:00:00",
+        "gpus": 1,
+        "ckpt_path": "/home/fz288/rds/hpc-work/PreFLMR/experiments/OKVQA_FLMRQuery_Full_Context_Rerank_No_Vision_ckpt_model_step_3021/train/saved_models/model_step_5035.ckpt"
+    },
+    {
+        "config_file": "configs/Rerank/initial_experiments/okvqa_full_context_rerank_no_vision.jsonnet",
+        "time": "2:00:00",
+        "gpus": 1,
+        "ckpt_path": "/home/fz288/rds/hpc-work/PreFLMR/experiments/OKVQA_FLMRQuery_Full_Context_Rerank_No_Vision_ckpt_model_step_3021/train/saved_models/model_step_6042.ckpt"
+    }
+]
