@@ -1,0 +1,454 @@
+[rank: 0] Seed set to 2022
+[38;20m[INFO] - runway_for_ml.experiment : Config file saved to experiments/TEST_OKVQA_FLMRQuery_Full_Context_Rerank_B_Freeze_Vision_ckpt_model_step_6042/test/config.json[0m
+[38;20m[INFO] - runway_for_ml.experiment : init wandb logger with the following settings: {'entity': 'byrne-lab', 'project': 'PreFLMR MLMI', 'tags': ['OKVQA_FLMRQuery_Full_Context_Rerank_B_Freeze_Vision', 'test', 'NoBaseModelInfo'], 'id': '11vz36e3', 'resume': 'must'}[0m
+[38;20m[INFO] - runway_for_ml.data_module.data_pipeline : Using dummy data? False[0m
+Could not find image processor class in the image processor config or the model config. Loading based on pattern matching with the model's feature extractor configuration. Please open a PR/issue to update `preprocessor_config.json` to use `image_processor_type` instead of `feature_extractor_type`. This warning will be removed in v4.40.
+[38;20m[INFO] - src.data_ops.custom_datasets.vg_datasets : Running PrepareDataloaders[0m
+[38;20m[INFO] - src.data_ops.custom_datasets.base_datasets : initialising OKVQADatasetForDPR...[0m
+[38;20m[INFO] - src.data_ops.custom_datasets.okvqa_datasets : passages prepared. used 1.239776611328125e-05 secs.[0m
+[38;20m[INFO] - src.data_ops.custom_datasets.vg_datasets : [Data Statistics]: test data loader: test/OKVQADatasetForDPR.test 316[0m
+The argument `trust_remote_code` is to be used with Auto classes. It has no effect here and is ignored.
+The argument `trust_remote_code` is to be used with Auto classes. It has no effect here and is ignored.
+[38;20m[INFO] - root : Train with LoRA = False[0m
+[38;20m[INFO] - src.executors.Reranker_base_executor : Loading static retrieval results from /home/fz288/rds/hpc-work/PreFLMR/experiments/TEST_OKVQA_FLMR_Index_2/test/_test_OKVQADatasetForDPR.test_predictions_rank_0.pkl[0m
+[38;20m[INFO] - src.executors.Reranker_base_executor : Loading static retrieval results from /home/fz288/rds/hpc-work/PreFLMR/experiments/TEST_OKVQA_FLMR_Index/test/_test_OKVQADatasetForDPR.train_predictions_rank_0.pkl[0m
+[38;20m[INFO] - src.executors.Reranker_base_executor : Loaded 14055 static retrieval results.[0m
+/home/fz288/rds/hpc-work/PreFLMR/VQA/lib/python3.8/site-packages/lightning_fabric/connector.py:563: `precision=bf16` is supported for historical reasons but its usage is discouraged. Please set your precision to bf16-mixed instead!
+Using bfloat16 Automatic Mixed Precision (AMP)
+GPU available: True (cuda), used: True
+TPU available: False, using: 0 TPU cores
+IPU available: False, using: 0 IPUs
+HPU available: False, using: 0 HPUs
+[38;20m[INFO] - runway_for_ml.experiment : additional arguments passed to trainer: {'accelerator': 'auto', 'devices': 'auto', 'limit_test_batches': 65, 'precision': 'bf16', 'strategy': 'ddp_find_unused_parameters_true', 'default_root_dir': PosixPath('experiments/TEST_OKVQA_FLMRQuery_Full_Context_Rerank_B_Freeze_Vision_ckpt_model_step_6042/test'), 'logger': [<pytorch_lightning.loggers.tensorboard.TensorBoardLogger object at 0x7f505ee42340>, <pytorch_lightning.loggers.wandb.WandbLogger object at 0x7f505edd9940>]}[0m
+[31;20m[ERROR] - runway_for_ml.experiment : No checkpoints are specified.[0m
+[31;20m[ERROR] - runway_for_ml.experiment : No checkpoint found. Please check your config file.[0m
+[31;20m[ERROR] - runway_for_ml.experiment : !!! Testing continues with untrained checkpoints (also useful when applying pre-trained checkpoints directly)[0m
+You are using a CUDA device ('NVIDIA A100-SXM4-80GB') that has Tensor Cores. To properly utilize them, you should set `torch.set_float32_matmul_precision('medium' | 'high')` which will trade-off precision for performance. For more details, read https://pytorch.org/docs/stable/generated/torch.set_float32_matmul_precision.html#torch.set_float32_matmul_precision
+[rank: 0] Seed set to 2022
+Initializing distributed: GLOBAL_RANK: 0, MEMBER: 1/1
+----------------------------------------------------------------------------------------------------
+distributed_backend=nccl
+All distributed processes registered. Starting with 1 processes
+----------------------------------------------------------------------------------------------------
+
+wandb: Currently logged in as: fz288 (byrne-lab). Use `wandb login --relogin` to force relogin
+wandb: wandb version 0.17.0 is available!  To upgrade, please run:
+wandb:  $ pip install wandb --upgrade
+wandb: Tracking run with wandb version 0.16.6
+wandb: Run data is saved locally in ./wandb/run-20240607_003708-11vz36e3
+wandb: Run `wandb offline` to turn off syncing.
+wandb: Resuming run TEST_OKVQA_FLMRQuery_Full_Context_Rerank_B_Freeze_Vision_ckpt_model_step_6042
+wandb: ⭐️ View project at https://wandb.ai/byrne-lab/PreFLMR%20MLMI
+wandb: 🚀 View run at https://wandb.ai/byrne-lab/PreFLMR%20MLMI/runs/11vz36e3
+[38;20m[INFO] - src.executors.Reranker_base_executor : Preparing 114809 passage data in id2doc...[0m
+Runway main started.
+input value {} is not a number, parse to string.
+Configuration Loaded.
+{'args': {'config': 'configs/Rerank/initial_experiments/okvqa_full_context_rerank_B_freeze_vision.jsonnet',
+          'experiment_name': 'TEST_OKVQA_FLMRQuery_Full_Context_Rerank_B_Freeze_Vision_ckpt_model_step_6042',
+          'from_experiment': '',
+          'log_prediction_tables': False,
+          'log_prediction_tables_with_images': False,
+          'mode': 'test',
+          'modules': [],
+          'opts': ['train.load_model_path=/home/fz288/rds/hpc-work/PreFLMR/experiments/OKVQA_FLMRQuery_Full_Context_Rerank_B_Freeze_Vision_ckpt_model_step_3021/train/saved_models/model_step_6042.ckpt'],
+          'override': False,
+          'reset': False,
+          'tags': ['OKVQA_FLMRQuery_Full_Context_Rerank_B_Freeze_Vision',
+                   'test'],
+          'test_suffix': '',
+          'use_dummy_data': False,
+          'wandb_artifacts': 'weizhelin/vqa-images-open/VQAv2-Images:v0'},
+ 'data_pipeline': {'do_inspect': True,
+                   'name': 'MergeDataPipeline',
+                   'regenerate': False,
+                   'transforms': {'output:PrepareDataloaders': {'cache': True,
+                                                                'input_node': ['process:ConcatenatePassageDatasets',
+                                                                               'process:WrapOutputIntoKeys'],
+                                                                'regenerate': True,
+                                                                'setup_kwargs': {'datasets_config': {'test': [{'dataset_type': 'OKVQADatasetForDPR',
+                                                                                                               'split': 'test',
+                                                                                                               'use_column': 'okvqa_data'}],
+                                                                                                     'train': [{'dataset_type': 'OKVQADatasetForDPR',
+                                                                                                                'split': 'train',
+                                                                                                                'use_column': 'okvqa_data'}],
+                                                                                                     'valid': [{'dataset_type': 'OKVQADatasetForDPR',
+                                                                                                                'split': 'test',
+                                                                                                                'use_column': 'okvqa_data'}]},
+                                                                                 'extra_columns': {'passages': 'train_passages',
+                                                                                                   'valid_passages': 'valid_passages'},
+                                                                                 'feature_extractor_config': {},
+                                                                                 'image_processor_config': {'vit_image_processor': {'ImageProcessorClass': 'AutoImageProcessor',
+                                                                                                                                    'ImageProcessorModelVersion': 'laion/CLIP-ViT-bigG-14-laion2B-39B-b160k'}},
+                                                                                 'pass_columns': {'test_passages': 'test_passages',
+                                                                                                  'train_passages': 'train_passages',
+                                                                                                  'valid_passages': 'valid_passages',
+                                                                                                  'vqa_data_with_dpr_output': 'okvqa_data'},
+                                                                                 'tokenizer_config': {'decoder_tokenizer': {'SPECIAL_TOKENS': {'additional_special_tokens': []},
+                                                                                                                            'TokenizerClass': 'FLMRContextEncoderTokenizer',
+                                                                                                                            'TokenizerModelVersion': 'LinWeizheDragon/PreFLMR_ViT-B'},
+                                                                                                      'tokenizer': {'SPECIAL_TOKENS': {'additional_special_tokens': []},
+                                                                                                                    'TokenizerClass': 'FLMRQueryEncoderTokenizer',
+                                                                                                                    'TokenizerModelVersion': 'LinWeizheDragon/PreFLMR_ViT-B'}}},
+                                                                'transform_name': 'PrepareDataloaders'},
+                                  'process:ConcatenatePassageDatasets': {'cache': True,
+                                                                         'input_node': ['process:LoadOKVQAData'],
+                                                                         'regenerate': False,
+                                                                         'setup_kwargs': {'concat_splits': {'test_passages': [True],
+                                                                                                            'train_passages': [True],
+                                                                                                            'valid_passages': [True]},
+                                                                                          'names': ['okvqa_passages']},
+                                                                         'transform_name': 'ConcatenatePassageDatasets'},
+                                  'process:LoadOKVQAData': {'cache': True,
+                                                            'regenerate': False,
+                                                            'setup_kwargs': {'add_instruction': ['Using '
+                                                                                                 'the '
+                                                                                                 'provided '
+                                                                                                 'image, '
+                                                                                                 'obtain '
+                                                                                                 'documents '
+                                                                                                 'that '
+                                                                                                 'address '
+                                                                                                 'the '
+                                                                                                 'subsequent '
+                                                                                                 'question: ',
+                                                                                                 'Retrieve '
+                                                                                                 'documents '
+                                                                                                 'that '
+                                                                                                 'provide '
+                                                                                                 'an '
+                                                                                                 'answer '
+                                                                                                 'to '
+                                                                                                 'the '
+                                                                                                 'question '
+                                                                                                 'alongside '
+                                                                                                 'the '
+                                                                                                 'image: ',
+                                                                                                 'Extract '
+                                                                                                 'documents '
+                                                                                                 'linked '
+                                                                                                 'to '
+                                                                                                 'the '
+                                                                                                 'question '
+                                                                                                 'provided '
+                                                                                                 'in '
+                                                                                                 'conjunction '
+                                                                                                 'with '
+                                                                                                 'the '
+                                                                                                 'image: ',
+                                                                                                 'Utilizing '
+                                                                                                 'the '
+                                                                                                 'given '
+                                                                                                 'image, '
+                                                                                                 'obtain '
+                                                                                                 'documents '
+                                                                                                 'that '
+                                                                                                 'respond '
+                                                                                                 'to '
+                                                                                                 'the '
+                                                                                                 'following '
+                                                                                                 'question: ',
+                                                                                                 'Using '
+                                                                                                 'the '
+                                                                                                 'given '
+                                                                                                 'image, '
+                                                                                                 'access '
+                                                                                                 'documents '
+                                                                                                 'that '
+                                                                                                 'provide '
+                                                                                                 'insights '
+                                                                                                 'into '
+                                                                                                 'the '
+                                                                                                 'following '
+                                                                                                 'question: ',
+                                                                                                 'Obtain '
+                                                                                                 'documents '
+                                                                                                 'that '
+                                                                                                 'correspond '
+                                                                                                 'to '
+                                                                                                 'the '
+                                                                                                 'inquiry '
+                                                                                                 'alongside '
+                                                                                                 'the '
+                                                                                                 'provided '
+                                                                                                 'image: ',
+                                                                                                 'With '
+                                                                                                 'the '
+                                                                                                 'provided '
+                                                                                                 'image, '
+                                                                                                 'gather '
+                                                                                                 'documents '
+                                                                                                 'that '
+                                                                                                 'offer '
+                                                                                                 'a '
+                                                                                                 'solution '
+                                                                                                 'to '
+                                                                                                 'the '
+                                                                                                 'question: ',
+                                                                                                 'Utilizing '
+                                                                                                 'the '
+                                                                                                 'given '
+                                                                                                 'image, '
+                                                                                                 'obtain '
+                                                                                                 'documents '
+                                                                                                 'that '
+                                                                                                 'respond '
+                                                                                                 'to '
+                                                                                                 'the '
+                                                                                                 'following '
+                                                                                                 'question: '],
+                                                                             'data_path': 'BByrneLab/multi_task_multi_modal_knowledge_retrieval_benchmark_M2KR///OKVQA_data',
+                                                                             'image_root_folder': '/home/fz288/rds/rds-cvnlp-hirYTW1FQIw/shared_space/vqa_data/KBVQA_data/ok-vqa',
+                                                                             'passage_path': 'BByrneLab/multi_task_multi_modal_knowledge_retrieval_benchmark_M2KR///OKVQA_passages'},
+                                                            'transform_name': 'LoadPreprocessedData_v2'},
+                                  'process:WrapOutputIntoKeys': {'cache': True,
+                                                                 'input_node': ['process:LoadOKVQAData'],
+                                                                 'regenerate': True,
+                                                                 'setup_kwargs': {'output_keys': ['okvqa_data']},
+                                                                 'transform_name': 'WrapOutputIntoKeys'}}},
+ 'eval': {'eval_op_name': 'Your eval op name'},
+ 'executor': {'ExecutorClass': 'RerankerBaseExecutor',
+              'init_kwargs': {'index_splits': ['train', 'valid', 'test'],
+                              'use_data_node': 'output:PrepareDataloaders',
+                              'validation_indexing_source': ['okvqa_passages']}},
+ 'experiment_name': 'TEST_OKVQA_FLMRQuery_Full_Context_Rerank_B_Freeze_Vision_ckpt_model_step_6042',
+ 'from_experiment': '',
+ 'log_prediction_tables': False,
+ 'meta': {'DATA_FOLDER': 'data',
+          'EXPERIMENT_FOLDER': 'experiments',
+          'TENSORBOARD_FOLDER': 'tensorboards',
+          'WANDB': {'CACHE_DIR': 'cache/wandb_cache/',
+                    'entity': 'byrne-lab',
+                    'project': 'PreFLMR MLMI',
+                    'tags': ['OKVQA_FLMRQuery_Full_Context_Rerank_B_Freeze_Vision',
+                             'test']},
+          'default_cache_dir': 'cache/',
+          'logger_enable': ['tensorboard', 'wandb'],
+          'platform_type': 'pytorch',
+          'seed': 2022,
+          'use_versioning': False},
+ 'metrics': [{'name': 'compute_rerank_DPR_scores'},
+             {'name': 'compute_rerank_DPR_scores_with_pos_ids'}],
+ 'mode': 'test',
+ 'model_config': {'Ks': [5, 10, 20, 50, 100],
+                  'decoder_input_modules': {'module_list': [{'option': 'default',
+                                                             'separation_tokens': {'end': '',
+                                                                                   'start': ''},
+                                                             'type': 'KnowledgeInput'}],
+                                            'postprocess_module_list': [{'option': 'default',
+                                                                         'type': 'PostProcessFLMRItemInputTokenization'}]},
+                  'docs_to_rerank': 100,
+                  'fusion_multiplier': 1,
+                  'index_files': {'embedding_path': '',
+                                  'index_path': '',
+                                  'static_results': ['/home/fz288/rds/hpc-work/PreFLMR/experiments/TEST_OKVQA_FLMR_Index_2/test/_test_OKVQADatasetForDPR.test_predictions_rank_0.pkl',
+                                                     '/home/fz288/rds/hpc-work/PreFLMR/experiments/TEST_OKVQA_FLMR_Index/test/_test_OKVQADatasetForDPR.train_predictions_rank_0.pkl']},
+                  'input_modules': {'module_list': [{'option': 'from_file',
+                                                     'type': 'VisionInput'},
+                                                    {'option': 'default',
+                                                     'separation_tokens': {'end': '',
+                                                                           'start': ''},
+                                                     'type': 'InstructionInput'}],
+                                    'postprocess_module_list': [{'option': 'default',
+                                                                 'type': 'PostProcessVisionInputProcessing'},
+                                                                {'option': 'default',
+                                                                 'type': 'PostProcessFLMRQuestionInputTokenization'}]},
+                  'max_decoder_source_length': 512,
+                  'max_source_length': 32,
+                  'modules': ['separate_query_and_item_encoders',
+                              'full_context_reranker',
+                              'freeze_reranker_vision_encoder'],
+                  'nbits': 8,
+                  'num_negative_samples': 4,
+                  'output_modules': {'module_list': [{'option': 'default',
+                                                      'type': 'SimilarityOutput'}],
+                                     'postprocess_module_list': [{'option': 'default',
+                                                                  'type': 'PostProcessConcatenateLabels'}]},
+                  'prepend_tokens': {'item_encoder': '', 'query_encoder': ''},
+                  'pretrained': 1,
+                  'reranker_config': {'RerankerClass': 'FullContextRerankModel',
+                                      'base_model': 'FLMR',
+                                      'cross_encoder_config_base': 'bert-base-uncased',
+                                      'cross_encoder_max_position_embeddings': 750,
+                                      'cross_encoder_num_hidden_layers': 1,
+                                      'loss_fn': 'BCE',
+                                      'max_decoder_source_length': 512,
+                                      'max_query_length': 32,
+                                      'pretrain_config_class': 'FLMRConfig',
+                                      'pretrain_model_version': 'LinWeizheDragon/PreFLMR_ViT-B'},
+                  'retriever_config': {'ConfigClass': 'FLMRConfig',
+                                       'ModelClass': 'FLMRModelForRetrieval',
+                                       'ModelVersion': 'LinWeizheDragon/PreFLMR_ViT-B',
+                                       'base_model': 'FLMR'}},
+ 'override': False,
+ 'reset': False,
+ 'test': {'batch_size': 16,
+          'checkpoint_name': '',
+          'load_best_model': False,
+          'load_model_path': '',
+          'num_dataloader_workers': 0,
+          'trainer_paras': {'accelerator': 'auto',
+                            'devices': 'auto',
+                            'limit_test_batches': 65,
+                            'precision': 'bf16',
+                            'strategy': 'ddp_find_unused_parameters_true'}},
+ 'test_suffix': '',
+ 'train': {'batch_size': 8,
+           'early_stopping_callback_paras': {'mode': 'min',
+                                             'patience': 3,
+                                             'verbose': True},
+           'load_model_path': '/home/fz288/rds/hpc-work/PreFLMR/experiments/OKVQA_FLMRQuery_Full_Context_Rerank_B_Freeze_Vision_ckpt_model_step_3021/train/saved_models/model_step_6042.ckpt',
+           'model_checkpoint_callback_paras': {'auto_insert_metric_name': False,
+                                               'filename': 'model_step_{step}',
+                                               'mode': 'min',
+                                               'monitor': 'valid/OKVQADatasetForDPR.test/loss',
+                                               'save_last': True,
+                                               'save_on_train_epoch_end': False,
+                                               'save_top_k': 5,
+                                               'verbose': True},
+           'num_dataloader_workers': 4,
+           'optimizer_config': {'optimizer_name': 'AdamW',
+                                'optimizer_params': {'eps': 1e-08, 'lr': 1e-05},
+                                'scheduler': 'none',
+                                'scheduler_params': {'num_warmup_steps': 0}},
+           'trainer_paras': {'accelerator': 'auto',
+                             'accumulate_grad_batches': 8,
+                             'check_val_every_n_epoch': None,
+                             'devices': 'auto',
+                             'limit_val_batches': 50,
+                             'log_every_n_steps': 10,
+                             'max_epochs': -1,
+                             'precision': 'bf16',
+                             'strategy': 'ddp_find_unused_parameters_true',
+                             'val_check_interval': 1000}},
+ 'use_dummy_data': False,
+ 'valid': {'batch_size': 16, 'num_dataloader_workers': 0}}
+User modules imported
+Runway Testing...
+All seeds have been set to 2022
+test-directory: experiments/TEST_OKVQA_FLMRQuery_Full_Context_Rerank_B_Freeze_Vision_ckpt_model_step_6042/test
+Using loggers: ['tensorboard', 'wandb']
+[<pytorch_lightning.loggers.tensorboard.TensorBoardLogger object at 0x7f505ee42340>, <pytorch_lightning.loggers.wandb.WandbLogger object at 0x7f505edd9940>]
+Saving testing results to: experiments/TEST_OKVQA_FLMRQuery_Full_Context_Rerank_B_Freeze_Vision_ckpt_model_step_6042/test/test_case.txt
+======================================================================================================================================================
+                                                                     MODEL CONFIG                                                                     
+{'Ks': [5, 10, 20, 50, 100], 'decoder_input_modules': {'module_list': [{'option': 'default', 'separation_tokens': {'end': '', 'start': ''}, 'type': 'KnowledgeInput'}], 'postprocess_module_list': [{'option': 'default', 'type': 'PostProcessFLMRItemInputTokenization'}]}, 'docs_to_rerank': 100, 'fusion_multiplier': 1, 'index_files': {'embedding_path': '', 'index_path': '', 'static_results': ['/home/fz288/rds/hpc-work/PreFLMR/experiments/TEST_OKVQA_FLMR_Index_2/test/_test_OKVQADatasetForDPR.test_predictions_rank_0.pkl', '/home/fz288/rds/hpc-work/PreFLMR/experiments/TEST_OKVQA_FLMR_Index/test/_test_OKVQADatasetForDPR.train_predictions_rank_0.pkl']}, 'input_modules': {'module_list': [{'option': 'from_file', 'type': 'VisionInput'}, {'option': 'default', 'separation_tokens': {'end': '', 'start': ''}, 'type': 'InstructionInput'}], 'postprocess_module_list': [{'option': 'default', 'type': 'PostProcessVisionInputProcessing'}, {'option': 'default', 'type': 'PostProcessFLMRQuestionInputTokenization'}]}, 'max_decoder_source_length': 512, 'max_source_length': 32, 'modules': ['separate_query_and_item_encoders', 'full_context_reranker', 'freeze_reranker_vision_encoder'], 'nbits': 8, 'num_negative_samples': 4, 'output_modules': {'module_list': [{'option': 'default', 'type': 'SimilarityOutput'}], 'postprocess_module_list': [{'option': 'default', 'type': 'PostProcessConcatenateLabels'}]}, 'prepend_tokens': {'item_encoder': '', 'query_encoder': ''}, 'pretrained': 1, 'reranker_config': {'RerankerClass': 'FullContextRerankModel', 'base_model': 'FLMR', 'cross_encoder_config_base': 'bert-base-uncased', 'cross_encoder_max_position_embeddings': 750, 'cross_encoder_num_hidden_layers': 1, 'loss_fn': 'BCE', 'max_decoder_source_length': 512, 'max_query_length': 32, 'pretrain_config_class': 'FLMRConfig', 'pretrain_model_version': 'LinWeizheDragon/PreFLMR_ViT-B'}, 'retriever_config': {'ConfigClass': 'FLMRConfig', 'ModelClass': 'FLMRModelForRetrieval', 'ModelVersion': 'LinWeizheDragon/PreFLMR_ViT-B', 'base_model': 'FLMR'}}
+======================================================================================================================================================
+                                                                   OPTIMIZER CONFIG                                                                   
+None
+======================================================================================================================================================
+                                                                   TRAINING CONFIG                                                                    
+{}
+======================================================================================================================================================
+                                                                     TEST CONFIG                                                                      
+{'batch_size': 16, 'checkpoint_name': '', 'load_best_model': False, 'load_model_path': '', 'num_dataloader_workers': 0, 'trainer_paras': {'accelerator': 'auto', 'devices': 'auto', 'limit_test_batches': 65, 'precision': 'bf16', 'strategy': 'ddp_find_unused_parameters_true'}}
+======================================================================================================================================================
+PrepareDataloaders
+{'cache': True, 'input_node': ['process:ConcatenatePassageDatasets', 'process:WrapOutputIntoKeys'], 'regenerate': True, 'setup_kwargs': {'datasets_config': {'test': [{'dataset_type': 'OKVQADatasetForDPR', 'split': 'test', 'use_column': 'okvqa_data'}], 'train': [{'dataset_type': 'OKVQADatasetForDPR', 'split': 'train', 'use_column': 'okvqa_data'}], 'valid': [{'dataset_type': 'OKVQADatasetForDPR', 'split': 'test', 'use_column': 'okvqa_data'}]}, 'extra_columns': {'passages': 'train_passages', 'valid_passages': 'valid_passages'}, 'feature_extractor_config': {}, 'image_processor_config': {'vit_image_processor': {'ImageProcessorClass': 'AutoImageProcessor', 'ImageProcessorModelVersion': 'laion/CLIP-ViT-bigG-14-laion2B-39B-b160k'}}, 'pass_columns': {'test_passages': 'test_passages', 'train_passages': 'train_passages', 'valid_passages': 'valid_passages', 'vqa_data_with_dpr_output': 'okvqa_data'}, 'tokenizer_config': {'decoder_tokenizer': {'SPECIAL_TOKENS': {'additional_special_tokens': []}, 'TokenizerClass': 'FLMRContextEncoderTokenizer', 'TokenizerModelVersion': 'LinWeizheDragon/PreFLMR_ViT-B'}, 'tokenizer': {'SPECIAL_TOKENS': {'additional_special_tokens': []}, 'TokenizerClass': 'FLMRQueryEncoderTokenizer', 'TokenizerModelVersion': 'LinWeizheDragon/PreFLMR_ViT-B'}}}, 'transform_name': 'PrepareDataloaders'}
+dict_keys([])
+attempting to check cache exist: cache/process:ConcatenatePassageDatasets-4c3114b2ec6656f111735f2284653362.hf --> True
+attempting to check cache exist: cache/process:LoadOKVQAData-f810a301c4921c239584cdd5426ec7ac.hf --> True
+Load process:ConcatenatePassageDatasets-4c3114b2ec6656f111735f2284653362 from disk cache
+Data loaded from cache/process:ConcatenatePassageDatasets-4c3114b2ec6656f111735f2284653362.hf
+WrapOutputIntoKeys
+{'cache': True, 'input_node': ['process:LoadOKVQAData'], 'regenerate': True, 'setup_kwargs': {'output_keys': ['okvqa_data']}, 'transform_name': 'WrapOutputIntoKeys'}
+dict_keys([])
+Load process:LoadOKVQAData-f810a301c4921c239584cdd5426ec7ac from disk cache
+Data loaded from cache/process:LoadOKVQAData-f810a301c4921c239584cdd5426ec7ac.hf
+Node: process:WrapOutputIntoKeys 
+Execute Transform: WrapOutputIntoKeys
+wrapped columns: dict_keys(['okvqa_data'])
+Data saved to cache/process:WrapOutputIntoKeys-d736da6bd13f28721d585150bcfd0db6.pkl
+Node: output:PrepareDataloaders 
+Execute Transform: PrepareDataloaders
+Received data columns: dict_keys(['test_passages', 'train_passages', 'valid_passages', 'okvqa_data'])
+test_passages: Dataset({
+    features: ['passage_id', 'passage_content', 'title', 'source_name'],
+    num_rows: 114809
+})
+train_passages: Dataset({
+    features: ['passage_id', 'passage_content', 'title', 'source_name'],
+    num_rows: 114809
+})
+valid_passages: Dataset({
+    features: ['passage_id', 'passage_content', 'title', 'source_name'],
+    num_rows: 114809
+})
+okvqa_data: {'train': Dataset({
+    features: ['answers', 'gold_answer', 'question', 'question_id', 'img_path', 'img_key_full', 'img_key', 'img_file_name', 'img', 'img_caption', 'objects', 'img_ocr', 'pos_item_ids', 'pos_item_contents', 'related_item_ids', '__index_level_0__', 'instruction'],
+    num_rows: 9009
+}), 'valid': Dataset({
+    features: ['answers', 'gold_answer', 'question', 'question_id', 'img_path', 'img_key_full', 'img_key', 'img_file_name', 'img', 'img_caption', 'objects', 'img_ocr', 'pos_item_ids', 'pos_item_contents', 'related_item_ids', '__index_level_0__', 'instruction'],
+    num_rows: 5046
+}), 'test': Dataset({
+    features: ['answers', 'gold_answer', 'question', 'question_id', 'img_path', 'img_key_full', 'img_key', 'img_file_name', 'img', 'img_caption', 'objects', 'img_ocr', 'pos_item_ids', 'pos_item_contents', 'related_item_ids', '__index_level_0__', 'instruction'],
+    num_rows: 5046
+}), 'train_passages': Dataset({
+    features: ['passage_id', 'passage_content', 'title'],
+    num_rows: 114809
+}), 'valid_passages': Dataset({
+    features: ['passage_id', 'passage_content', 'title'],
+    num_rows: 114809
+}), 'test_passages': Dataset({
+    features: ['passage_id', 'passage_content', 'title'],
+    num_rows: 114809
+})}
+'Dataset' object has no attribute 'keys'
+'Dataset' object has no attribute 'keys'
+'Dataset' object has no attribute 'keys'
+First 5 image paths in dataset 'okvqa_data[train]' of length 9009 are valid.
+First 5 image paths in dataset 'okvqa_data[valid]' of length 5046 are valid.
+First 5 image paths in dataset 'okvqa_data[test]' of length 5046 are valid.
+'img_path'
+extra_column passages extra_column_from train_passages
+extra_column valid_passages extra_column_from valid_passages
+available ids 114809
+{'test_passages': 'test_passages', 'train_passages': 'train_passages', 'valid_passages': 'valid_passages', 'vqa_data_with_dpr_output': 'okvqa_data'}
+Data saved to cache/output:PrepareDataloaders-dc03d5b49c83f6684ace8dfcc369d2bf.pkl
+Freezing Reranker vision encoders
+Load output:PrepareDataloaders-dc03d5b49c83f6684ace8dfcc369d2bf from program cache
+Load output:PrepareDataloaders-dc03d5b49c83f6684ace8dfcc369d2bf from program cache
+0
+Loading lookup table...
+Rank 0 Done loading lookup table.
+formatting the test passages:   0%|          | 0/114809 [00:00<?, ?it/s]formatting the test passages:   2%|▏         | 1899/114809 [00:00<00:05, 18983.18it/s]formatting the test passages:   3%|▎         | 3868/114809 [00:00<00:05, 19395.86it/s]formatting the test passages:   5%|▌         | 5855/114809 [00:00<00:05, 19610.20it/s]formatting the test passages:   7%|▋         | 7848/114809 [00:00<00:05, 19733.86it/s]formatting the test passages:   9%|▊         | 9843/114809 [00:00<00:05, 19811.15it/s]formatting the test passages:  10%|█         | 11851/114809 [00:00<00:05, 19899.52it/s]formatting the test passages:  12%|█▏        | 13877/114809 [00:00<00:05, 20015.40it/s]formatting the test passages:  14%|█▍        | 15901/114809 [00:00<00:04, 20085.02it/s]formatting the test passages:  16%|█▌        | 17916/114809 [00:00<00:04, 20104.14it/s]formatting the test passages:  17%|█▋        | 19927/114809 [00:01<00:04, 20099.16it/s]formatting the test passages:  19%|█▉        | 21937/114809 [00:01<00:04, 20012.55it/s]formatting the test passages:  21%|██        | 23958/114809 [00:01<00:04, 20070.25it/s]formatting the test passages:  23%|██▎       | 25977/114809 [00:01<00:04, 20105.38it/s]formatting the test passages:  24%|██▍       | 28007/114809 [00:01<00:04, 20161.39it/s]formatting the test passages:  26%|██▌       | 30041/114809 [00:01<00:04, 20213.40it/s]formatting the test passages:  28%|██▊       | 32063/114809 [00:01<00:04, 20209.40it/s]formatting the test passages:  30%|██▉       | 34084/114809 [00:01<00:03, 20209.05it/s]formatting the test passages:  31%|███▏      | 36105/114809 [00:01<00:03, 20177.83it/s]formatting the test passages:  33%|███▎      | 38123/114809 [00:01<00:03, 20138.16it/s]formatting the test passages:  35%|███▍      | 40137/114809 [00:02<00:03, 20122.65it/s]formatting the test passages:  37%|███▋      | 42152/114809 [00:02<00:03, 20128.89it/s]formatting the test passages:  38%|███▊      | 44165/114809 [00:02<00:03, 20054.28it/s]formatting the test passages:  40%|████      | 46181/114809 [00:02<00:03, 20085.26it/s]formatting the test passages:  42%|████▏     | 48190/114809 [00:02<00:03, 20056.00it/s]formatting the test passages:  44%|████▎     | 50212/114809 [00:02<00:03, 20103.01it/s]formatting the test passages:  45%|████▌     | 52229/114809 [00:02<00:03, 20121.25it/s]formatting the test passages:  47%|████▋     | 54250/114809 [00:02<00:03, 20147.48it/s]formatting the test passages:  49%|████▉     | 56266/114809 [00:02<00:02, 20150.46it/s]formatting the test passages:  51%|█████     | 58282/114809 [00:02<00:02, 20086.78it/s]formatting the test passages:  53%|█████▎    | 60291/114809 [00:03<00:02, 20061.21it/s]formatting the test passages:  54%|█████▍    | 62298/114809 [00:03<00:02, 20053.00it/s]formatting the test passages:  56%|█████▌    | 64318/114809 [00:03<00:02, 20094.22it/s]formatting the test passages:  58%|█████▊    | 66332/114809 [00:03<00:02, 20107.71it/s]formatting the test passages:  60%|█████▉    | 68359/114809 [00:03<00:02, 20153.92it/s]formatting the test passages:  61%|██████▏   | 70378/114809 [00:03<00:02, 20162.09it/s]formatting the test passages:  63%|██████▎   | 72395/114809 [00:03<00:02, 20132.94it/s]formatting the test passages:  65%|██████▍   | 74413/114809 [00:03<00:02, 20144.65it/s]formatting the test passages:  67%|██████▋   | 76428/114809 [00:03<00:01, 20144.65it/s]formatting the test passages:  68%|██████▊   | 78443/114809 [00:03<00:01, 20109.86it/s]formatting the test passages:  70%|███████   | 80455/114809 [00:04<00:01, 20074.48it/s]formatting the test passages:  72%|███████▏  | 82463/114809 [00:04<00:01, 20043.44it/s]formatting the test passages:  74%|███████▎  | 84475/114809 [00:04<00:01, 20064.12it/s]formatting the test passages:  75%|███████▌  | 86491/114809 [00:04<00:01, 20090.42it/s]formatting the test passages:  77%|███████▋  | 88501/114809 [00:04<00:01, 19878.99it/s]formatting the test passages:  79%|███████▉  | 90520/114809 [00:04<00:01, 19970.85it/s]formatting the test passages:  81%|████████  | 92557/114809 [00:04<00:01, 20087.01it/s]formatting the test passages:  82%|████████▏ | 94586/114809 [00:04<00:01, 20144.93it/s]formatting the test passages:  84%|████████▍ | 96601/114809 [00:04<00:00, 20129.19it/s]formatting the test passages:  86%|████████▌ | 98632/114809 [00:04<00:00, 20181.49it/s]formatting the test passages:  88%|████████▊ | 100651/114809 [00:05<00:00, 20177.78it/s]formatting the test passages:  89%|████████▉ | 102671/114809 [00:05<00:00, 20182.29it/s]formatting the test passages:  91%|█████████ | 104690/114809 [00:05<00:00, 20137.87it/s]formatting the test passages:  93%|█████████▎| 106704/114809 [00:05<00:00, 20112.29it/s]formatting the test passages:  95%|█████████▍| 108716/114809 [00:05<00:00, 20108.74it/s]formatting the test passages:  96%|█████████▋| 110727/114809 [00:05<00:00, 20090.55it/s]formatting the test passages:  98%|█████████▊| 112742/114809 [00:05<00:00, 20107.65it/s]formatting the test passages: 100%|█████████▉| 114758/114809 [00:05<00:00, 20121.35it/s]formatting the test passages: 100%|██████████| 114809/114809 [00:05<00:00, 20077.43it/s]
+[38;20m[INFO] - src.executors.Reranker_base_executor : passages from the source okvqa_passages has 114809[0m
+[38;20m[INFO] - src.executors.Reranker_base_executor : Passages prepared.[0m
+[38;20m[INFO] - src.executors.Reranker_base_executor : tokenizer lengths = 30522 and 30522[0m
+[38;20m[INFO] - src.executors.Reranker_base_executor : Loading from /home/fz288/rds/hpc-work/PreFLMR/experiments/OKVQA_FLMRQuery_Full_Context_Rerank_B_Freeze_Vision_ckpt_model_step_3021/train/saved_models/model_step_6042.ckpt[0m
+LOCAL_RANK: 0 - CUDA_VISIBLE_DEVICES: [0]
+SLURM auto-requeueing enabled. Setting signal handlers.
+/home/fz288/rds/hpc-work/PreFLMR/VQA/lib/python3.8/site-packages/pytorch_lightning/trainer/connectors/data_connector.py:441: The 'test_dataloader' does not have many workers which may be a bottleneck. Consider increasing the value of the `num_workers` argument` to `num_workers=31` in the `DataLoader` to improve performance.
+Testing: |          | 0/? [00:00<?, ?it/s]Testing:   0%|          | 0/65 [00:00<?, ?it/s]Testing DataLoader 0:   0%|          | 0/65 [00:00<?, ?it/s]Testing DataLoader 0:   2%|▏         | 1/65 [00:00<00:47,  1.33it/s]Testing DataLoader 0:   3%|▎         | 2/65 [00:01<01:02,  1.01it/s]Testing DataLoader 0:   5%|▍         | 3/65 [00:03<01:06,  0.93it/s]Testing DataLoader 0:   6%|▌         | 4/65 [00:04<01:08,  0.89it/s]Testing DataLoader 0:   8%|▊         | 5/65 [00:05<01:08,  0.87it/s]Testing DataLoader 0:   9%|▉         | 6/65 [00:06<01:08,  0.86it/s]Testing DataLoader 0:  11%|█         | 7/65 [00:08<01:07,  0.85it/s]Testing DataLoader 0:  12%|█▏        | 8/65 [00:09<01:07,  0.85it/s]Testing DataLoader 0:  14%|█▍        | 9/65 [00:10<01:06,  0.84it/s]Testing DataLoader 0:  15%|█▌        | 10/65 [00:11<01:05,  0.84it/s]Testing DataLoader 0:  17%|█▋        | 11/65 [00:13<01:04,  0.83it/s]Testing DataLoader 0:  18%|█▊        | 12/65 [00:14<01:03,  0.83it/s]Testing DataLoader 0:  20%|██        | 13/65 [00:15<01:02,  0.83it/s]Testing DataLoader 0:  22%|██▏       | 14/65 [00:16<01:01,  0.83it/s]Testing DataLoader 0:  23%|██▎       | 15/65 [00:18<01:00,  0.83it/s]Testing DataLoader 0:  25%|██▍       | 16/65 [00:19<00:59,  0.82it/s]Testing DataLoader 0:  26%|██▌       | 17/65 [00:20<00:58,  0.82it/s]Testing DataLoader 0:  28%|██▊       | 18/65 [00:21<00:57,  0.82it/s]Testing DataLoader 0:  29%|██▉       | 19/65 [00:23<00:56,  0.82it/s]Testing DataLoader 0:  31%|███       | 20/65 [00:24<00:54,  0.82it/s]Testing DataLoader 0:  32%|███▏      | 21/65 [00:25<00:53,  0.82it/s]Testing DataLoader 0:  34%|███▍      | 22/65 [00:26<00:52,  0.82it/s]Testing DataLoader 0:  35%|███▌      | 23/65 [00:28<00:51,  0.82it/s]Testing DataLoader 0:  37%|███▋      | 24/65 [00:29<00:50,  0.82it/s]Testing DataLoader 0:  38%|███▊      | 25/65 [00:30<00:48,  0.82it/s]Testing DataLoader 0:  40%|████      | 26/65 [00:31<00:47,  0.82it/s]Testing DataLoader 0:  42%|████▏     | 27/65 [00:33<00:46,  0.82it/s]Testing DataLoader 0:  43%|████▎     | 28/65 [00:34<00:45,  0.82it/s]Testing DataLoader 0:  45%|████▍     | 29/65 [00:35<00:44,  0.82it/s]Testing DataLoader 0:  46%|████▌     | 30/65 [00:36<00:42,  0.82it/s]Testing DataLoader 0:  48%|████▊     | 31/65 [00:38<00:41,  0.82it/s]Testing DataLoader 0:  49%|████▉     | 32/65 [00:39<00:40,  0.81it/s]Testing DataLoader 0:  51%|█████     | 33/65 [00:40<00:39,  0.81it/s]Testing DataLoader 0:  52%|█████▏    | 34/65 [00:41<00:38,  0.81it/s]Testing DataLoader 0:  54%|█████▍    | 35/65 [00:43<00:36,  0.81it/s]Testing DataLoader 0:  55%|█████▌    | 36/65 [00:44<00:35,  0.81it/s]Testing DataLoader 0:  57%|█████▋    | 37/65 [00:45<00:34,  0.81it/s]Testing DataLoader 0:  58%|█████▊    | 38/65 [00:46<00:33,  0.81it/s]Testing DataLoader 0:  60%|██████    | 39/65 [00:48<00:32,  0.81it/s]Testing DataLoader 0:  62%|██████▏   | 40/65 [00:49<00:30,  0.81it/s]Testing DataLoader 0:  63%|██████▎   | 41/65 [00:50<00:29,  0.81it/s]Testing DataLoader 0:  65%|██████▍   | 42/65 [00:51<00:28,  0.81it/s]Testing DataLoader 0:  66%|██████▌   | 43/65 [00:52<00:27,  0.81it/s]Testing DataLoader 0:  68%|██████▊   | 44/65 [00:54<00:25,  0.81it/s]Testing DataLoader 0:  69%|██████▉   | 45/65 [00:55<00:24,  0.81it/s]Testing DataLoader 0:  71%|███████   | 46/65 [00:56<00:23,  0.81it/s]Testing DataLoader 0:  72%|███████▏  | 47/65 [00:57<00:22,  0.81it/s]Testing DataLoader 0:  74%|███████▍  | 48/65 [00:59<00:20,  0.81it/s]Testing DataLoader 0:  75%|███████▌  | 49/65 [01:00<00:19,  0.81it/s]Testing DataLoader 0:  77%|███████▋  | 50/65 [01:01<00:18,  0.81it/s]Testing DataLoader 0:  78%|███████▊  | 51/65 [01:02<00:17,  0.81it/s]Testing DataLoader 0:  80%|████████  | 52/65 [01:04<00:16,  0.81it/s]Testing DataLoader 0:  82%|████████▏ | 53/65 [01:05<00:14,  0.81it/s]Testing DataLoader 0:  83%|████████▎ | 54/65 [01:06<00:13,  0.81it/s]Testing DataLoader 0:  85%|████████▍ | 55/65 [01:07<00:12,  0.81it/s]Testing DataLoader 0:  86%|████████▌ | 56/65 [01:09<00:11,  0.81it/s]Testing DataLoader 0:  88%|████████▊ | 57/65 [01:10<00:09,  0.81it/s]Testing DataLoader 0:  89%|████████▉ | 58/65 [01:12<00:08,  0.81it/s]Testing DataLoader 0:  91%|█████████ | 59/65 [01:13<00:07,  0.80it/s]Testing DataLoader 0:  92%|█████████▏| 60/65 [01:14<00:06,  0.80it/s]Testing DataLoader 0:  94%|█████████▍| 61/65 [01:15<00:04,  0.80it/s]Testing DataLoader 0:  95%|█████████▌| 62/65 [01:17<00:03,  0.80it/s]Testing DataLoader 0:  97%|█████████▋| 63/65 [01:18<00:02,  0.80it/s]Testing DataLoader 0:  98%|█████████▊| 64/65 [01:19<00:01,  0.80it/s]Testing DataLoader 0: 100%|██████████| 65/65 [01:20<00:00,  0.80it/s]/home/fz288/rds/hpc-work/PreFLMR/VQA/lib/python3.8/site-packages/pytorch_lightning/utilities/data.py:77: Trying to infer the `batch_size` from an ambiguous collection. The batch size we found is 16. To avoid any miscalculations, use `self.log(..., batch_size=batch_size)`.
+[38;20m[INFO] - src.executors.Reranker_base_executor : reading global step of the checkpoint...[0m
+[38;20m[INFO] - src.executors.Reranker_base_executor : Evaluation results [test]: {'_test/OKVQADatasetForDPR.test/loss': 0.3999517261981964, '_test/OKVQADatasetForDPR.test/epoch': 0}[0m
+{'_test/OKVQADatasetForDPR.test/epoch': 0,
+ '_test/OKVQADatasetForDPR.test/loss': 0.3999517261981964}
+{'predictions/step_0_MODE(test)_SET(_test/OKVQADatasetForDPR.test)_rank(0)': <wandb.data_types.Table object at 0x7f505ed3f250>}
+Testing DataLoader 0: 100%|██████████| 65/65 [01:21<00:00,  0.80it/s][38;20m[INFO] - runway_for_ml.utils.eval_recorder : test-evaluation EvalRecorder saved to experiments/TEST_OKVQA_FLMRQuery_Full_Context_Rerank_B_Freeze_Vision_ckpt_model_step_6042/test/test-evaluation/eval_recorder-sample_log.json, experiments/TEST_OKVQA_FLMRQuery_Full_Context_Rerank_B_Freeze_Vision_ckpt_model_step_6042/test/test-evaluation/eval_recorder-stats_log.json, experiments/TEST_OKVQA_FLMRQuery_Full_Context_Rerank_B_Freeze_Vision_ckpt_model_step_6042/test/test-evaluation/eval_recorder-meta_config.json[0m
+
+Test evaluation recorder saved to experiments/TEST_OKVQA_FLMRQuery_Full_Context_Rerank_B_Freeze_Vision_ckpt_model_step_6042/test/test-evaluation
+────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+            Test metric                       DataLoader 0
+────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+_test/OKVQADatasetForDPR.test/epoch                0.0
+_test/OKVQADatasetForDPR.test/loss         0.3999517261981964
+         valid/loss_epoch                   0.399951696395874
+────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+wandb: - 0.000 MB of 0.000 MB uploadedwandb: \ 0.000 MB of 0.037 MB uploadedwandb: | 0.037 MB of 0.037 MB uploadedwandb: / 0.037 MB of 0.037 MB uploadedwandb: 
+wandb: Run history:
+wandb:               epoch ▁
+wandb: trainer/global_step ▁▁▁▂▂▂▂▂▂▃▃▃▃▃▄▄▄▄▄▄▅▅▅▅▅▆▆▆▆▆▇▇▇▇▇▇███▁
+wandb:    valid/loss_epoch ▁
+wandb:     valid/loss_step ▄▁▅▆▁▁▄▁▃▅▆▆▅▇▅█▃▇▇▃▄▃▂▇▂▆▂▄▇▃▄▃▂▅▃▇▄▃▄▄
+wandb: 
+wandb: Run summary:
+wandb:               epoch 0
+wandb: trainer/global_step 0
+wandb:    valid/loss_epoch 0.39995
+wandb:     valid/loss_step 0.37369
+wandb: 
+wandb: 🚀 View run TEST_OKVQA_FLMRQuery_Full_Context_Rerank_B_Freeze_Vision_ckpt_model_step_6042 at: https://wandb.ai/byrne-lab/PreFLMR%20MLMI/runs/11vz36e3
+wandb: ⭐️ View project at: https://wandb.ai/byrne-lab/PreFLMR%20MLMI
+wandb: Synced 4 W&B file(s), 0 media file(s), 0 artifact file(s) and 0 other file(s)
+wandb: Find logs at: ./wandb/run-20240607_003708-11vz36e3/logs

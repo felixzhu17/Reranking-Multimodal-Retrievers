@@ -1151,18 +1151,21 @@ class FLMRBaseExecutor(BaseExecutor, MetricsProcessor):
             self.wandb_logger.experiment.log(wandb_artifacts_to_log, commit=False)
 
         if self.config.mode == "test":
-            from utils.numpy_encoder import NpEncoder
+            try:
+                from utils.numpy_encoder import NpEncoder
 
-            # Save predictions to files for DPR-based VQA systems
-            json_path = os.path.join(
-                self.config.test_dir,
-                f'{prefix.replace("/", "_")}_predictions_rank_{self.global_rank}.json',
-            )
-            with open(json_path, "w") as json_f:
-                json.dump(
-                    artifacts_to_log.to_write_data, json_f, indent=4, cls=NpEncoder
+                # Save predictions to files for DPR-based VQA systems
+                json_path = os.path.join(
+                    self.config.test_dir,
+                    f'{prefix.replace("/", "_")}_predictions_rank_{self.global_rank}.json',
                 )
-                logger.info("Predictions have been saved to {}".format(json_path))
+                with open(json_path, "w") as json_f:
+                    json.dump(
+                        artifacts_to_log.to_write_data, json_f, indent=4, cls=NpEncoder
+                    )
+                    logger.info("Predictions have been saved to {}".format(json_path))
+            except AttributeError:
+                pass
 
     def save_HF_model(self):
         """

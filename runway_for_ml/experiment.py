@@ -58,6 +58,7 @@ class RunwayExperiment:
             set_seed(config_dict.meta.seed)
             seed_everything(config_dict.meta.seed, workers=True)
             # sets seeds for numpy, torch and python.random.
+            print(f'All seeds have been set to {config_dict.meta.seed}')
             logger.info(f'All seeds have been set to {config_dict.meta.seed}')
         
         self.loggers = None

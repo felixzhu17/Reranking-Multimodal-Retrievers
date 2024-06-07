@@ -485,8 +485,9 @@ class RerankerBaseExecutor(BaseExecutor, MetricsProcessor):
             },
         }
 
-    def sample_model_inputs(self, sample_batched, batch):
+    def sample_model_inputs(self, sample_batched, batch, n_docs = None):
         context_input_ids, context_attention_masks, context_docs, labels = [], [], [], []
+        n_docs = n_docs if n_docs else self.model_config.num_negative_samples + 1
         for question_id, pos_item_ids in zip(
             sample_batched["question_ids"], sample_batched["all_pos_item_ids"]
         ):
@@ -494,7 +495,7 @@ class RerankerBaseExecutor(BaseExecutor, MetricsProcessor):
             pos_item_ids = set(pos_item_ids)
 
             # Sample documents
-            sampled_docs = random.sample(retrieved_docs, self.model_config.num_negative_samples + 1)
+            sampled_docs = random.sample(retrieved_docs, n_docs)
 
             # Create labels for the sampled documents
             question_labels = [1 if doc["passage_id"] in pos_item_ids else 0 for doc in sampled_docs]
@@ -515,6 +516,8 @@ class RerankerBaseExecutor(BaseExecutor, MetricsProcessor):
             batch["context_attention_mask"] = torch.cat(
                 context_attention_masks, dim=0
             )
+        batch["num_negative_examples"] = n_docs - 1
+            
         return batch, labels
 
     def training_step(self, sample_batched, batch_idx):
@@ -598,14 +601,20 @@ class RerankerBaseExecutor(BaseExecutor, MetricsProcessor):
         return None
 
     def test_step(self, sample_batched, batch_idx, dataloader_idx=0):
-        # pred, batch = self._compute_loss(sample_batched, batch_idx, dataloader_idx)
-        pred, batch = self._dummy_loss(sample_batched, batch_idx, dataloader_idx)
+        # pred, batch = self._dummy_loss(sample_batched, batch_idx, dataloader_idx)
+        # MODIFIED
+        pred, batch = self._compute_loss(sample_batched, batch_idx, dataloader_idx)
         self.test_step_outputs[dataloader_idx].append(pred)
         self.test_batch[dataloader_idx].append(batch)
         return pred
 
     def on_test_epoch_end(self):
         test_step_outputs = self.test_step_outputs
+        #MODIFIED
+        # with open('test_losses.pkl', 'wb') as f:
+        #     pickle.dump(test_step_outputs, f)
+        # raise ValueError
+        
         test_batches = self.test_batch
 
         logger.info("reading global step of the checkpoint...")
@@ -625,7 +634,9 @@ class RerankerBaseExecutor(BaseExecutor, MetricsProcessor):
         for i in range(len(self.test_dataloader())):
             test_step_output = test_step_outputs[i]
             test_batch = test_batches[i]
-            log_dict = self.evaluate_outputs(test_step_output, test_batch)
+            # MODIFIED
+            # log_dict = self.evaluate_outputs(test_step_output, test_batch)
+            log_dict = self.fast_evaluate_outputs(test_step_output, test_batch)
             self.logging_results(
                 log_dict,
                 prefix=f"{self.config.test_suffix}_{self.test_dataloader_names[i]}",
@@ -652,7 +663,7 @@ class RerankerBaseExecutor(BaseExecutor, MetricsProcessor):
         data_to_return = {"loss": torch.tensor(0.0).to("cpu")}
         return data_to_return, batch_info
 
-    def _compute_loss(self, sample_batched, batch_idx, dataloader_idx=0):
+    def _compute_loss(self, sample_batched, batch_idx, dataloader_idx=0, n_docs = None):
         retrieval_results = None
         labels = None
         batch_info = {
@@ -669,8 +680,8 @@ class RerankerBaseExecutor(BaseExecutor, MetricsProcessor):
         
         test_batch = self.get_model_inputs(sample_batched)
         
-        if "test_with_retrieved_docs" in self.model_config.modules:
-            test_batch, labels = self.sample_model_inputs(sample_batched, test_batch)
+        if n_docs or "test_with_retrieved_docs" in self.model_config.modules:
+            test_batch, labels = self.sample_model_inputs(sample_batched, test_batch, n_docs)
         
         if "interaction_reranker" in self.model_config.modules:
             retrieval_results = self.retriever(**test_batch)
@@ -685,7 +696,7 @@ class RerankerBaseExecutor(BaseExecutor, MetricsProcessor):
             test_batch["preflmr_scores"] = retrieval_results.scores_raw if retrieval_results is not None else self.retriever(**test_batch).scores_raw
             test_batch["fusion_multiplier"] = self.model_config.fusion_multiplier
             
-        if "test_with_retrieved_docs" in self.model_config.modules:
+        if n_docs or "test_with_retrieved_docs" in self.model_config.modules:
             assert labels is not None
             test_batch["labels"] = labels
         else:
@@ -694,11 +705,12 @@ class RerankerBaseExecutor(BaseExecutor, MetricsProcessor):
         if "text_only" in self.model_config.modules:
             test_batch["query_pixel_values"] = None
             
+        #MODIFIED
         batch_loss = self.reranker(**test_batch).loss
 
         # logs metrics for each training_step,
         # and the average across the epoch, to the progress bar and logger
-        self.log("valid/loss", batch_loss, on_step=True, logger=True, sync_dist=True)
+        # self.log("valid/loss", batch_loss, on_step=True, logger=True, sync_dist=True)
 
         data_to_return = {
             # "btach_idx": batch_idx,
@@ -707,6 +719,8 @@ class RerankerBaseExecutor(BaseExecutor, MetricsProcessor):
             # "pos_item_ids": sample_batched["all_pos_item_ids"],
             # "neg_item_ids": sample_batched["neg_item_ids"],
             "loss": batch_loss.detach().cpu(),
+            "question_ids": sample_batched["question_ids"],
+            "questions": sample_batched["questions"],
         }
 
         return data_to_return, batch_info
@@ -1014,18 +1028,21 @@ class RerankerBaseExecutor(BaseExecutor, MetricsProcessor):
             self.wandb_logger.experiment.log(wandb_artifacts_to_log, commit=False)
 
         if self.config.mode == "test":
-            from utils.numpy_encoder import NpEncoder
+            try: 
+                from utils.numpy_encoder import NpEncoder
 
-            # Save predictions to files for DPR-based VQA systems
-            json_path = os.path.join(
-                self.config.test_dir,
-                f'{prefix.replace("/", "_")}_predictions_rank_{self.global_rank}.json',
-            )
-            with open(json_path, "w") as json_f:
-                json.dump(
-                    artifacts_to_log.to_write_data, json_f, indent=4, cls=NpEncoder
+                # Save predictions to files for DPR-based VQA systems
+                json_path = os.path.join(
+                    self.config.test_dir,
+                    f'{prefix.replace("/", "_")}_predictions_rank_{self.global_rank}.json',
                 )
-                logger.info("Predictions have been saved to {}".format(json_path))
+                with open(json_path, "w") as json_f:
+                    json.dump(
+                        artifacts_to_log.to_write_data, json_f, indent=4, cls=NpEncoder
+                    )
+                    logger.info("Predictions have been saved to {}".format(json_path))
+            except AttributeError:
+                pass
 
     def get_model_inputs(self, sample_batched):
         if "decoder_reranker" in self.model_config.modules or "full_context_reranker" in self.model_config.modules:

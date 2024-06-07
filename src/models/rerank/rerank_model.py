@@ -325,7 +325,7 @@ class RerankModel(pl.LightningModule):
         )
 
         logits, labels = prepare_logits_labels(self.config, logits, logits_secondary, batch_size, num_negative_examples, labels = labels)
-        loss = self.loss_fn(logits, labels)
+        loss = self.loss_fn(logits, logits)
         if self.config.loss_fn == "2H_BCE":
             logits = logits[:, 1].unsqueeze(1)
         return EasyDict(loss=loss, logits=logits)
@@ -581,7 +581,10 @@ class FullContextRerankModel(RerankModel):
             attention_mask=reranker_attention_mask,
         )
         logits, labels = prepare_logits_labels(self.config, logits, logits_secondary, batch_size, num_negative_examples, labels = labels)
+        
+        #MODIFIED
         loss = self.loss_fn(logits, labels)
+        # loss = F.binary_cross_entropy_with_logits(logits, logits, reduction='none')
         if self.config.loss_fn == "2H_BCE":
             logits = logits[:, 1].unsqueeze(1)
         return EasyDict(loss=loss, logits=logits)
