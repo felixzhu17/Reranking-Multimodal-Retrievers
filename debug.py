@@ -1,7 +1,7 @@
 import pickle
 import json
 questionId2topPassages = {}
-RERANKER_RESULTS = "/home/fz288/rds/hpc-work/PreFLMR/experiments/TEST_OKVQA_FLMRQuery_Full_Context_Rerank_B_Freeze_Vision_ckpt_model_step_6042/test/_test_OKVQADatasetForDPR.test_predictions_rank_0.json"
+RERANKER_RESULTS = "/home/fz288/rds/hpc-work/PreFLMR/experiments/TEST_OKVQA_FLMRQuery_Full_Context_Rerank_ckpt_model_step_8048/test/_test_OKVQADatasetForDPR.test_predictions_rank_0.json"
 
 with open(RERANKER_RESULTS, "rb") as f:
     data = json.load(f)['output']

@@ -601,9 +601,9 @@ class RerankerBaseExecutor(BaseExecutor, MetricsProcessor):
         return None
 
     def test_step(self, sample_batched, batch_idx, dataloader_idx=0):
-        # pred, batch = self._dummy_loss(sample_batched, batch_idx, dataloader_idx)
+        pred, batch = self._dummy_loss(sample_batched, batch_idx, dataloader_idx)
         # MODIFIED
-        pred, batch = self._compute_loss(sample_batched, batch_idx, dataloader_idx)
+        # pred, batch = self._compute_loss(sample_batched, batch_idx, dataloader_idx, n_docs=5)
         self.test_step_outputs[dataloader_idx].append(pred)
         self.test_batch[dataloader_idx].append(batch)
         return pred
@@ -635,8 +635,8 @@ class RerankerBaseExecutor(BaseExecutor, MetricsProcessor):
             test_step_output = test_step_outputs[i]
             test_batch = test_batches[i]
             # MODIFIED
-            # log_dict = self.evaluate_outputs(test_step_output, test_batch)
-            log_dict = self.fast_evaluate_outputs(test_step_output, test_batch)
+            log_dict = self.evaluate_outputs(test_step_output, test_batch)
+            # log_dict = self.fast_evaluate_outputs(test_step_output, test_batch)
             self.logging_results(
                 log_dict,
                 prefix=f"{self.config.test_suffix}_{self.test_dataloader_names[i]}",
@@ -681,6 +681,7 @@ class RerankerBaseExecutor(BaseExecutor, MetricsProcessor):
         test_batch = self.get_model_inputs(sample_batched)
         
         if n_docs or "test_with_retrieved_docs" in self.model_config.modules:
+            print('x')
             test_batch, labels = self.sample_model_inputs(sample_batched, test_batch, n_docs)
         
         if "interaction_reranker" in self.model_config.modules:
@@ -697,6 +698,7 @@ class RerankerBaseExecutor(BaseExecutor, MetricsProcessor):
             test_batch["fusion_multiplier"] = self.model_config.fusion_multiplier
             
         if n_docs or "test_with_retrieved_docs" in self.model_config.modules:
+            print('y')
             assert labels is not None
             test_batch["labels"] = labels
         else:
@@ -710,7 +712,7 @@ class RerankerBaseExecutor(BaseExecutor, MetricsProcessor):
 
         # logs metrics for each training_step,
         # and the average across the epoch, to the progress bar and logger
-        # self.log("valid/loss", batch_loss, on_step=True, logger=True, sync_dist=True)
+        self.log("valid/loss", batch_loss, on_step=True, logger=True, sync_dist=True)
 
         data_to_return = {
             # "btach_idx": batch_idx,
@@ -719,8 +721,7 @@ class RerankerBaseExecutor(BaseExecutor, MetricsProcessor):
             # "pos_item_ids": sample_batched["all_pos_item_ids"],
             # "neg_item_ids": sample_batched["neg_item_ids"],
             "loss": batch_loss.detach().cpu(),
-            "question_ids": sample_batched["question_ids"],
-            "questions": sample_batched["questions"],
+
         }
 
         return data_to_return, batch_info
@@ -783,6 +784,7 @@ class RerankerBaseExecutor(BaseExecutor, MetricsProcessor):
             
             retrieved_docs = self.static_retrieve(question_id).retrieved_docs
             retrieved_docs_content = [i["content"] for i in retrieved_docs]
+            labels = [1 if doc["passage_id"] in pos_ids else 0 for doc in retrieved_docs]
             context_input_ids, context_attention_masks = self.tokenize_retrieved_docs(
                 retrieved_docs_content
             )
@@ -793,6 +795,7 @@ class RerankerBaseExecutor(BaseExecutor, MetricsProcessor):
                     "query_pixel_values": query_pixel_value,
                     "context_text_sequences": retrieved_docs_content,
                     "num_negative_examples": context_input_ids.shape[0] - query_input_id.shape[0],
+                    "labels": labels
                 }
                     
 
@@ -803,7 +806,8 @@ class RerankerBaseExecutor(BaseExecutor, MetricsProcessor):
                     "query_pixel_values": query_pixel_value,
                     "context_input_ids": context_input_ids,
                     "context_attention_mask": context_attention_masks,
-                    "num_negative_examples": context_input_ids.shape[0] - query_input_id.shape[0]
+                    "num_negative_examples": context_input_ids.shape[0] - query_input_id.shape[0],
+                    
                 }
 
             
@@ -825,11 +829,14 @@ class RerankerBaseExecutor(BaseExecutor, MetricsProcessor):
                     
                 if "text_only" in self.model_config.modules:
                     batch_input["query_pixel_values"] = None
+                    
+                batch_input["labels"] = labels
 
 
-            all_logits = self.reranker(
+            outputs = self.reranker(
                 **batch_input
-            ).logits
+            )
+            loss, all_logits = outputs.loss.detach().cpu().item(), outputs.logits
 
             # Detach and clone the logits to avoid modifying the computation graph
             all_logits = all_logits.clone().detach()
@@ -871,6 +878,7 @@ class RerankerBaseExecutor(BaseExecutor, MetricsProcessor):
                 "raw_top_ranking_passages": raw_top_ranking_passages,
                 "pos_item_ids": pos_ids,
                 "neg_item_ids": neg_ids,
+                "loss": loss
             }
             if query_item.get("answers", None) is not None:
                 batched_data["answers"] = list(query_item.answers)
@@ -940,7 +948,7 @@ class RerankerBaseExecutor(BaseExecutor, MetricsProcessor):
 
         log_dict.metrics.update(
             {
-                "loss": float(np.mean(np.array(batch_loss))),
+                "loss": float(np.mean(np.array([i['loss'] for i in batch_result]))),
             }
         )
 

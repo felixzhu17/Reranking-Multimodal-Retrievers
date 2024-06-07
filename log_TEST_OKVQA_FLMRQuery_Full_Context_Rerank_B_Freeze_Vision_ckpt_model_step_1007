@@ -5,7 +5,7 @@
 Could not find image processor class in the image processor config or the model config. Loading based on pattern matching with the model's feature extractor configuration. Please open a PR/issue to update `preprocessor_config.json` to use `image_processor_type` instead of `feature_extractor_type`. This warning will be removed in v4.40.
 [38;20m[INFO] - src.data_ops.custom_datasets.vg_datasets : Running PrepareDataloaders[0m
 [38;20m[INFO] - src.data_ops.custom_datasets.base_datasets : initialising OKVQADatasetForDPR...[0m
-[38;20m[INFO] - src.data_ops.custom_datasets.okvqa_datasets : passages prepared. used 1.1920928955078125e-05 secs.[0m
+[38;20m[INFO] - src.data_ops.custom_datasets.okvqa_datasets : passages prepared. used 2.6702880859375e-05 secs.[0m
 [38;20m[INFO] - src.data_ops.custom_datasets.vg_datasets : [Data Statistics]: test data loader: test/OKVQADatasetForDPR.test 316[0m
 The argument `trust_remote_code` is to be used with Auto classes. It has no effect here and is ignored.
 The argument `trust_remote_code` is to be used with Auto classes. It has no effect here and is ignored.
@@ -19,7 +19,7 @@ GPU available: True (cuda), used: True
 TPU available: False, using: 0 TPU cores
 IPU available: False, using: 0 IPUs
 HPU available: False, using: 0 HPUs
-[38;20m[INFO] - runway_for_ml.experiment : additional arguments passed to trainer: {'accelerator': 'auto', 'devices': 'auto', 'limit_test_batches': 65, 'precision': 'bf16', 'strategy': 'ddp_find_unused_parameters_true', 'default_root_dir': PosixPath('experiments/TEST_OKVQA_FLMRQuery_Full_Context_Rerank_B_Freeze_Vision_ckpt_model_step_1007/test'), 'logger': [<pytorch_lightning.loggers.tensorboard.TensorBoardLogger object at 0x7fd1aecf8d00>, <pytorch_lightning.loggers.wandb.WandbLogger object at 0x7fd1aec61670>]}[0m
+[38;20m[INFO] - runway_for_ml.experiment : additional arguments passed to trainer: {'accelerator': 'auto', 'devices': 'auto', 'limit_test_batches': 65, 'precision': 'bf16', 'strategy': 'ddp_find_unused_parameters_true', 'default_root_dir': PosixPath('experiments/TEST_OKVQA_FLMRQuery_Full_Context_Rerank_B_Freeze_Vision_ckpt_model_step_1007/test'), 'logger': [<pytorch_lightning.loggers.tensorboard.TensorBoardLogger object at 0x7f4f9fa1fe80>, <pytorch_lightning.loggers.wandb.WandbLogger object at 0x7f4f9f94d280>]}[0m
 [31;20m[ERROR] - runway_for_ml.experiment : No checkpoints are specified.[0m
 [31;20m[ERROR] - runway_for_ml.experiment : No checkpoint found. Please check your config file.[0m
 [31;20m[ERROR] - runway_for_ml.experiment : !!! Testing continues with untrained checkpoints (also useful when applying pre-trained checkpoints directly)[0m
@@ -32,10 +32,10 @@ All distributed processes registered. Starting with 1 processes
 ----------------------------------------------------------------------------------------------------
 
 wandb: Currently logged in as: fz288 (byrne-lab). Use `wandb login --relogin` to force relogin
-wandb: wandb version 0.17.0 is available!  To upgrade, please run:
+wandb: wandb version 0.17.1 is available!  To upgrade, please run:
 wandb:  $ pip install wandb --upgrade
 wandb: Tracking run with wandb version 0.16.6
-wandb: Run data is saved locally in ./wandb/run-20240607_004732-stbilufk
+wandb: Run data is saved locally in ./wandb/run-20240607_124233-stbilufk
 wandb: Run `wandb offline` to turn off syncing.
 wandb: Resuming run TEST_OKVQA_FLMRQuery_Full_Context_Rerank_B_Freeze_Vision_ckpt_model_step_1007
 wandb: ⭐️ View project at https://wandb.ai/byrne-lab/PreFLMR%20MLMI
@@ -44,7 +44,7 @@ wandb: 🚀 View run at https://wandb.ai/byrne-lab/PreFLMR%20MLMI/runs/stbilufk
 Runway main started.
 input value {} is not a number, parse to string.
 Configuration Loaded.
-{'args': {'config': 'configs/Rerank/initial_experiments/okvqa_full_context_rerank_B_freeze_vision.jsonnet',
+{'args': {'config': 'configs/Rerank/initial_experiments/okvqa_full_context_retrieve_rerank.jsonnet',
           'experiment_name': 'TEST_OKVQA_FLMRQuery_Full_Context_Rerank_B_Freeze_Vision_ckpt_model_step_1007',
           'from_experiment': '',
           'log_prediction_tables': False,
@@ -257,9 +257,9 @@ Configuration Loaded.
                   'max_source_length': 32,
                   'modules': ['separate_query_and_item_encoders',
                               'full_context_reranker',
-                              'freeze_reranker_vision_encoder'],
+                              'train_with_retrieved_docs'],
                   'nbits': 8,
-                  'num_negative_samples': 4,
+                  'num_negative_samples': 39,
                   'output_modules': {'module_list': [{'option': 'default',
                                                       'type': 'SimilarityOutput'}],
                                      'postprocess_module_list': [{'option': 'default',
@@ -293,7 +293,7 @@ Configuration Loaded.
                             'precision': 'bf16',
                             'strategy': 'ddp_find_unused_parameters_true'}},
  'test_suffix': '',
- 'train': {'batch_size': 8,
+ 'train': {'batch_size': 1,
            'early_stopping_callback_paras': {'mode': 'min',
                                              'patience': 3,
                                              'verbose': True},
@@ -328,11 +328,11 @@ Runway Testing...
 All seeds have been set to 2022
 test-directory: experiments/TEST_OKVQA_FLMRQuery_Full_Context_Rerank_B_Freeze_Vision_ckpt_model_step_1007/test
 Using loggers: ['tensorboard', 'wandb']
-[<pytorch_lightning.loggers.tensorboard.TensorBoardLogger object at 0x7fd1aecf8d00>, <pytorch_lightning.loggers.wandb.WandbLogger object at 0x7fd1aec61670>]
+[<pytorch_lightning.loggers.tensorboard.TensorBoardLogger object at 0x7f4f9fa1fe80>, <pytorch_lightning.loggers.wandb.WandbLogger object at 0x7f4f9f94d280>]
 Saving testing results to: experiments/TEST_OKVQA_FLMRQuery_Full_Context_Rerank_B_Freeze_Vision_ckpt_model_step_1007/test/test_case.txt
 ======================================================================================================================================================
                                                                      MODEL CONFIG                                                                     
-{'Ks': [5, 10, 20, 50, 100], 'decoder_input_modules': {'module_list': [{'option': 'default', 'separation_tokens': {'end': '', 'start': ''}, 'type': 'KnowledgeInput'}], 'postprocess_module_list': [{'option': 'default', 'type': 'PostProcessFLMRItemInputTokenization'}]}, 'docs_to_rerank': 100, 'fusion_multiplier': 1, 'index_files': {'embedding_path': '', 'index_path': '', 'static_results': ['/home/fz288/rds/hpc-work/PreFLMR/experiments/TEST_OKVQA_FLMR_Index_2/test/_test_OKVQADatasetForDPR.test_predictions_rank_0.pkl', '/home/fz288/rds/hpc-work/PreFLMR/experiments/TEST_OKVQA_FLMR_Index/test/_test_OKVQADatasetForDPR.train_predictions_rank_0.pkl']}, 'input_modules': {'module_list': [{'option': 'from_file', 'type': 'VisionInput'}, {'option': 'default', 'separation_tokens': {'end': '', 'start': ''}, 'type': 'InstructionInput'}], 'postprocess_module_list': [{'option': 'default', 'type': 'PostProcessVisionInputProcessing'}, {'option': 'default', 'type': 'PostProcessFLMRQuestionInputTokenization'}]}, 'max_decoder_source_length': 512, 'max_source_length': 32, 'modules': ['separate_query_and_item_encoders', 'full_context_reranker', 'freeze_reranker_vision_encoder'], 'nbits': 8, 'num_negative_samples': 4, 'output_modules': {'module_list': [{'option': 'default', 'type': 'SimilarityOutput'}], 'postprocess_module_list': [{'option': 'default', 'type': 'PostProcessConcatenateLabels'}]}, 'prepend_tokens': {'item_encoder': '', 'query_encoder': ''}, 'pretrained': 1, 'reranker_config': {'RerankerClass': 'FullContextRerankModel', 'base_model': 'FLMR', 'cross_encoder_config_base': 'bert-base-uncased', 'cross_encoder_max_position_embeddings': 750, 'cross_encoder_num_hidden_layers': 1, 'loss_fn': 'BCE', 'max_decoder_source_length': 512, 'max_query_length': 32, 'pretrain_config_class': 'FLMRConfig', 'pretrain_model_version': 'LinWeizheDragon/PreFLMR_ViT-B'}, 'retriever_config': {'ConfigClass': 'FLMRConfig', 'ModelClass': 'FLMRModelForRetrieval', 'ModelVersion': 'LinWeizheDragon/PreFLMR_ViT-B', 'base_model': 'FLMR'}}
+{'Ks': [5, 10, 20, 50, 100], 'decoder_input_modules': {'module_list': [{'option': 'default', 'separation_tokens': {'end': '', 'start': ''}, 'type': 'KnowledgeInput'}], 'postprocess_module_list': [{'option': 'default', 'type': 'PostProcessFLMRItemInputTokenization'}]}, 'docs_to_rerank': 100, 'fusion_multiplier': 1, 'index_files': {'embedding_path': '', 'index_path': '', 'static_results': ['/home/fz288/rds/hpc-work/PreFLMR/experiments/TEST_OKVQA_FLMR_Index_2/test/_test_OKVQADatasetForDPR.test_predictions_rank_0.pkl', '/home/fz288/rds/hpc-work/PreFLMR/experiments/TEST_OKVQA_FLMR_Index/test/_test_OKVQADatasetForDPR.train_predictions_rank_0.pkl']}, 'input_modules': {'module_list': [{'option': 'from_file', 'type': 'VisionInput'}, {'option': 'default', 'separation_tokens': {'end': '', 'start': ''}, 'type': 'InstructionInput'}], 'postprocess_module_list': [{'option': 'default', 'type': 'PostProcessVisionInputProcessing'}, {'option': 'default', 'type': 'PostProcessFLMRQuestionInputTokenization'}]}, 'max_decoder_source_length': 512, 'max_source_length': 32, 'modules': ['separate_query_and_item_encoders', 'full_context_reranker', 'train_with_retrieved_docs'], 'nbits': 8, 'num_negative_samples': 39, 'output_modules': {'module_list': [{'option': 'default', 'type': 'SimilarityOutput'}], 'postprocess_module_list': [{'option': 'default', 'type': 'PostProcessConcatenateLabels'}]}, 'prepend_tokens': {'item_encoder': '', 'query_encoder': ''}, 'pretrained': 1, 'reranker_config': {'RerankerClass': 'FullContextRerankModel', 'base_model': 'FLMR', 'cross_encoder_config_base': 'bert-base-uncased', 'cross_encoder_max_position_embeddings': 750, 'cross_encoder_num_hidden_layers': 1, 'loss_fn': 'BCE', 'max_decoder_source_length': 512, 'max_query_length': 32, 'pretrain_config_class': 'FLMRConfig', 'pretrain_model_version': 'LinWeizheDragon/PreFLMR_ViT-B'}, 'retriever_config': {'ConfigClass': 'FLMRConfig', 'ModelClass': 'FLMRModelForRetrieval', 'ModelVersion': 'LinWeizheDragon/PreFLMR_ViT-B', 'base_model': 'FLMR'}}
 ======================================================================================================================================================
                                                                    OPTIMIZER CONFIG                                                                   
 None
@@ -405,13 +405,12 @@ extra_column valid_passages extra_column_from valid_passages
 available ids 114809
 {'test_passages': 'test_passages', 'train_passages': 'train_passages', 'valid_passages': 'valid_passages', 'vqa_data_with_dpr_output': 'okvqa_data'}
 Data saved to cache/output:PrepareDataloaders-dc03d5b49c83f6684ace8dfcc369d2bf.pkl
-Freezing Reranker vision encoders
 Load output:PrepareDataloaders-dc03d5b49c83f6684ace8dfcc369d2bf from program cache
 Load output:PrepareDataloaders-dc03d5b49c83f6684ace8dfcc369d2bf from program cache
 0
 Loading lookup table...
 Rank 0 Done loading lookup table.
-formatting the test passages:   0%|          | 0/114809 [00:00<?, ?it/s]formatting the test passages:   2%|▏         | 1949/114809 [00:00<00:05, 19485.14it/s]formatting the test passages:   3%|▎         | 3974/114809 [00:00<00:05, 19934.04it/s]formatting the test passages:   5%|▌         | 5999/114809 [00:00<00:05, 20075.63it/s]formatting the test passages:   7%|▋         | 8035/114809 [00:00<00:05, 20187.03it/s]formatting the test passages:   9%|▉         | 10081/114809 [00:00<00:05, 20284.10it/s]formatting the test passages:  11%|█         | 12114/114809 [00:00<00:05, 20296.88it/s]formatting the test passages:  12%|█▏        | 14158/114809 [00:00<00:04, 20341.34it/s]formatting the test passages:  14%|█▍        | 16196/114809 [00:00<00:04, 20353.47it/s]formatting the test passages:  16%|█▌        | 18232/114809 [00:00<00:04, 20324.31it/s]formatting the test passages:  18%|█▊        | 20265/114809 [00:01<00:04, 20304.22it/s]formatting the test passages:  19%|█▉        | 22296/114809 [00:01<00:04, 20258.45it/s]formatting the test passages:  21%|██        | 24343/114809 [00:01<00:04, 20321.79it/s]formatting the test passages:  23%|██▎       | 26387/114809 [00:01<00:04, 20354.70it/s]formatting the test passages:  25%|██▍       | 28446/114809 [00:01<00:04, 20423.49it/s]formatting the test passages:  27%|██▋       | 30511/114809 [00:01<00:04, 20491.04it/s]formatting the test passages:  28%|██▊       | 32569/114809 [00:01<00:04, 20515.34it/s]formatting the test passages:  30%|███       | 34621/114809 [00:01<00:03, 20510.44it/s]formatting the test passages:  32%|███▏      | 36673/114809 [00:01<00:03, 20472.35it/s]formatting the test passages:  34%|███▎      | 38721/114809 [00:01<00:03, 20470.23it/s]formatting the test passages:  36%|███▌      | 40789/114809 [00:02<00:03, 20530.10it/s]formatting the test passages:  37%|███▋      | 42859/114809 [00:02<00:03, 20579.87it/s]formatting the test passages:  39%|███▉      | 44918/114809 [00:02<00:03, 20475.58it/s]formatting the test passages:  41%|████      | 46994/114809 [00:02<00:03, 20559.10it/s]formatting the test passages:  43%|████▎     | 49063/114809 [00:02<00:03, 20595.25it/s]formatting the test passages:  45%|████▍     | 51128/114809 [00:02<00:03, 20609.43it/s]formatting the test passages:  46%|████▋     | 53203/114809 [00:02<00:02, 20648.55it/s]formatting the test passages:  48%|████▊     | 55268/114809 [00:02<00:02, 20597.88it/s]formatting the test passages:  50%|████▉     | 57328/114809 [00:02<00:02, 20509.38it/s]formatting the test passages:  52%|█████▏    | 59380/114809 [00:02<00:02, 20454.06it/s]formatting the test passages:  54%|█████▎    | 61426/114809 [00:03<00:02, 20430.77it/s]formatting the test passages:  55%|█████▌    | 63470/114809 [00:03<00:02, 20399.28it/s]formatting the test passages:  57%|█████▋    | 65515/114809 [00:03<00:02, 20413.40it/s]formatting the test passages:  59%|█████▉    | 67565/114809 [00:03<00:02, 20438.07it/s]formatting the test passages:  61%|██████    | 69609/114809 [00:03<00:02, 20407.54it/s]formatting the test passages:  62%|██████▏   | 71653/114809 [00:03<00:02, 20416.98it/s]formatting the test passages:  64%|██████▍   | 73696/114809 [00:03<00:02, 20420.01it/s]formatting the test passages:  66%|██████▌   | 75741/114809 [00:03<00:01, 20426.68it/s]formatting the test passages:  68%|██████▊   | 77793/114809 [00:03<00:01, 20453.53it/s]formatting the test passages:  70%|██████▉   | 79847/114809 [00:03<00:01, 20476.84it/s]formatting the test passages:  71%|███████▏  | 81900/114809 [00:04<00:01, 20492.34it/s]formatting the test passages:  73%|███████▎  | 83950/114809 [00:04<00:01, 20440.78it/s]formatting the test passages:  75%|███████▍  | 85995/114809 [00:04<00:01, 20404.24it/s]formatting the test passages:  77%|███████▋  | 88036/114809 [00:04<00:01, 20062.02it/s]formatting the test passages:  78%|███████▊  | 90067/114809 [00:04<00:01, 20133.73it/s]formatting the test passages:  80%|████████  | 92101/114809 [00:04<00:01, 20194.74it/s]formatting the test passages:  82%|████████▏ | 94127/114809 [00:04<00:01, 20212.21it/s]formatting the test passages:  84%|████████▍ | 96156/114809 [00:04<00:00, 20234.27it/s]formatting the test passages:  86%|████████▌ | 98197/114809 [00:04<00:00, 20285.84it/s]formatting the test passages:  87%|████████▋ | 100239/114809 [00:04<00:00, 20324.49it/s]formatting the test passages:  89%|████████▉ | 102272/114809 [00:05<00:00, 20309.45it/s]formatting the test passages:  91%|█████████ | 104344/114809 [00:05<00:00, 20429.73it/s]formatting the test passages:  93%|█████████▎| 106407/114809 [00:05<00:00, 20487.50it/s]formatting the test passages:  94%|█████████▍| 108473/114809 [00:05<00:00, 20537.64it/s]formatting the test passages:  96%|█████████▋| 110528/114809 [00:05<00:00, 20539.06it/s]formatting the test passages:  98%|█████████▊| 112582/114809 [00:05<00:00, 20488.43it/s]formatting the test passages: 100%|█████████▉| 114631/114809 [00:05<00:00, 20452.28it/s]formatting the test passages: 100%|██████████| 114809/114809 [00:05<00:00, 20400.07it/s]
+formatting the test passages:   0%|          | 0/114809 [00:00<?, ?it/s]formatting the test passages:   2%|▏         | 1866/114809 [00:00<00:06, 18653.75it/s]formatting the test passages:   3%|▎         | 3775/114809 [00:00<00:05, 18905.78it/s]formatting the test passages:   5%|▌         | 5749/114809 [00:00<00:05, 19286.02it/s]formatting the test passages:   7%|▋         | 7748/114809 [00:00<00:05, 19561.15it/s]formatting the test passages:   8%|▊         | 9730/114809 [00:00<00:05, 19651.41it/s]formatting the test passages:  10%|█         | 11713/114809 [00:00<00:05, 19709.89it/s]formatting the test passages:  12%|█▏        | 13699/114809 [00:00<00:05, 19757.71it/s]formatting the test passages:  14%|█▎        | 15708/114809 [00:00<00:04, 19863.01it/s]formatting the test passages:  15%|█▌        | 17703/114809 [00:00<00:04, 19887.79it/s]formatting the test passages:  17%|█▋        | 19692/114809 [00:01<00:04, 19781.19it/s]formatting the test passages:  19%|█▉        | 21687/114809 [00:01<00:04, 19830.43it/s]formatting the test passages:  21%|██        | 23671/114809 [00:01<00:04, 19819.55it/s]formatting the test passages:  22%|██▏       | 25671/114809 [00:01<00:04, 19873.27it/s]formatting the test passages:  24%|██▍       | 27672/114809 [00:01<00:04, 19912.30it/s]formatting the test passages:  26%|██▌       | 29675/114809 [00:01<00:04, 19946.44it/s]formatting the test passages:  28%|██▊       | 31674/114809 [00:01<00:04, 19958.30it/s]formatting the test passages:  29%|██▉       | 33691/114809 [00:01<00:04, 20019.11it/s]formatting the test passages:  31%|███       | 35702/114809 [00:01<00:03, 20043.42it/s]formatting the test passages:  33%|███▎      | 37715/114809 [00:01<00:03, 20068.96it/s]formatting the test passages:  35%|███▍      | 39722/114809 [00:02<00:03, 20040.41it/s]formatting the test passages:  36%|███▋      | 41727/114809 [00:02<00:03, 19998.18it/s]formatting the test passages:  38%|███▊      | 43727/114809 [00:02<00:03, 19928.43it/s]formatting the test passages:  40%|███▉      | 45737/114809 [00:02<00:03, 19977.37it/s]formatting the test passages:  42%|████▏     | 47756/114809 [00:02<00:03, 20039.03it/s]formatting the test passages:  43%|████▎     | 49760/114809 [00:02<00:03, 20012.26it/s]formatting the test passages:  45%|████▌     | 51770/114809 [00:02<00:03, 20036.69it/s]formatting the test passages:  47%|████▋     | 53774/114809 [00:02<00:03, 20033.27it/s]formatting the test passages:  49%|████▊     | 55787/114809 [00:02<00:02, 20062.01it/s]formatting the test passages:  50%|█████     | 57794/114809 [00:02<00:02, 20059.11it/s]formatting the test passages:  52%|█████▏    | 59811/114809 [00:03<00:02, 20092.01it/s]formatting the test passages:  54%|█████▍    | 61831/114809 [00:03<00:02, 20123.84it/s]formatting the test passages:  56%|█████▌    | 63846/114809 [00:03<00:02, 20128.76it/s]formatting the test passages:  57%|█████▋    | 65859/114809 [00:03<00:02, 20082.59it/s]formatting the test passages:  59%|█████▉    | 67868/114809 [00:03<00:02, 20027.85it/s]formatting the test passages:  61%|██████    | 69871/114809 [00:03<00:02, 19987.04it/s]formatting the test passages:  63%|██████▎   | 71882/114809 [00:03<00:02, 20022.42it/s]formatting the test passages:  64%|██████▍   | 73888/114809 [00:03<00:02, 20033.31it/s]formatting the test passages:  66%|██████▌   | 75892/114809 [00:03<00:01, 20018.89it/s]formatting the test passages:  68%|██████▊   | 77894/114809 [00:03<00:01, 20010.87it/s]formatting the test passages:  70%|██████▉   | 79896/114809 [00:04<00:01, 19989.30it/s]formatting the test passages:  71%|███████▏  | 81895/114809 [00:04<00:01, 19938.90it/s]formatting the test passages:  73%|███████▎  | 83889/114809 [00:04<00:01, 19937.80it/s]formatting the test passages:  75%|███████▍  | 85884/114809 [00:04<00:01, 19938.88it/s]formatting the test passages:  77%|███████▋  | 87878/114809 [00:04<00:01, 19706.80it/s]formatting the test passages:  78%|███████▊  | 89891/114809 [00:04<00:01, 19830.58it/s]formatting the test passages:  80%|████████  | 91903/114809 [00:04<00:01, 19915.46it/s]formatting the test passages:  82%|████████▏ | 93909/114809 [00:04<00:01, 19956.57it/s]formatting the test passages:  84%|████████▎ | 95924/114809 [00:04<00:00, 20012.01it/s]formatting the test passages:  85%|████████▌ | 97926/114809 [00:04<00:00, 19879.43it/s]formatting the test passages:  87%|████████▋ | 99915/114809 [00:05<00:00, 19879.55it/s]formatting the test passages:  89%|████████▉ | 101904/114809 [00:05<00:00, 19868.94it/s]formatting the test passages:  91%|█████████ | 103903/114809 [00:05<00:00, 19902.55it/s]formatting the test passages:  92%|█████████▏| 105912/114809 [00:05<00:00, 19956.29it/s]formatting the test passages:  94%|█████████▍| 107921/114809 [00:05<00:00, 19995.22it/s]formatting the test passages:  96%|█████████▌| 109921/114809 [00:05<00:00, 19988.15it/s]formatting the test passages:  97%|█████████▋| 111920/114809 [00:05<00:00, 19960.65it/s]formatting the test passages:  99%|█████████▉| 113919/114809 [00:05<00:00, 19968.94it/s]formatting the test passages: 100%|██████████| 114809/114809 [00:05<00:00, 19924.35it/s]
 [38;20m[INFO] - src.executors.Reranker_base_executor : passages from the source okvqa_passages has 114809[0m
 [38;20m[INFO] - src.executors.Reranker_base_executor : Passages prepared.[0m
 [38;20m[INFO] - src.executors.Reranker_base_executor : tokenizer lengths = 30522 and 30522[0m
@@ -419,36 +418,166 @@ Rank 0 Done loading lookup table.
 LOCAL_RANK: 0 - CUDA_VISIBLE_DEVICES: [0]
 SLURM auto-requeueing enabled. Setting signal handlers.
 /home/fz288/rds/hpc-work/PreFLMR/VQA/lib/python3.8/site-packages/pytorch_lightning/trainer/connectors/data_connector.py:441: The 'test_dataloader' does not have many workers which may be a bottleneck. Consider increasing the value of the `num_workers` argument` to `num_workers=31` in the `DataLoader` to improve performance.
-Testing: |          | 0/? [00:00<?, ?it/s]Testing:   0%|          | 0/65 [00:00<?, ?it/s]Testing DataLoader 0:   0%|          | 0/65 [00:00<?, ?it/s]Testing DataLoader 0:   2%|▏         | 1/65 [00:00<00:47,  1.34it/s]Testing DataLoader 0:   3%|▎         | 2/65 [00:01<01:01,  1.02it/s]Testing DataLoader 0:   5%|▍         | 3/65 [00:03<01:06,  0.94it/s]Testing DataLoader 0:   6%|▌         | 4/65 [00:04<01:07,  0.90it/s]Testing DataLoader 0:   8%|▊         | 5/65 [00:05<01:08,  0.88it/s]Testing DataLoader 0:   9%|▉         | 6/65 [00:06<01:07,  0.87it/s]Testing DataLoader 0:  11%|█         | 7/65 [00:08<01:07,  0.86it/s]Testing DataLoader 0:  12%|█▏        | 8/65 [00:09<01:06,  0.85it/s]Testing DataLoader 0:  14%|█▍        | 9/65 [00:10<01:05,  0.85it/s]Testing DataLoader 0:  15%|█▌        | 10/65 [00:11<01:05,  0.84it/s]Testing DataLoader 0:  17%|█▋        | 11/65 [00:13<01:04,  0.84it/s]Testing DataLoader 0:  18%|█▊        | 12/65 [00:14<01:03,  0.84it/s]Testing DataLoader 0:  20%|██        | 13/65 [00:15<01:02,  0.84it/s]Testing DataLoader 0:  22%|██▏       | 14/65 [00:16<01:01,  0.83it/s]Testing DataLoader 0:  23%|██▎       | 15/65 [00:18<01:00,  0.83it/s]Testing DataLoader 0:  25%|██▍       | 16/65 [00:19<00:59,  0.83it/s]Testing DataLoader 0:  26%|██▌       | 17/65 [00:20<00:57,  0.83it/s]Testing DataLoader 0:  28%|██▊       | 18/65 [00:21<00:56,  0.83it/s]Testing DataLoader 0:  29%|██▉       | 19/65 [00:22<00:55,  0.83it/s]Testing DataLoader 0:  31%|███       | 20/65 [00:24<00:54,  0.83it/s]Testing DataLoader 0:  32%|███▏      | 21/65 [00:25<00:53,  0.83it/s]Testing DataLoader 0:  34%|███▍      | 22/65 [00:26<00:52,  0.83it/s]Testing DataLoader 0:  35%|███▌      | 23/65 [00:27<00:50,  0.82it/s]Testing DataLoader 0:  37%|███▋      | 24/65 [00:29<00:49,  0.82it/s]Testing DataLoader 0:  38%|███▊      | 25/65 [00:30<00:48,  0.82it/s]Testing DataLoader 0:  40%|████      | 26/65 [00:31<00:47,  0.82it/s]Testing DataLoader 0:  42%|████▏     | 27/65 [00:32<00:46,  0.82it/s]Testing DataLoader 0:  43%|████▎     | 28/65 [00:34<00:45,  0.82it/s]Testing DataLoader 0:  45%|████▍     | 29/65 [00:35<00:43,  0.82it/s]Testing DataLoader 0:  46%|████▌     | 30/65 [00:36<00:42,  0.82it/s]Testing DataLoader 0:  48%|████▊     | 31/65 [00:37<00:41,  0.82it/s]Testing DataLoader 0:  49%|████▉     | 32/65 [00:38<00:40,  0.82it/s]Testing DataLoader 0:  51%|█████     | 33/65 [00:40<00:39,  0.82it/s]Testing DataLoader 0:  52%|█████▏    | 34/65 [00:41<00:37,  0.82it/s]Testing DataLoader 0:  54%|█████▍    | 35/65 [00:42<00:36,  0.82it/s]Testing DataLoader 0:  55%|█████▌    | 36/65 [00:43<00:35,  0.82it/s]Testing DataLoader 0:  57%|█████▋    | 37/65 [00:45<00:34,  0.82it/s]Testing DataLoader 0:  58%|█████▊    | 38/65 [00:46<00:32,  0.82it/s]Testing DataLoader 0:  60%|██████    | 39/65 [00:47<00:31,  0.82it/s]Testing DataLoader 0:  62%|██████▏   | 40/65 [00:48<00:30,  0.82it/s]Testing DataLoader 0:  63%|██████▎   | 41/65 [00:50<00:29,  0.82it/s]Testing DataLoader 0:  65%|██████▍   | 42/65 [00:51<00:28,  0.82it/s]Testing DataLoader 0:  66%|██████▌   | 43/65 [00:52<00:26,  0.82it/s]Testing DataLoader 0:  68%|██████▊   | 44/65 [00:53<00:25,  0.82it/s]Testing DataLoader 0:  69%|██████▉   | 45/65 [00:55<00:24,  0.82it/s]Testing DataLoader 0:  71%|███████   | 46/65 [00:56<00:23,  0.82it/s]Testing DataLoader 0:  72%|███████▏  | 47/65 [00:57<00:22,  0.82it/s]Testing DataLoader 0:  74%|███████▍  | 48/65 [00:58<00:20,  0.82it/s]Testing DataLoader 0:  75%|███████▌  | 49/65 [00:59<00:19,  0.82it/s]Testing DataLoader 0:  77%|███████▋  | 50/65 [01:01<00:18,  0.82it/s]Testing DataLoader 0:  78%|███████▊  | 51/65 [01:02<00:17,  0.82it/s]Testing DataLoader 0:  80%|████████  | 52/65 [01:04<00:16,  0.81it/s]Testing DataLoader 0:  82%|████████▏ | 53/65 [01:05<00:14,  0.81it/s]Testing DataLoader 0:  83%|████████▎ | 54/65 [01:06<00:13,  0.81it/s]Testing DataLoader 0:  85%|████████▍ | 55/65 [01:07<00:12,  0.81it/s]Testing DataLoader 0:  86%|████████▌ | 56/65 [01:08<00:11,  0.81it/s]Testing DataLoader 0:  88%|████████▊ | 57/65 [01:10<00:09,  0.81it/s]Testing DataLoader 0:  89%|████████▉ | 58/65 [01:11<00:08,  0.81it/s]Testing DataLoader 0:  91%|█████████ | 59/65 [01:12<00:07,  0.81it/s]Testing DataLoader 0:  92%|█████████▏| 60/65 [01:13<00:06,  0.81it/s]Testing DataLoader 0:  94%|█████████▍| 61/65 [01:15<00:04,  0.81it/s]Testing DataLoader 0:  95%|█████████▌| 62/65 [01:16<00:03,  0.81it/s]Testing DataLoader 0:  97%|█████████▋| 63/65 [01:17<00:02,  0.81it/s]Testing DataLoader 0:  98%|█████████▊| 64/65 [01:18<00:01,  0.81it/s]Testing DataLoader 0: 100%|██████████| 65/65 [01:20<00:00,  0.81it/s]/home/fz288/rds/hpc-work/PreFLMR/VQA/lib/python3.8/site-packages/pytorch_lightning/utilities/data.py:77: Trying to infer the `batch_size` from an ambiguous collection. The batch size we found is 16. To avoid any miscalculations, use `self.log(..., batch_size=batch_size)`.
+Testing: |          | 0/? [00:00<?, ?it/s]Testing:   0%|          | 0/65 [00:00<?, ?it/s]Testing DataLoader 0:   0%|          | 0/65 [00:00<?, ?it/s]x
+y
+Testing DataLoader 0:   2%|▏         | 1/65 [00:04<05:16,  0.20it/s]x
+y
+Testing DataLoader 0:   3%|▎         | 2/65 [00:07<04:10,  0.25it/s]x
+y
+Testing DataLoader 0:   5%|▍         | 3/65 [00:10<03:46,  0.27it/s]x
+y
+Testing DataLoader 0:   6%|▌         | 4/65 [00:13<03:30,  0.29it/s]x
+y
+Testing DataLoader 0:   8%|▊         | 5/65 [00:16<03:20,  0.30it/s]x
+y
+Testing DataLoader 0:   9%|▉         | 6/65 [00:19<03:13,  0.31it/s]x
+y
+Testing DataLoader 0:  11%|█         | 7/65 [00:22<03:06,  0.31it/s]x
+y
+Testing DataLoader 0:  12%|█▏        | 8/65 [00:25<03:01,  0.31it/s]x
+y
+Testing DataLoader 0:  14%|█▍        | 9/65 [00:28<02:56,  0.32it/s]x
+y
+Testing DataLoader 0:  15%|█▌        | 10/65 [00:31<02:52,  0.32it/s]x
+y
+Testing DataLoader 0:  17%|█▋        | 11/65 [00:34<02:47,  0.32it/s]x
+y
+Testing DataLoader 0:  18%|█▊        | 12/65 [00:37<02:44,  0.32it/s]x
+y
+Testing DataLoader 0:  20%|██        | 13/65 [00:40<02:40,  0.32it/s]x
+y
+Testing DataLoader 0:  22%|██▏       | 14/65 [00:43<02:36,  0.33it/s]x
+y
+Testing DataLoader 0:  23%|██▎       | 15/65 [00:46<02:34,  0.32it/s]x
+y
+Testing DataLoader 0:  25%|██▍       | 16/65 [00:49<02:31,  0.32it/s]x
+y
+Testing DataLoader 0:  26%|██▌       | 17/65 [00:52<02:27,  0.33it/s]x
+y
+Testing DataLoader 0:  28%|██▊       | 18/65 [00:55<02:24,  0.33it/s]x
+y
+Testing DataLoader 0:  29%|██▉       | 19/65 [00:58<02:20,  0.33it/s]x
+y
+Testing DataLoader 0:  31%|███       | 20/65 [01:01<02:17,  0.33it/s]x
+y
+Testing DataLoader 0:  32%|███▏      | 21/65 [01:03<02:14,  0.33it/s]x
+y
+Testing DataLoader 0:  34%|███▍      | 22/65 [01:06<02:10,  0.33it/s]x
+y
+Testing DataLoader 0:  35%|███▌      | 23/65 [01:09<02:07,  0.33it/s]x
+y
+Testing DataLoader 0:  37%|███▋      | 24/65 [01:12<02:04,  0.33it/s]x
+y
+Testing DataLoader 0:  38%|███▊      | 25/65 [01:15<02:00,  0.33it/s]x
+y
+Testing DataLoader 0:  40%|████      | 26/65 [01:18<01:57,  0.33it/s]x
+y
+Testing DataLoader 0:  42%|████▏     | 27/65 [01:21<01:54,  0.33it/s]x
+y
+Testing DataLoader 0:  43%|████▎     | 28/65 [01:24<01:51,  0.33it/s]x
+y
+Testing DataLoader 0:  45%|████▍     | 29/65 [01:27<01:48,  0.33it/s]x
+y
+Testing DataLoader 0:  46%|████▌     | 30/65 [01:30<01:45,  0.33it/s]x
+y
+Testing DataLoader 0:  48%|████▊     | 31/65 [01:33<01:42,  0.33it/s]x
+y
+Testing DataLoader 0:  49%|████▉     | 32/65 [01:36<01:39,  0.33it/s]x
+y
+Testing DataLoader 0:  51%|█████     | 33/65 [01:38<01:35,  0.33it/s]x
+y
+Testing DataLoader 0:  52%|█████▏    | 34/65 [01:41<01:32,  0.33it/s]x
+y
+Testing DataLoader 0:  54%|█████▍    | 35/65 [01:44<01:29,  0.33it/s]x
+y
+Testing DataLoader 0:  55%|█████▌    | 36/65 [01:47<01:26,  0.33it/s]x
+y
+Testing DataLoader 0:  57%|█████▋    | 37/65 [01:50<01:23,  0.33it/s]x
+y
+Testing DataLoader 0:  58%|█████▊    | 38/65 [01:53<01:20,  0.33it/s]x
+y
+Testing DataLoader 0:  60%|██████    | 39/65 [01:56<01:17,  0.34it/s]x
+y
+Testing DataLoader 0:  62%|██████▏   | 40/65 [01:59<01:14,  0.34it/s]x
+y
+Testing DataLoader 0:  63%|██████▎   | 41/65 [02:02<01:11,  0.34it/s]x
+y
+Testing DataLoader 0:  65%|██████▍   | 42/65 [02:05<01:08,  0.34it/s]x
+y
+Testing DataLoader 0:  66%|██████▌   | 43/65 [02:07<01:05,  0.34it/s]x
+y
+Testing DataLoader 0:  68%|██████▊   | 44/65 [02:10<01:02,  0.34it/s]x
+y
+Testing DataLoader 0:  69%|██████▉   | 45/65 [02:13<00:59,  0.34it/s]x
+y
+Testing DataLoader 0:  71%|███████   | 46/65 [02:16<00:56,  0.34it/s]x
+y
+Testing DataLoader 0:  72%|███████▏  | 47/65 [02:19<00:53,  0.34it/s]x
+y
+Testing DataLoader 0:  74%|███████▍  | 48/65 [02:22<00:50,  0.34it/s]x
+y
+Testing DataLoader 0:  75%|███████▌  | 49/65 [02:25<00:47,  0.34it/s]x
+y
+Testing DataLoader 0:  77%|███████▋  | 50/65 [02:28<00:44,  0.34it/s]x
+y
+Testing DataLoader 0:  78%|███████▊  | 51/65 [02:31<00:41,  0.34it/s]x
+y
+Testing DataLoader 0:  80%|████████  | 52/65 [02:34<00:38,  0.34it/s]x
+y
+Testing DataLoader 0:  82%|████████▏ | 53/65 [02:37<00:35,  0.34it/s]x
+y
+Testing DataLoader 0:  83%|████████▎ | 54/65 [02:40<00:32,  0.34it/s]x
+y
+Testing DataLoader 0:  85%|████████▍ | 55/65 [02:42<00:29,  0.34it/s]x
+y
+Testing DataLoader 0:  86%|████████▌ | 56/65 [02:45<00:26,  0.34it/s]x
+y
+Testing DataLoader 0:  88%|████████▊ | 57/65 [02:48<00:23,  0.34it/s]x
+y
+Testing DataLoader 0:  89%|████████▉ | 58/65 [02:51<00:20,  0.34it/s]x
+y
+Testing DataLoader 0:  91%|█████████ | 59/65 [02:54<00:17,  0.34it/s]x
+y
+Testing DataLoader 0:  92%|█████████▏| 60/65 [02:57<00:14,  0.34it/s]x
+y
+Testing DataLoader 0:  94%|█████████▍| 61/65 [03:00<00:11,  0.34it/s]x
+y
+Testing DataLoader 0:  95%|█████████▌| 62/65 [03:03<00:08,  0.34it/s]x
+y
+Testing DataLoader 0:  97%|█████████▋| 63/65 [03:05<00:05,  0.34it/s]x
+y
+Testing DataLoader 0:  98%|█████████▊| 64/65 [03:08<00:02,  0.34it/s]x
+y
+Testing DataLoader 0: 100%|██████████| 65/65 [03:11<00:00,  0.34it/s]/home/fz288/rds/hpc-work/PreFLMR/VQA/lib/python3.8/site-packages/pytorch_lightning/utilities/data.py:77: Trying to infer the `batch_size` from an ambiguous collection. The batch size we found is 16. To avoid any miscalculations, use `self.log(..., batch_size=batch_size)`.
 [38;20m[INFO] - src.executors.Reranker_base_executor : reading global step of the checkpoint...[0m
-[38;20m[INFO] - src.executors.Reranker_base_executor : Evaluation results [test]: {'_test/OKVQADatasetForDPR.test/loss': 0.18379536271095276, '_test/OKVQADatasetForDPR.test/epoch': 0}[0m
+[38;20m[INFO] - src.executors.Reranker_base_executor : Evaluation results [test]: {'_test/OKVQADatasetForDPR.test/loss': 2.89827561378479, '_test/OKVQADatasetForDPR.test/epoch': 0}[0m
 {'_test/OKVQADatasetForDPR.test/epoch': 0,
- '_test/OKVQADatasetForDPR.test/loss': 0.18379536271095276}
-{'predictions/step_0_MODE(test)_SET(_test/OKVQADatasetForDPR.test)_rank(0)': <wandb.data_types.Table object at 0x7fcf577bd160>}
-Testing DataLoader 0: 100%|██████████| 65/65 [01:20<00:00,  0.81it/s][38;20m[INFO] - runway_for_ml.utils.eval_recorder : test-evaluation EvalRecorder saved to experiments/TEST_OKVQA_FLMRQuery_Full_Context_Rerank_B_Freeze_Vision_ckpt_model_step_1007/test/test-evaluation/eval_recorder-sample_log.json, experiments/TEST_OKVQA_FLMRQuery_Full_Context_Rerank_B_Freeze_Vision_ckpt_model_step_1007/test/test-evaluation/eval_recorder-stats_log.json, experiments/TEST_OKVQA_FLMRQuery_Full_Context_Rerank_B_Freeze_Vision_ckpt_model_step_1007/test/test-evaluation/eval_recorder-meta_config.json[0m
+ '_test/OKVQADatasetForDPR.test/loss': 2.89827561378479}
+{'predictions/step_0_MODE(test)_SET(_test/OKVQADatasetForDPR.test)_rank(0)': <wandb.data_types.Table object at 0x7f4f9f97f9a0>}
+Testing DataLoader 0: 100%|██████████| 65/65 [03:12<00:00,  0.34it/s][38;20m[INFO] - runway_for_ml.utils.eval_recorder : test-evaluation EvalRecorder saved to experiments/TEST_OKVQA_FLMRQuery_Full_Context_Rerank_B_Freeze_Vision_ckpt_model_step_1007/test/test-evaluation/eval_recorder-sample_log.json, experiments/TEST_OKVQA_FLMRQuery_Full_Context_Rerank_B_Freeze_Vision_ckpt_model_step_1007/test/test-evaluation/eval_recorder-stats_log.json, experiments/TEST_OKVQA_FLMRQuery_Full_Context_Rerank_B_Freeze_Vision_ckpt_model_step_1007/test/test-evaluation/eval_recorder-meta_config.json[0m
 
 Test evaluation recorder saved to experiments/TEST_OKVQA_FLMRQuery_Full_Context_Rerank_B_Freeze_Vision_ckpt_model_step_1007/test/test-evaluation
 ────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
             Test metric                       DataLoader 0
 ────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
 _test/OKVQADatasetForDPR.test/epoch                0.0
-_test/OKVQADatasetForDPR.test/loss         0.18379536271095276
-         valid/loss_epoch                  0.18379536271095276
+_test/OKVQADatasetForDPR.test/loss          2.89827561378479
+         valid/loss_epoch                   2.898275375366211
 ────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
-wandb: - 0.000 MB of 0.000 MB uploadedwandb: \ 0.000 MB of 0.036 MB uploadedwandb: | 0.036 MB of 0.036 MB uploadedwandb: 
+wandb: - 0.000 MB of 0.000 MB uploadedwandb: \ 0.000 MB of 0.041 MB uploadedwandb: | 0.000 MB of 0.041 MB uploadedwandb: / 0.000 MB of 0.041 MB uploadedwandb: - 0.000 MB of 0.041 MB uploadedwandb: \ 0.041 MB of 0.041 MB uploadedwandb: 
 wandb: Run history:
 wandb:               epoch ▁
 wandb: trainer/global_step ▁▁▁▂▂▂▂▂▂▃▃▃▃▃▄▄▄▄▄▄▅▅▅▅▅▆▆▆▆▆▇▇▇▇▇▇███▁
 wandb:    valid/loss_epoch ▁
-wandb:     valid/loss_step ▅▁▄▆▃▃▄▂▄▃▆▃▅▅▅█▄█▅▃▅▆▄▆▅█▅▅█▃▆▄▄▅▅▇▅▅▇▆
+wandb:     valid/loss_step ▆█▅▅▆▄▆▇▆▅▁▅▆▄▆▅▄▄▇▇▃▅▄▄▅█▇▅▆▅▇▆▅▄▃▆▄▆▇▄
 wandb: 
 wandb: Run summary:
 wandb:               epoch 0
 wandb: trainer/global_step 0
-wandb:    valid/loss_epoch 0.1838
-wandb:     valid/loss_step 0.24041
+wandb:    valid/loss_epoch 2.89828
+wandb:     valid/loss_step 2.59481
 wandb: 
 wandb: 🚀 View run TEST_OKVQA_FLMRQuery_Full_Context_Rerank_B_Freeze_Vision_ckpt_model_step_1007 at: https://wandb.ai/byrne-lab/PreFLMR%20MLMI/runs/stbilufk
 wandb: ⭐️ View project at: https://wandb.ai/byrne-lab/PreFLMR%20MLMI
 wandb: Synced 4 W&B file(s), 0 media file(s), 0 artifact file(s) and 0 other file(s)
-wandb: Find logs at: ./wandb/run-20240607_004732-stbilufk/logs
+wandb: Find logs at: ./wandb/run-20240607_124233-stbilufk/logs

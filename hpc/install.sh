@@ -22,3 +22,4 @@ pip install diffusers==0.20.1
 pip install einops transformers_stream_generator tiktoken
 cd third_party/ColBERT
 pip install -e .
+pip install notebook
