@@ -111,7 +111,7 @@ local data_pipeline = std.mergePatch(merge_data, data_loader);
         "reranker_config":{
           "base_model": "FLMR",
           "pretrain_config_class": "FLMRConfig",
-          "RerankerClass": "RerankModel",
+          "RerankerClass": "FullContextRerankModel",
           "pretrain_model_version": reranker_pretrained_ckpt_path,
           "cross_encoder_config_base": "bert-base-uncased",
           "cross_encoder_num_hidden_layers": 1,
@@ -128,7 +128,8 @@ local data_pipeline = std.mergePatch(merge_data, data_loader);
         "pretrained": 1,
         "modules": [
             "separate_query_and_item_encoders",
-            "full_context_reranker"
+            "full_context_reranker",
+            "freeze_reranker_vision_encoder"
         ],
         "index_files": index_files,
         "nbits": 8,
@@ -187,7 +188,7 @@ local data_pipeline = std.mergePatch(merge_data, data_loader);
             check_val_every_n_epoch: null,
             val_check_interval: 1000,
             log_every_n_steps: 10,
-            limit_val_batches: 50,
+            limit_val_batches: 5,
         },
         model_checkpoint_callback_paras: {
             monitor: 'valid/OKVQADatasetForDPR.test/loss',

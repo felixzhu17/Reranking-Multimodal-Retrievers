@@ -1,10 +1,10 @@
 #!/bin/bash
-#SBATCH -J TEST_OKVQA_Decoder_Rerank_ckpt_model_step_2002
+#SBATCH -J TEST_OKVQA_FLMRQuery_Full_Context_Rerank_B_Neg_Sample_ckpt_model_step_503
 #SBATCH -A MLMI-fz288-SL2-GPU
 #SBATCH --nodes=1
 #SBATCH --ntasks=1
 #SBATCH --gres=gpu:1
-#SBATCH --time=10:00:00
+#SBATCH --time=1:30:00
 #SBATCH --mail-type=NONE
 #SBATCH -p ampere
 
@@ -38,4 +38,4 @@ echo "Running on master node: `hostname`"
 echo "Current directory: `pwd`"
 
 echo -e "\nnumtasks=$numtasks, numnodes=$numnodes, mpi_tasks_per_node=$mpi_tasks_per_node (OMP_NUM_THREADS=$OMP_NUM_THREADS)"
-python src/main.py --config configs/Rerank/decoder_experiments/decoder_rerank.jsonnet --mode test --experiment_name TEST_OKVQA_Decoder_Rerank_ckpt_model_step_2002 --tags "OKVQA_Decoder_Rerank" "test" --opts train.load_model_path="experiments/OKVQA_Decoder_Reranker_low_lr/train/saved_models/model_step_2002.ckpt" > log_TEST_OKVQA_Decoder_Rerank_ckpt_model_step_2002 2>&1
+python src/main.py --config configs/Rerank/initial_experiments/okvqa_full_context_rerank_B_freeze_vision.jsonnet --mode test --experiment_name TEST_OKVQA_FLMRQuery_Full_Context_Rerank_B_Neg_Sample_ckpt_model_step_503 --tags "OKVQA_FLMRQuery_Full_Context_Rerank_B_Neg_Sample" "test" --opts train.load_model_path="/home/fz288/rds/hpc-work/PreFLMR/experiments/OKVQA_FLMRQuery_Full_Context_Rerank_B_Neg_Sample_ckpt_model_step_6042/train/saved_models/model_step_503.ckpt" > log_TEST_OKVQA_FLMRQuery_Full_Context_Rerank_B_Neg_Sample_ckpt_model_step_503 2>&1

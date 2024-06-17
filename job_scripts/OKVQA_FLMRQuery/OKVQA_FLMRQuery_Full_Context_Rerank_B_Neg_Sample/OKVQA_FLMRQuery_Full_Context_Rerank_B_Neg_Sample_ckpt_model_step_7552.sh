@@ -1,10 +1,10 @@
 #!/bin/bash
-#SBATCH -J TEST_OKVQA_Decoder_Rerank_ckpt_model_step_2002
+#SBATCH -J OKVQA_FLMRQuery_Full_Context_Rerank_B_Neg_Sample_ckpt_model_step_7552
 #SBATCH -A MLMI-fz288-SL2-GPU
 #SBATCH --nodes=1
 #SBATCH --ntasks=1
-#SBATCH --gres=gpu:1
-#SBATCH --time=10:00:00
+#SBATCH --gres=gpu:2
+#SBATCH --time=4:00:00
 #SBATCH --mail-type=NONE
 #SBATCH -p ampere
 
@@ -29,6 +29,8 @@ export CUDA_VISIBLE_DEVICES=$gpu_indices
 echo "CUDA_VISIBLE_DEVICES=$CUDA_VISIBLE_DEVICES"
 
 JOBID=$SLURM_JOB_ID
+
+
 echo -e "JobID: $JOBID
 ======"
 echo "Time: `date`"
@@ -38,4 +40,5 @@ echo "Running on master node: `hostname`"
 echo "Current directory: `pwd`"
 
 echo -e "\nnumtasks=$numtasks, numnodes=$numnodes, mpi_tasks_per_node=$mpi_tasks_per_node (OMP_NUM_THREADS=$OMP_NUM_THREADS)"
-python src/main.py --config configs/Rerank/decoder_experiments/decoder_rerank.jsonnet --mode test --experiment_name TEST_OKVQA_Decoder_Rerank_ckpt_model_step_2002 --tags "OKVQA_Decoder_Rerank" "test" --opts train.load_model_path="experiments/OKVQA_Decoder_Reranker_low_lr/train/saved_models/model_step_2002.ckpt" > log_TEST_OKVQA_Decoder_Rerank_ckpt_model_step_2002 2>&1
+
+python src/main.py --config configs/Rerank/loss_function/okvqa_full_context_rerank_neg_sample.jsonnet --mode train --experiment_name OKVQA_FLMRQuery_Full_Context_Rerank_B_Neg_Sample_ckpt_model_step_7552 --reset --override --tags "OKVQA_FLMRQuery_Full_Context_Rerank_B_Neg_Sample" "train" --opts train.load_model_path="/home/fz288/rds/hpc-work/PreFLMR/experiments/OKVQA_FLMRQuery_Full_Context_Rerank_B_Neg_Sample_ckpt_model_step_6042/train/saved_models/model_step_7552.ckpt" > log_OKVQA_FLMRQuery_Full_Context_Rerank_B_Neg_Sample_ckpt_model_step_7552 2>&1

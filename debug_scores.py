@@ -2,8 +2,10 @@ import json
 import math
 from collections import defaultdict
 import numpy as np
+import matplotlib.pyplot as plt
 
-RERANKER_RESULTS = "/home/fz288/rds/hpc-work/PreFLMR/experiments/TEST_OKVQA_FLMRQuery_Full_Context_Rerank_ckpt_model_step_8048/test/_test_OKVQADatasetForDPR.test_predictions_rank_0.json"
+
+RERANKER_RESULTS = "/home/fz288/rds/hpc-work/PreFLMR/experiments/TEST_OKVQA_FLMRQuery_Full_Context_Rerank_B_Neg_Sample_ckpt_model_step_1510/test/_test_OKVQADatasetForDPR.test_predictions_rank_0.json"
 
 with open(RERANKER_RESULTS, "rb") as f:
     data = json.load(f)['output']
@@ -154,12 +156,37 @@ for correct_top_ranking in sorted(average_losses_by_correct_top_ranking.keys()):
     print(f"Correct Top Ranking: {correct_top_ranking}, Average Loss: {avg_loss}, Median Loss: {median_loss}, Count: {count}")
     
 # Example usage of finding examples with high and low loss
-high_loss_high_correct, low_loss_low_correct = find_examples_with_high_low_loss(data, threshold=1, cutoff=2)
+high_loss_high_correct, low_loss_low_correct = find_examples_with_high_low_loss(data, threshold=1, cutoff=1)
+
+
+# Calculate the minimum and maximum loss for high and low loss examples
+high_loss_high_correct_min_max = [(min([p['loss'] for p in item['top_ranking_passages']]), max([p['loss'] for p in item['top_ranking_passages']])) for item in high_loss_high_correct]
+low_loss_low_correct_min_max = [(min([p['loss'] for p in item['top_ranking_passages']]), max([p['loss'] for p in item['top_ranking_passages']])) for item in low_loss_low_correct]
 
 print("\nHigh loss and high correct_top_ranking examples:")
-for example in high_loss_high_correct:
-    print(f"Loss: {example['top_ranking_passages_average_loss']}, Correct Top Ranking: {example['correct_top_ranking']}")
+for example, (min_loss, max_loss) in zip(high_loss_high_correct, high_loss_high_correct_min_max):
+    print(f"Loss: {example['top_ranking_passages_average_loss']}, Correct Top Ranking: {example['correct_top_ranking']}, Min Loss: {min_loss}, Max Loss: {max_loss}")
 
 print("\nLow loss and low correct_top_ranking examples:")
-for example in low_loss_low_correct:
-    print(f"Loss: {example['top_ranking_passages_average_loss']}, Correct Top Ranking: {example['correct_top_ranking']}")
+for example, (min_loss, max_loss) in zip(low_loss_low_correct, low_loss_low_correct_min_max):
+    print(f"Loss: {example['top_ranking_passages_average_loss']}, Correct Top Ranking: {example['correct_top_ranking']}, Min Loss: {min_loss}, Max Loss: {max_loss}")
+    
+    
+high_loss_high_correct_losses = [p['loss'] for item in high_loss_high_correct for p in item['top_ranking_passages']]
+plt.figure()
+plt.hist(high_loss_high_correct_losses, bins=10, color='blue', edgecolor='black')
+plt.title('Histogram of Losses - High Loss High Correct')
+plt.xlabel('Loss')
+plt.ylabel('Frequency')
+plt.savefig('high_loss_high_correct_histogram.png')
+plt.close()
+
+# Low loss and low correct_top_ranking examples
+low_loss_low_correct_losses = [p['loss'] for item in low_loss_low_correct for p in item['top_ranking_passages']]
+plt.figure()
+plt.hist(low_loss_low_correct_losses, bins=10, color='red', edgecolor='black')
+plt.title('Histogram of Losses - Low Loss Low Correct')
+plt.xlabel('Loss')
+plt.ylabel('Frequency')
+plt.savefig('low_loss_low_correct_histogram.png')
+plt.close()

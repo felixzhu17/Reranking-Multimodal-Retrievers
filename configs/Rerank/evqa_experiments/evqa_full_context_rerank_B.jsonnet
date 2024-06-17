@@ -2,8 +2,8 @@ local meta = import '../../meta_configs/hpc_meta_config.libsonnet';
 local data = import '../../data/evqa_data.libsonnet';
 local merge_data = data.merge_data_pipeline;
 
-local pretrained_ckpt_path = "LinWeizheDragon/PreFLMR_ViT-L";
-local reranker_pretrained_ckpt_path = "LinWeizheDragon/PreFLMR_ViT-L";
+local pretrained_ckpt_path = "LinWeizheDragon/PreFLMR_ViT-B";
+local reranker_pretrained_ckpt_path = "LinWeizheDragon/PreFLMR_ViT-B";
 local image_processor_name = "laion/CLIP-ViT-bigG-14-laion2B-39B-b160k";
 
 local tokenizer_config = {
@@ -35,18 +35,7 @@ local index_files = {
   "index_path": "",
   "embedding_path": "",
   "static_results": [
-    "/home/fz288/rds/hpc-work/PreFLMR/search_index/generate_train_index/generate_train_index_test_EVQADatasetForDPR.train_predictions_rank_0.pkl",
-    "/home/fz288/rds/hpc-work/PreFLMR/search_index/generate_train_index/generate_train_index_test_EVQADatasetForDPR.train_predictions_rank_1.pkl",
-    "/home/fz288/rds/hpc-work/PreFLMR/search_index/generate_train_index/generate_train_index_test_EVQADatasetForDPR.train_predictions_rank_2.pkl",
-    "/home/fz288/rds/hpc-work/PreFLMR/search_index/generate_train_index/generate_train_index_test_EVQADatasetForDPR.train_predictions_rank_3.pkl",
-    "/home/fz288/rds/hpc-work/PreFLMR/search_index/generate_valid_index/generate_valid_index_test_EVQADatasetForDPR.valid_predictions_rank_0.pkl",
-    "/home/fz288/rds/hpc-work/PreFLMR/search_index/generate_valid_index/generate_valid_index_test_EVQADatasetForDPR.valid_predictions_rank_1.pkl",
-    "/home/fz288/rds/hpc-work/PreFLMR/search_index/generate_valid_index/generate_valid_index_test_EVQADatasetForDPR.valid_predictions_rank_2.pkl",
-    "/home/fz288/rds/hpc-work/PreFLMR/search_index/generate_valid_index/generate_valid_index_test_EVQADatasetForDPR.valid_predictions_rank_3.pkl",
-    "/home/fz288/rds/hpc-work/PreFLMR/search_index/generate_test_index/generate_test_index_test_EVQADatasetForDPR.valid_predictions_rank_0.pkl",
-    "/home/fz288/rds/hpc-work/PreFLMR/search_index/generate_test_index/generate_test_index_test_EVQADatasetForDPR.valid_predictions_rank_1.pkl",
-    "/home/fz288/rds/hpc-work/PreFLMR/search_index/generate_test_index/generate_test_index_test_EVQADatasetForDPR.valid_predictions_rank_2.pkl",
-    "/home/fz288/rds/hpc-work/PreFLMR/search_index/generate_test_index/generate_test_index_test_EVQADatasetForDPR.valid_predictions_rank_3.pkl",
+    "/home/fz288/rds/hpc-work/PreFLMR/search_index/EVQA/PreFLMR-B/_test_EVQADatasetForDPR.test_predictions_rank_0.pkl"
   ],
 };
 
@@ -107,7 +96,7 @@ local validation_indexing_source = ["evqa_passages"];
 local data_pipeline = std.mergePatch(merge_data, data_loader);
 
 {
-    experiment_name: 'EVQA_FLMRQueryEncoder(query+doc)_BERT(1Layer)_SingleHead_BCE',
+    experiment_name: 'EVQA_FLMRQuery',
     test_suffix: 'default_test',
     meta: meta.default_meta,
     data_pipeline: data_pipeline,
@@ -121,13 +110,14 @@ local data_pipeline = std.mergePatch(merge_data, data_loader);
         "reranker_config":{
           "base_model": "FLMR",
           "pretrain_config_class": "FLMRConfig",
-          "RerankerClass": "RerankModel",
+          "RerankerClass": "FullContextRerankModel",
           "pretrain_model_version": reranker_pretrained_ckpt_path,
           "cross_encoder_config_base": "bert-base-uncased",
           "cross_encoder_num_hidden_layers": 1,
-          "cross_encoder_max_position_embeddings": 900,
-          "loss_fn": "BCE"
-
+          "cross_encoder_max_position_embeddings": 750,
+          "loss_fn": "BCE",
+          "max_query_length": 32,
+          "max_decoder_source_length": 512,
         },
         "Ks": [5, 10, 20, 50, 100],
         "num_negative_samples": 4,
@@ -137,7 +127,8 @@ local data_pipeline = std.mergePatch(merge_data, data_loader);
         "pretrained": 1,
         "modules": [
             "separate_query_and_item_encoders",
-            // "full_validation"
+            "full_context_reranker",
+            "freeze_reranker_vision_encoder"
         ],
         "index_files": index_files,
         "nbits": 8,
@@ -238,7 +229,7 @@ local data_pipeline = std.mergePatch(merge_data, data_loader);
             devices: 'auto',
             strategy: 'ddp_find_unused_parameters_true',
             precision: 'bf16',
-            // limit_test_batches: 65,
+            limit_test_batches: 65,
         },
         batch_size: 16,
         num_dataloader_workers: 0,

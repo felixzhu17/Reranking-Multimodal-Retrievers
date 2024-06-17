@@ -4,7 +4,7 @@
 #SBATCH --nodes=1
 #SBATCH --ntasks=1
 #SBATCH --gres=gpu:1
-#SBATCH --time=5:00:00
+#SBATCH --time=10:00:00
 #SBATCH --mail-type=NONE
 #SBATCH -p ampere
 
@@ -38,4 +38,4 @@ echo "Running on master node: `hostname`"
 echo "Current directory: `pwd`"
 
 echo -e "\nnumtasks=$numtasks, numnodes=$numnodes, mpi_tasks_per_node=$mpi_tasks_per_node (OMP_NUM_THREADS=$OMP_NUM_THREADS)"
-python src/main.py --config configs/Rerank/decoder_experiments/decoder_head_rerank.jsonnet --mode test --reset --override --experiment_name TEST_OKVQA_Decoder_Head_Rerank_ckpt_model_step_2002 --tags "OKVQA_Decoder_Head_Rerank" "test" --opts train.load_model_path="experiments/OKVQA_Decoder_Head_Reranker_low_lr/train/saved_models/model_step_2002.ckpt" > log_TEST_OKVQA_Decoder_Head_Rerank_ckpt_model_step_2002 2>&1
+python src/main.py --config configs/Rerank/decoder_experiments/decoder_head_rerank.jsonnet --mode test --experiment_name TEST_OKVQA_Decoder_Head_Rerank_ckpt_model_step_2002 --tags "OKVQA_Decoder_Head_Rerank" "test" --opts train.load_model_path="experiments/OKVQA_Decoder_Head_Reranker_low_lr/train/saved_models/model_step_2002.ckpt" > log_TEST_OKVQA_Decoder_Head_Rerank_ckpt_model_step_2002 2>&1

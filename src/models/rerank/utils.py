@@ -217,6 +217,7 @@ def initialise_loss_fn(config, device):
             print("Weighted CE Loss", class_weights)
         loss_fn = nn.CrossEntropyLoss(weight=class_weights)
     elif config.loss_fn == "negative_sampling":
+        print("Negative Sampling")
         loss_fn = nn.CrossEntropyLoss()
     else:
         raise ValueError(f"Unknown loss function {config.loss_fn}")
