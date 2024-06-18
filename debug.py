@@ -6,7 +6,7 @@ RERANKER_RESULTS = "/home/fz288/rds/hpc-work/PreFLMR/experiments/TEST_OKVQA_FLMR
 with open(RERANKER_RESULTS, "rb") as f:
     data = json.load(f)['output']
 
-
+raise ValueError
 # Function to calculate correctness based on passage_id
 def calculate_correctness(passage_list, pos_item_ids):
     return sum(1 for passage in passage_list if passage['passage_id'] in pos_item_ids)

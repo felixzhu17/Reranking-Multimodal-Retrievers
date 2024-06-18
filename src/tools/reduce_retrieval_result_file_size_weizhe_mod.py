@@ -18,11 +18,14 @@ for file_path in input_files:
     new_data = {
         "output": [],
     }
-    for prediction in tqdm(data["output"]):
-        # print(prediction.keys())
-        for pred in prediction["top_ranking_passages"]:
-            pred.pop("content")
-        new_data["output"].append(prediction)
+    for question_id, value in tqdm(data.items()):
+        # Create a new dictionary for each item
+        pred = {
+            'question_id': question_id,
+            'top_ranking_passages': value['retrieved_passage']
+        }
+        # Append to the output list
+        new_data["output"].append(pred)
 
     # save new data to target_file_path
     print(f"Saving to {target_file_path}")

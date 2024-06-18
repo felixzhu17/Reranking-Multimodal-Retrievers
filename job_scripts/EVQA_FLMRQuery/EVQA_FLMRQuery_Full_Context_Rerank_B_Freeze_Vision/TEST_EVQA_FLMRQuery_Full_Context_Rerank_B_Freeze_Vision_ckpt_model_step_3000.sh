@@ -1,10 +1,10 @@
 #!/bin/bash
-#SBATCH -J TEST_EVQA_Decoder_Rerank_ckpt_model_step_1250
+#SBATCH -J TEST_EVQA_FLMRQuery_Full_Context_Rerank_B_Freeze_Vision_ckpt_model_step_3000
 #SBATCH -A MLMI-fz288-SL2-GPU
 #SBATCH --nodes=1
 #SBATCH --ntasks=1
 #SBATCH --gres=gpu:1
-#SBATCH --time=8:00:00
+#SBATCH --time=4:00:00
 #SBATCH --mail-type=NONE
 #SBATCH -p ampere
 
@@ -38,4 +38,4 @@ echo "Running on master node: `hostname`"
 echo "Current directory: `pwd`"
 
 echo -e "\nnumtasks=$numtasks, numnodes=$numnodes, mpi_tasks_per_node=$mpi_tasks_per_node (OMP_NUM_THREADS=$OMP_NUM_THREADS)"
-python src/main.py --config configs/Rerank/evqa_experiments/evqa_decoder.jsonnet --mode test --reset --override --experiment_name TEST_EVQA_Decoder_Rerank_ckpt_model_step_1250 --tags "EVQA_Decoder_Rerank" "test" --opts train.load_model_path="experiments/EVQA_Decoder_Reranker/train/saved_models/model_step_1250.ckpt" > slurm_log_$JOBID 2>&1
+python src/main.py --config configs/Rerank/evqa_experiments/evqa_full_context_rerank_B.jsonnet --mode test --experiment_name TEST_EVQA_FLMRQuery_Full_Context_Rerank_B_Freeze_Vision_ckpt_model_step_3000 --tags "EVQA_FLMRQuery_Full_Context_Rerank_B_Freeze_Vision" "test" --opts train.load_model_path="/home/fz288/rds/hpc-work/PreFLMR/experiments/EVQA_FLMRQuery_Full_Context_Rerank_B_Freeze_Vision/train/saved_models/model_step_3000.ckpt" > log_TEST_EVQA_FLMRQuery_Full_Context_Rerank_B_Freeze_Vision_ckpt_model_step_3000 2>&1

@@ -1,19 +1,2 @@
-python src/main.py --config configs/Rerank/initial_experiments/okvqa_base_rerank.jsonnet --mode train --experiment_name DEBUGDUMMY --reset --override  --opts train.trainer_paras.limit_val_batches=2 train.trainer_paras.limit_train_batches=5 train.trainer_paras.max_epochs=1
+python src/main.py --config configs/Rerank/evqa_experiments/evqa_full_context_rerank_B.jsonnet --mode train --experiment_name DEBUGDUMMY --reset --override  --opts train.load_model_path="/home/fz288/rds/hpc-work/PreFLMR/experiments/OKVQA_FLMRQuery_Full_Context_Rerank_B_Freeze_Vision_ckpt_model_step_3021/train/saved_models/model_step_6042.ckpt" train.trainer_paras.limit_val_batches=2 train.trainer_paras.limit_train_batches=5 train.trainer_paras.max_epochs=1
 python src/main.py --config configs/Rerank/initial_experiments/okvqa_full_context_rerank.jsonnet --mode test --experiment_name TESTDEBUGDUMMY --reset --override  --opts test.trainer_paras.limit_test_batches=1 test.trainer_paras.max_epochs=1 test.batch_size=3
-
-
-configs/Rerank/initial_experiments/okvqa_full_context_rerank_B_freeze_vision.jsonnet
-
-
-mv /home/fz288/rds/hpc-work/PreFLMR/experiments/TEST_EVQA_FLMR_Index_B /home/fz288/rds/hpc-work/PreFLMR/experiments/TEST_EVQA_FLMR_Index_G /home/fz288/rds/hpc-work/PreFLMR/experiments/TEST_EVQA_FLMR_Index_L
-/home/fz288/rds/hpc-work/PreFLMR/experiments/TEST_OKVQA_FLMR_Index_2
-/home/fz288/rds/hpc-work/PreFLMR/experiments/TEST_OKVQA_FLMR_Index_G
-/home/fz288/rds/hpc-work/PreFLMR/experiments/TEST_OKVQA_FLMR_Index_L
-/home/fz288/rds/hpc-work/PreFLMR/experiments/TEST_OKVQA_FLMRQuery_Full_Context_Rerank_2H_BCE_ckpt_model_step_1000
-/home/fz288/rds/hpc-work/PreFLMR/experiments/OKVQA_FLMRQuery_Full_Context_Rerank
-/home/fz288/rds/hpc-work/PreFLMR/experiments/OKVQA_FLMRQuery_Full_Context_Rerank_ckpt_model_step_1007
-/home/fz288/rds/hpc-work/PreFLMR/experiments/OKVQA_FLMRQuery_Full_Context_Rerank_ckpt_model_step_2014
-/home/fz288/rds/hpc-work/PreFLMR/experiments/OKVQA_FLMRQuery_Full_Context_Rerank_ckpt_model_step_4531
-/home/fz288/rds/hpc-work/PreFLMR/experiments/OKVQA_FLMRQuery_Full_Context_Rerank_ckpt_model_step_5531
-/home/fz288/rds/hpc-work/PreFLMR/experiments/OKVQA_FLMRQuery_Full_Context_Rerank_L
-/home/fz288/rds/hpc-work/PreFLMR/experiments/OKVQA_FLMRQuery_Full_Context_Rerank_L_ckpt_model_step_2014

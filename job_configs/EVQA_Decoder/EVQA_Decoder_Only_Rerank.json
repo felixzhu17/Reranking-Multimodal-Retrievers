@@ -1,0 +1,7 @@
+[
+    {
+        "config_file": "configs/Rerank/evqa_experiments/evqa_decoder_only.jsonnet",
+        "time": "4:00:00",
+        "gpus": 2
+    }
+]

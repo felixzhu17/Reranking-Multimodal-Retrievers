@@ -1,5 +1,5 @@
 #!/bin/bash
-#SBATCH -J EVQA_Decoder_Rerank_ckpt_model_step_2250
+#SBATCH -J TEST_OKVQA_FLMRQuery_Full_Context_Rerank_B_Freeze_Vision_cross_encoder_num_hidden_layers3_ckpt_model_step_2014
 #SBATCH -A MLMI-fz288-SL2-GPU
 #SBATCH --nodes=1
 #SBATCH --ntasks=1
@@ -29,8 +29,6 @@ export CUDA_VISIBLE_DEVICES=$gpu_indices
 echo "CUDA_VISIBLE_DEVICES=$CUDA_VISIBLE_DEVICES"
 
 JOBID=$SLURM_JOB_ID
-
-
 echo -e "JobID: $JOBID
 ======"
 echo "Time: `date`"
@@ -40,5 +38,4 @@ echo "Running on master node: `hostname`"
 echo "Current directory: `pwd`"
 
 echo -e "\nnumtasks=$numtasks, numnodes=$numnodes, mpi_tasks_per_node=$mpi_tasks_per_node (OMP_NUM_THREADS=$OMP_NUM_THREADS)"
-
-python src/main.py --config configs/Rerank/evqa_experiments/evqa_decoder.jsonnet --mode train --experiment_name EVQA_Decoder_Rerank_ckpt_model_step_2250 --reset --override --tags "EVQA_Decoder_Rerank" "train" --opts train.load_model_path="experiments/EVQA_Decoder_Rerank_ckpt_model_step_1250/train/saved_models/model_step_2250.ckpt" > log_EVQA_Decoder_Rerank_ckpt_model_step_2250 2>&1
+python src/main.py --config configs/Rerank/initial_experiments/okvqa_full_context_rerank_B_freeze_vision.jsonnet --mode test --experiment_name TEST_OKVQA_FLMRQuery_Full_Context_Rerank_B_Freeze_Vision_cross_encoder_num_hidden_layers3_ckpt_model_step_2014 --tags "OKVQA_FLMRQuery_Full_Context_Rerank_B_Freeze_Vision" "test" --opts model_config.reranker_config.cross_encoder_num_hidden_layers=3 train.load_model_path="/home/fz288/rds/hpc-work/PreFLMR/experiments/OKVQA_FLMRQuery_Full_Context_Rerank_B_Freeze_Vision_cross_encoder_num_hidden_layers3/train/saved_models/model_step_2014.ckpt" > log_TEST_OKVQA_FLMRQuery_Full_Context_Rerank_B_Freeze_Vision_cross_encoder_num_hidden_layers3_ckpt_model_step_2014 2>&1

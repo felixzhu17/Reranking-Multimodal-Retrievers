@@ -35,18 +35,7 @@ local index_files = {
   "index_path": "",
   "embedding_path": "",
   "static_results": [
-    "/home/fz288/rds/hpc-work/PreFLMR/search_index/generate_train_index/generate_train_index_test_EVQADatasetForDPR.train_predictions_rank_0.pkl",
-    "/home/fz288/rds/hpc-work/PreFLMR/search_index/generate_train_index/generate_train_index_test_EVQADatasetForDPR.train_predictions_rank_1.pkl",
-    "/home/fz288/rds/hpc-work/PreFLMR/search_index/generate_train_index/generate_train_index_test_EVQADatasetForDPR.train_predictions_rank_2.pkl",
-    "/home/fz288/rds/hpc-work/PreFLMR/search_index/generate_train_index/generate_train_index_test_EVQADatasetForDPR.train_predictions_rank_3.pkl",
-    "/home/fz288/rds/hpc-work/PreFLMR/search_index/generate_valid_index/generate_valid_index_test_EVQADatasetForDPR.valid_predictions_rank_0.pkl",
-    "/home/fz288/rds/hpc-work/PreFLMR/search_index/generate_valid_index/generate_valid_index_test_EVQADatasetForDPR.valid_predictions_rank_1.pkl",
-    "/home/fz288/rds/hpc-work/PreFLMR/search_index/generate_valid_index/generate_valid_index_test_EVQADatasetForDPR.valid_predictions_rank_2.pkl",
-    "/home/fz288/rds/hpc-work/PreFLMR/search_index/generate_valid_index/generate_valid_index_test_EVQADatasetForDPR.valid_predictions_rank_3.pkl",
-    "/home/fz288/rds/hpc-work/PreFLMR/search_index/generate_test_index/generate_test_index_test_EVQADatasetForDPR.valid_predictions_rank_0.pkl",
-    "/home/fz288/rds/hpc-work/PreFLMR/search_index/generate_test_index/generate_test_index_test_EVQADatasetForDPR.valid_predictions_rank_1.pkl",
-    "/home/fz288/rds/hpc-work/PreFLMR/search_index/generate_test_index/generate_test_index_test_EVQADatasetForDPR.valid_predictions_rank_2.pkl",
-    "/home/fz288/rds/hpc-work/PreFLMR/search_index/generate_test_index/generate_test_index_test_EVQADatasetForDPR.valid_predictions_rank_3.pkl",
+    "/home/fz288/rds/hpc-work/PreFLMR/search_index/EVQA/PreFLMR-B/_test_EVQADatasetForDPR.test_predictions_rank_0.pkl"
   ],
 };
 
@@ -125,6 +114,7 @@ local data_pipeline = std.mergePatch(merge_data, data_loader);
           "GeneratorModelVersion": "Salesforce/blip2-flan-t5-xl",
           "max_query_length": 32,
           "max_decoder_source_length": 512,
+          "loss_fn": "seq2seq"
         },
         "Ks": [5, 10, 20, 50, 100],
         "num_negative_samples": 4,
@@ -192,10 +182,10 @@ local data_pipeline = std.mergePatch(merge_data, data_loader);
             max_epochs: -1,
             accumulate_grad_batches: 16,
             check_val_every_n_epoch: null,
-            val_check_interval: 1000,
+            val_check_interval: 500,
             log_every_n_steps: 10,
             // limit_train_batches: 2,
-            limit_val_batches: 60,
+            limit_val_batches: 3,
         },
         model_checkpoint_callback_paras: {
             monitor: 'valid/EVQADatasetForDPR.test/loss',

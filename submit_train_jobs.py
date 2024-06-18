@@ -78,7 +78,7 @@ def main(config_name):
     config_file = os.path.join('job_configs', f"{config_name}.json")
     configs = load_configs(config_file)
     base_experiment_name = get_base_experiment_name(config_file)
-    tags = [base_experiment_name, 'train']
+    tags = [base_experiment_name[:63], 'train']
     tags_str = " ".join(f'"{tag}"' for tag in tags)  
 
     for config in configs:

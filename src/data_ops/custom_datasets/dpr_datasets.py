@@ -145,9 +145,6 @@ class CommonDatasetForDPR(DPRBaseDataset, ModuleParser):
         sample = EasyDict(self.data[idx])
         item = sample
         # these two belong to a positive sample (in annotations)
-
-        print(item.pos_item_ids)
-
         selected_pos_index = random.sample(range(len(item.pos_item_ids)), k=1)[0]
         passage_id = item.pos_item_ids[selected_pos_index]
         passage_content = item.pos_item_contents[

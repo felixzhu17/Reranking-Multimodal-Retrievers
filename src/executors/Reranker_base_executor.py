@@ -197,6 +197,7 @@ class RerankerBaseExecutor(BaseExecutor, MetricsProcessor):
             reranker_config.pos_weight = self.model_config.num_negative_samples + 1
         else:
             reranker_config.pos_weight = None
+            
         
         self.reranker = RerankerClass(reranker_config)
         
@@ -485,7 +486,54 @@ class RerankerBaseExecutor(BaseExecutor, MetricsProcessor):
             },
         }
 
+    def negative_sample_model_inputs(self, sample_batched, batch):
+        local_random = random.Random()
+        context_input_ids, context_attention_masks, context_docs = [], [], []
+        for question_id, pos_item_ids in zip(
+            sample_batched["question_ids"], sample_batched["pos_item_ids"]
+        ):
+            retrieved_docs = self.static_retrieve(question_id).retrieved_docs
+            pos_item_ids = set(pos_item_ids)
+            positive_docs = []
+            negative_docs = []
+
+            for doc in retrieved_docs:
+                if doc["passage_id"] in pos_item_ids:
+                    positive_docs.append(doc)
+                else:
+                    negative_docs.append(doc)
+
+            if len(positive_docs) == 0:
+                passage_id = local_random.sample(pos_item_ids, 1)[0]
+                positive_docs = [
+                    {
+                        "score": 10,
+                        "title": "",
+                        "content": self.passage_id2doc.get(passage_id, ""),
+                        "passage_id": passage_id,
+                    }
+                ]
+            sampled_docs = local_random.sample(positive_docs, 1) + local_random.sample(
+                negative_docs, self.model_config.num_negative_samples
+            )
+            retrieved_docs_content = [doc["content"] for doc in sampled_docs]
+            context_input_id, context_attention_mask = self.tokenize_retrieved_docs(
+                retrieved_docs_content
+            )
+            context_input_ids.append(context_input_id)
+            context_attention_masks.append(context_attention_mask)
+            context_docs.extend(retrieved_docs_content)
+        if "decoder_reranker" in self.model_config.modules or "full_context_reranker" in self.model_config.modules:
+            batch["context_text_sequences"] = context_docs
+        else:
+            batch["context_input_ids"] = torch.cat(context_input_ids, dim=0)
+            batch["context_attention_mask"] = torch.cat(
+                context_attention_masks, dim=0
+            )
+        return batch, None
+
     def sample_model_inputs(self, sample_batched, batch, n_docs = None):
+        local_random = random.Random()
         context_input_ids, context_attention_masks, context_docs, labels = [], [], [], []
         n_docs = n_docs if n_docs else self.model_config.num_negative_samples + 1
         for question_id, pos_item_ids in zip(
@@ -495,7 +543,7 @@ class RerankerBaseExecutor(BaseExecutor, MetricsProcessor):
             pos_item_ids = set(pos_item_ids)
 
             # Sample documents
-            sampled_docs = random.sample(retrieved_docs, n_docs)
+            sampled_docs = local_random.sample(retrieved_docs, n_docs)
 
             # Create labels for the sampled documents
             question_labels = [1 if doc["passage_id"] in pos_item_ids else 0 for doc in sampled_docs]
@@ -526,7 +574,10 @@ class RerankerBaseExecutor(BaseExecutor, MetricsProcessor):
         train_batch = self.get_model_inputs(sample_batched)
 
         if "train_with_retrieved_docs" in self.model_config.modules:
-            train_batch, labels = self.sample_model_inputs(sample_batched, train_batch)
+            if self.model_config.reranker_config.loss_fn == "negative_sampling":
+                train_batch, labels = self.negative_sample_model_inputs(sample_batched, train_batch)
+            else:
+                train_batch, labels = self.sample_model_inputs(sample_batched, train_batch)
 
         if "interaction_reranker" in self.model_config.modules:
             retrieval_results = self.retriever(**train_batch)
@@ -543,7 +594,7 @@ class RerankerBaseExecutor(BaseExecutor, MetricsProcessor):
             train_batch["preflmr_scores"] = retrieval_results.scores_raw if retrieval_results is not None else self.retriever(**train_batch).scores_raw
             train_batch["fusion_multiplier"] = self.model_config.fusion_multiplier
             
-        if "train_with_retrieved_docs" in self.model_config.modules:
+        if "train_with_retrieved_docs" in self.model_config.modules and self.model_config.reranker_config.loss_fn != "negative_sampling":
             assert labels is not None
             train_batch["labels"] = labels
         else:
@@ -681,9 +732,12 @@ class RerankerBaseExecutor(BaseExecutor, MetricsProcessor):
         test_batch = self.get_model_inputs(sample_batched)
         
         if n_docs or "test_with_retrieved_docs" in self.model_config.modules:
-            print('x')
-            test_batch, labels = self.sample_model_inputs(sample_batched, test_batch, n_docs)
-        
+            if self.model_config.reranker_config.loss_fn == "negative_sampling":
+                print("HEREEEE")
+                test_batch, labels = self.negative_sample_model_inputs(sample_batched, test_batch)
+            else:
+                test_batch, labels = self.sample_model_inputs(sample_batched, test_batch)
+                    
         if "interaction_reranker" in self.model_config.modules:
             retrieval_results = self.retriever(**test_batch)
             test_batch = {
@@ -697,8 +751,7 @@ class RerankerBaseExecutor(BaseExecutor, MetricsProcessor):
             test_batch["preflmr_scores"] = retrieval_results.scores_raw if retrieval_results is not None else self.retriever(**test_batch).scores_raw
             test_batch["fusion_multiplier"] = self.model_config.fusion_multiplier
             
-        if n_docs or "test_with_retrieved_docs" in self.model_config.modules:
-            print('y')
+        if n_docs or "test_with_retrieved_docs" in self.model_config.modules and self.model_config.reranker_config.loss_fn != "negative_sampling":
             assert labels is not None
             test_batch["labels"] = labels
         else:
@@ -784,7 +837,10 @@ class RerankerBaseExecutor(BaseExecutor, MetricsProcessor):
             
             retrieved_docs = self.static_retrieve(question_id).retrieved_docs
             retrieved_docs_content = [i["content"] for i in retrieved_docs]
-            labels = [1 if doc["passage_id"] in pos_ids else 0 for doc in retrieved_docs]
+            if self.model_config.reranker_config.loss_fn == "negative_sampling":
+                labels = None
+            else:
+                labels = [1 if doc["passage_id"] in pos_ids else 0 for doc in retrieved_docs]
             context_input_ids, context_attention_masks = self.tokenize_retrieved_docs(
                 retrieved_docs_content
             )

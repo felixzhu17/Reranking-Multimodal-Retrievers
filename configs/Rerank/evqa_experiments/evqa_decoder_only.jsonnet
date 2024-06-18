@@ -1,5 +1,5 @@
 local meta = import '../../meta_configs/hpc_meta_config.libsonnet';
-local data = import '../../data/okvqa_data.libsonnet';
+local data = import '../../data/evqa_data.libsonnet';
 local merge_data = data.merge_data_pipeline;
 
 local pretrained_ckpt_path = "LinWeizheDragon/PreFLMR_ViT-B";
@@ -35,8 +35,7 @@ local index_files = {
   "index_path": "",
   "embedding_path": "",
   "static_results": [
-    "/home/fz288/rds/hpc-work/PreFLMR/search_index/OKVQA/PreFLMR-B/_test_OKVQADatasetForDPR.test_predictions_rank_0.pkl",
-    "/home/fz288/rds/hpc-work/PreFLMR/search_index/OKVQA/PreFLMR-B/_test_OKVQADatasetForDPR.train_predictions_rank_0.pkl",
+    "/home/fz288/rds/hpc-work/PreFLMR/search_index/EVQA/PreFLMR-B/_test_EVQADatasetForDPR.test_predictions_rank_0.pkl"
   ],
 };
 
@@ -59,28 +58,28 @@ local data_loader = {
           "train_passages": "train_passages",
           "valid_passages": "valid_passages",
           "test_passages": "test_passages",
-          "vqa_data_with_dpr_output": "okvqa_data",
+          "vqa_data_with_dpr_output": "evqa_data",
         },
         datasets_config: {
           train: [
             {
-              dataset_type: 'OKVQADatasetForDPR',
+              dataset_type: 'EVQADatasetForDPR',
               split: 'train',
-              use_column: 'okvqa_data',
+              use_column: 'evqa_data',
             },
           ],
           valid: [
             {
-              dataset_type: 'OKVQADatasetForDPR',
+              dataset_type: 'EVQADatasetForDPR',
               split: 'test',
-              use_column: 'okvqa_data',
+              use_column: 'evqa_data',
             },
           ],
           test: [
             {
-              dataset_type: 'OKVQADatasetForDPR',
+              dataset_type: 'EVQADatasetForDPR',
               split: 'test',
-              use_column: 'okvqa_data',
+              use_column: 'evqa_data',
             },
           ],
         },
@@ -92,12 +91,12 @@ local data_loader = {
   },
 };
 
-local validation_indexing_source = ["okvqa_passages"];
+local validation_indexing_source = ["evqa_passages"];
 
 local data_pipeline = std.mergePatch(merge_data, data_loader);
 
 {
-    experiment_name: 'OKVQA_Reranker',
+    experiment_name: 'EVQA_Decoder_Reranker',
     test_suffix: 'default_test',
     meta: meta.default_meta,
     data_pipeline: data_pipeline,
@@ -109,16 +108,13 @@ local data_pipeline = std.mergePatch(merge_data, data_loader);
           "ModelVersion": pretrained_ckpt_path,
         },
         "reranker_config":{
-          "base_model": "FLMR",
-          "pretrain_config_class": "FLMRConfig",
-          "RerankerClass": "FullContextRerankModel",
-          "pretrain_model_version": reranker_pretrained_ckpt_path,
-          "cross_encoder_config_base": "bert-base-uncased",
-          "cross_encoder_num_hidden_layers": 1,
-          "cross_encoder_max_position_embeddings": 750,
-          "loss_fn": "BCE",
+          "RerankerClass":"DecoderRerankModel",
+          "GeneratorModelClass": "Blip2ForConditionalGeneration", // answer generator
+          "GeneratorConfigClass": "Blip2Config",
+          "GeneratorModelVersion": "Salesforce/blip2-opt-2.7b",
           "max_query_length": 32,
           "max_decoder_source_length": 512,
+          "loss_fn": "seq2seq"
         },
         "Ks": [5, 10, 20, 50, 100],
         "num_negative_samples": 4,
@@ -128,8 +124,8 @@ local data_pipeline = std.mergePatch(merge_data, data_loader);
         "pretrained": 1,
         "modules": [
             "separate_query_and_item_encoders",
-            "full_context_reranker"
-            // "full_validation"
+            // "full_validation",
+            "decoder_reranker"
         ],
         "index_files": index_files,
         "nbits": 8,
@@ -176,7 +172,7 @@ local data_pipeline = std.mergePatch(merge_data, data_loader);
         },
     },
     train: {
-        batch_size: 8,
+        batch_size: 2,
         num_dataloader_workers: 4,
         trainer_paras: {
             accelerator: 'auto',
@@ -184,14 +180,15 @@ local data_pipeline = std.mergePatch(merge_data, data_loader);
             strategy: 'ddp_find_unused_parameters_true',
             precision: 'bf16',
             max_epochs: -1,
-            accumulate_grad_batches: 8,
+            accumulate_grad_batches: 16,
             check_val_every_n_epoch: null,
-            val_check_interval: 1000,
+            val_check_interval: 500,
             log_every_n_steps: 10,
-            limit_val_batches: 50,
+            // limit_train_batches: 2,
+            limit_val_batches: 3,
         },
         model_checkpoint_callback_paras: {
-            monitor: 'valid/OKVQADatasetForDPR.test/loss',
+            monitor: 'valid/EVQADatasetForDPR.test/loss',
             save_top_k: 5,
             mode: "min",
             filename: 'model_step_{step}',
@@ -208,7 +205,7 @@ local data_pipeline = std.mergePatch(merge_data, data_loader);
         optimizer_config: {
             optimizer_name: "AdamW",
             optimizer_params: {
-                lr: 0.00001,
+                lr: 1e-4,
                 eps: 1e-08,
             },
             scheduler: "none",
