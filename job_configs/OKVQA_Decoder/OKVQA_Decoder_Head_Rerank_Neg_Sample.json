@@ -1,0 +1,14 @@
+[
+    {
+        "config_file": "configs/Rerank/decoder_experiments/decoder_head_rerank_neg_sample.jsonnet",
+        "time": "10:00:00",
+        "gpus": 1,
+        "ckpt_path": "/home/fz288/rds/hpc-work/PreFLMR/experiments/OKVQA_Decoder_Head_Rerank_Neg_Sample_ckpt_model_step_2002/train/saved_models/model_step_1001.ckpt"
+    },
+    {
+        "config_file": "configs/Rerank/decoder_experiments/decoder_head_rerank_neg_sample.jsonnet",
+        "time": "10:00:00",
+        "gpus": 1,
+        "ckpt_path": "/home/fz288/rds/hpc-work/PreFLMR/experiments/OKVQA_Decoder_Head_Rerank_Neg_Sample_ckpt_model_step_2002/train/saved_models/model_step_2002.ckpt"
+    }
+]

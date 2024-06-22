@@ -1,0 +1,13 @@
+Changed directory to /home/fz288/rds/hpc-work/PreFLMR.
+
+CUDA_VISIBLE_DEVICES=0,1
+JobID: 54495621
+======
+Time: Fri Jun 21 15:45:03 BST 2024
+Timestamp: 
+======
+Running on master node: gpu-q-1
+Current directory: /home/fz288/rds/hpc-work/PreFLMR
+
+numtasks=, numnodes=, mpi_tasks_per_node= (OMP_NUM_THREADS=1)
+slurmstepd: error: *** JOB 54495621 ON gpu-q-1 CANCELLED AT 2024-06-22T03:45:23 DUE TO TIME LIMIT ***

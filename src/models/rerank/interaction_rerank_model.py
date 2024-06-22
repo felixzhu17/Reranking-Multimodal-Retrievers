@@ -80,6 +80,9 @@ from easydict import EasyDict
 from transformers import BertConfig
 from typing import Optional, List
 
+
+LATE_INTERACTION_EMBEDDING_SIZE = 128
+
 class InteractionRerankModel(pl.LightningModule):
 
     def __init__(self, config: EasyDict) -> None:
@@ -96,12 +99,12 @@ class InteractionRerankModel(pl.LightningModule):
         cross_encoder_config.max_position_embeddings = self.config.cross_encoder_max_position_embeddings
 
         if self.config.interaction_type == "MORES":
+            print("USING MORES")
             self.reranker = MORESSym(cross_encoder_config)
         else:
             self.reranker = CrossEncoder(cross_encoder_config)
 
-        pretrain_config = FLMRConfig.from_pretrained(self.config.pretrain_model_version, trust_remote_code=True)
-        self.late_interaction_embedding_size = pretrain_config.dim
+        self.late_interaction_embedding_size = LATE_INTERACTION_EMBEDDING_SIZE
         self.cross_encoder_input_mapping = nn.Linear(self.late_interaction_embedding_size, cross_encoder_config.hidden_size)
 
     def forward(
@@ -144,7 +147,7 @@ class InteractionRerankModel(pl.LightningModule):
 
         if self.config.interaction_type == "MORES":
             query_inputs = self.cross_encoder_input_mapping(query_late_interaction)
-            context_inputs = self.cross_encoder_input_mapping(context_late_interaction)
+            context_inputs = self.cross_encoder_input_mapping(context_late_interaction.to(torch.float32))
             logits, logits_secondary = self.reranker(
                 qry=query_inputs,
                 doc=context_inputs,
@@ -160,5 +163,4 @@ class InteractionRerankModel(pl.LightningModule):
 
         logits, labels = prepare_logits_labels(self.config, logits, logits_secondary, batch_size, num_negative_examples, labels=labels)
         loss = self.loss_fn(logits, labels)
-        raise ValueError(loss)
         return EasyDict(loss=loss, logits=logits)

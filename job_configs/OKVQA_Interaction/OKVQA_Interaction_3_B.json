@@ -1,0 +1,32 @@
+[
+    {
+        "config_file": "configs/Rerank/interaction_experiments/okvqa_interaction_B_3.jsonnet",
+        "time": "1:00:00",
+        "gpus": 1,
+        "ckpt_path": "/home/fz288/rds/hpc-work/PreFLMR/experiments/OKVQA_Interaction_3_B_ckpt_model_step_4028/train/saved_models/model_step_6042.ckpt"
+    },
+    {
+        "config_file": "configs/Rerank/interaction_experiments/okvqa_interaction_B_3.jsonnet",
+        "time": "1:00:00",
+        "gpus": 1,
+        "ckpt_path": "/home/fz288/rds/hpc-work/PreFLMR/experiments/OKVQA_Interaction_3_B_ckpt_model_step_4028/train/saved_models/model_step_8056.ckpt"
+    },
+    {
+        "config_file": "configs/Rerank/interaction_experiments/okvqa_interaction_B_3.jsonnet",
+        "time": "1:00:00",
+        "gpus": 1,
+        "ckpt_path": "/home/fz288/rds/hpc-work/PreFLMR/experiments/OKVQA_Interaction_3_B_ckpt_model_step_4028/train/saved_models/model_step_10070.ckpt"
+    },
+    {
+        "config_file": "configs/Rerank/interaction_experiments/okvqa_interaction_B_3.jsonnet",
+        "time": "1:00:00",
+        "gpus": 1,
+        "ckpt_path": "/home/fz288/rds/hpc-work/PreFLMR/experiments/OKVQA_Interaction_3_B_ckpt_model_step_4028/train/saved_models/model_step_12084.ckpt"
+    },
+    {
+        "config_file": "configs/Rerank/interaction_experiments/okvqa_interaction_B_3.jsonnet",
+        "time": "1:00:00",
+        "gpus": 1,
+        "ckpt_path": "/home/fz288/rds/hpc-work/PreFLMR/experiments/OKVQA_Interaction_3_B_ckpt_model_step_4028/train/saved_models/model_step_14098.ckpt"
+    }
+]

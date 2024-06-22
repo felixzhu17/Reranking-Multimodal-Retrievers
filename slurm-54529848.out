@@ -1,0 +1,12 @@
+Changed directory to /home/fz288/rds/hpc-work/PreFLMR.
+
+CUDA_VISIBLE_DEVICES=0
+JobID: 54529848
+======
+Time: Sat Jun 22 10:06:46 BST 2024
+Timestamp: 
+======
+Running on master node: gpu-q-60
+Current directory: /home/fz288/rds/hpc-work/PreFLMR
+
+numtasks=, numnodes=, mpi_tasks_per_node= (OMP_NUM_THREADS=1)

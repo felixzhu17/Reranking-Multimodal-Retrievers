@@ -733,7 +733,6 @@ class RerankerBaseExecutor(BaseExecutor, MetricsProcessor):
         
         if n_docs or "test_with_retrieved_docs" in self.model_config.modules:
             if self.model_config.reranker_config.loss_fn == "negative_sampling":
-                print("HEREEEE")
                 test_batch, labels = self.negative_sample_model_inputs(sample_batched, test_batch)
             else:
                 test_batch, labels = self.sample_model_inputs(sample_batched, test_batch)
@@ -846,16 +845,34 @@ class RerankerBaseExecutor(BaseExecutor, MetricsProcessor):
             )
             
             if "decoder_reranker" in self.model_config.modules or "full_context_reranker" in self.model_config.modules:
-                batch_input = {
-                    "query_text_sequences": [query_text_sequence],
-                    "query_pixel_values": query_pixel_value,
-                    "context_text_sequences": retrieved_docs_content,
-                    "num_negative_examples": context_input_ids.shape[0] - query_input_id.shape[0],
-                    "labels": labels
-                }
-                    
+                if "split_testing_batch" in self.model_config.modules:
+                    mid = len(retrieved_docs_content) // 2
+                    first_batch_input = {
+                        "query_text_sequences": [query_text_sequence],
+                        "query_pixel_values": query_pixel_value,
+                        "context_text_sequences": retrieved_docs_content[:mid],
+                        "num_negative_examples": context_input_ids[:mid].shape[0] - query_input_id.shape[0],
+                        "labels": labels[:mid]
+                    }
+                    second_batch_input = {
+                        "query_text_sequences": [query_text_sequence],
+                        "query_pixel_values": query_pixel_value,
+                        "context_text_sequences": retrieved_docs_content[mid:],
+                        "num_negative_examples": context_input_ids[mid:].shape[0] - query_input_id.shape[0],
+                        "labels": labels[mid:]
+                    }
+                else:
+                    batch_input = {
+                        "query_text_sequences": [query_text_sequence],
+                        "query_pixel_values": query_pixel_value,
+                        "context_text_sequences": retrieved_docs_content,
+                        "num_negative_examples": context_input_ids.shape[0] - query_input_id.shape[0],
+                        "labels": labels
+                    }    
 
             else:
+                if "split_testing_batch" in self.model_config.modules:
+                    raise NotImplementedError
                 batch_input = {
                     "query_input_ids": query_input_id,
                     "query_attention_mask": query_attention_mask,
@@ -889,10 +906,19 @@ class RerankerBaseExecutor(BaseExecutor, MetricsProcessor):
                 batch_input["labels"] = labels
 
 
-            outputs = self.reranker(
-                **batch_input
-            )
-            loss, all_logits = outputs.loss.detach().cpu().item(), outputs.logits
+            if "split_testing_batch" in self.model_config.modules:
+                # Run the reranker on both halves and concatenate results
+                first_half_outputs = self.reranker(**first_batch_input)
+                second_half_outputs = self.reranker(**second_batch_input)
+                
+                # Calculate the average loss
+                loss = (first_half_outputs.loss.detach().cpu().item() + second_half_outputs.loss.detach().cpu().item()) / 2
+                
+                # Concatenate logits
+                all_logits = torch.cat((first_half_outputs.logits, second_half_outputs.logits), dim=0).clone().detach()
+            else:
+                outputs = self.reranker(**batch_input)
+                loss, all_logits = outputs.loss.detach().cpu().item(), outputs.logits.clone().detach()
 
             # Detach and clone the logits to avoid modifying the computation graph
             all_logits = all_logits.clone().detach()

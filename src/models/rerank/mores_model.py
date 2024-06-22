@@ -65,7 +65,8 @@ class MORESSym(nn.Module):
         self.interaction_module = nn.ModuleList(
             [MORES_BertLayer(config) for _ in range(config.num_hidden_layers)]
         )
-        self.proj = nn.Linear(config.hidden_size, 2)
+        self.classifier1 = nn.Linear(config.hidden_size, 1)
+        self.classifier2 = nn.Linear(config.hidden_size, 1)
 
     def forward(self, qry, doc, qry_mask, cross_mask, attention_adj = None):
         if attention_adj is not None:
