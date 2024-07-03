@@ -2,9 +2,7 @@
     {
         "config_file": "configs/Rerank/initial_experiments/okvqa_full_context_rerank_B_freeze_vision.jsonnet",
         "time": "4:00:00",
-        "gpus": 2,
-        "opts": "model_config.reranker_config.cross_encoder_num_hidden_layers=3",
-        "ckpt_path": "/home/fz288/rds/hpc-work/PreFLMR/experiments/OKVQA_FLMRQuery_Full_Context_Rerank_B_Freeze_Vision_cross_encoder_num_hidden_layers3/train/saved_models/model_step_2014.ckpt"
+        "gpus": 2
     },
     {
         "config_file": "configs/Rerank/initial_experiments/okvqa_full_context_rerank_B_freeze_vision.jsonnet",

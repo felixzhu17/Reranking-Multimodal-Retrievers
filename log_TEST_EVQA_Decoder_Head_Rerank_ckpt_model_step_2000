@@ -1,575 +1,0 @@
-[rank: 0] Seed set to 2022
-[38;20m[INFO] - runway_for_ml.experiment : Config file saved to experiments/TEST_EVQA_Decoder_Head_Rerank_ckpt_model_step_2000/test/config.json[0m
-[38;20m[INFO] - runway_for_ml.experiment : init wandb logger with the following settings: {'entity': 'byrne-lab', 'project': 'PreFLMR MLMI', 'tags': ['EVQA_Decoder_Head_Rerank', 'test', 'NoBaseModelInfo']}[0m
-[38;20m[INFO] - runway_for_ml.data_module.data_pipeline : Using dummy data? False[0m
-Could not find image processor class in the image processor config or the model config. Loading based on pattern matching with the model's feature extractor configuration. Please open a PR/issue to update `preprocessor_config.json` to use `image_processor_type` instead of `feature_extractor_type`. This warning will be removed in v4.40.
-[38;20m[INFO] - src.data_ops.custom_datasets.vg_datasets : Running PrepareDataloaders[0m
-[38;20m[INFO] - src.data_ops.custom_datasets.base_datasets : initialising EVQADatasetForDPR...[0m
-[38;20m[INFO] - src.data_ops.custom_datasets.dpr_datasets : passages prepared. used 4.76837158203125e-07 secs.[0m
-[38;20m[INFO] - src.data_ops.custom_datasets.vg_datasets : [Data Statistics]: test data loader: test/EVQADatasetForDPR.test 235[0m
-Runway main started.
-input value {} is not a number, parse to string.
-Configuration Loaded.
-{'args': {'config': 'configs/Rerank/evqa_experiments/evqa_decoder_head.jsonnet',
-          'experiment_name': 'TEST_EVQA_Decoder_Head_Rerank_ckpt_model_step_2000',
-          'from_experiment': '',
-          'log_prediction_tables': False,
-          'log_prediction_tables_with_images': False,
-          'mode': 'test',
-          'modules': [],
-          'opts': ['train.load_model_path=/home/fz288/rds/hpc-work/PreFLMR/experiments/EVQA_Decoder_Head_Rerank/train/saved_models/model_step_2000.ckpt'],
-          'override': False,
-          'reset': False,
-          'tags': ['EVQA_Decoder_Head_Rerank', 'test'],
-          'test_suffix': '',
-          'use_dummy_data': False,
-          'wandb_artifacts': 'weizhelin/vqa-images-open/VQAv2-Images:v0'},
- 'data_pipeline': {'do_inspect': True,
-                   'name': 'MergeDataPipeline',
-                   'regenerate': False,
-                   'transforms': {'output:PrepareDataloaders': {'cache': True,
-                                                                'input_node': ['process:ConcatenatePassageDatasets',
-                                                                               'process:WrapOutputIntoKeys'],
-                                                                'regenerate': True,
-                                                                'setup_kwargs': {'datasets_config': {'test': [{'dataset_type': 'EVQADatasetForDPR',
-                                                                                                               'split': 'test',
-                                                                                                               'use_column': 'evqa_data'}],
-                                                                                                     'train': [{'dataset_type': 'EVQADatasetForDPR',
-                                                                                                                'split': 'train',
-                                                                                                                'use_column': 'evqa_data'}],
-                                                                                                     'valid': [{'dataset_type': 'EVQADatasetForDPR',
-                                                                                                                'split': 'test',
-                                                                                                                'use_column': 'evqa_data'}]},
-                                                                                 'extra_columns': {'passages': 'train_passages',
-                                                                                                   'valid_passages': 'valid_passages'},
-                                                                                 'feature_extractor_config': {},
-                                                                                 'image_processor_config': {'vit_image_processor': {'ImageProcessorClass': 'AutoImageProcessor',
-                                                                                                                                    'ImageProcessorModelVersion': 'laion/CLIP-ViT-bigG-14-laion2B-39B-b160k'}},
-                                                                                 'pass_columns': {'test_passages': 'test_passages',
-                                                                                                  'train_passages': 'train_passages',
-                                                                                                  'valid_passages': 'valid_passages',
-                                                                                                  'vqa_data_with_dpr_output': 'evqa_data'},
-                                                                                 'tokenizer_config': {'decoder_tokenizer': {'SPECIAL_TOKENS': {'additional_special_tokens': []},
-                                                                                                                            'TokenizerClass': 'FLMRContextEncoderTokenizer',
-                                                                                                                            'TokenizerModelVersion': 'LinWeizheDragon/PreFLMR_ViT-B'},
-                                                                                                      'tokenizer': {'SPECIAL_TOKENS': {'additional_special_tokens': []},
-                                                                                                                    'TokenizerClass': 'FLMRQueryEncoderTokenizer',
-                                                                                                                    'TokenizerModelVersion': 'LinWeizheDragon/PreFLMR_ViT-B'}}},
-                                                                'transform_name': 'PrepareDataloaders'},
-                                  'process:ConcatenatePassageDatasets': {'cache': True,
-                                                                         'input_node': ['process:LoadEVQAData'],
-                                                                         'regenerate': False,
-                                                                         'setup_kwargs': {'concat_splits': {'test_passages': [True],
-                                                                                                            'train_passages': [True],
-                                                                                                            'valid_passages': [True]},
-                                                                                          'names': ['evqa_passages']},
-                                                                         'transform_name': 'ConcatenatePassageDatasets'},
-                                  'process:LoadEVQAData': {'cache': True,
-                                                           'regenerate': False,
-                                                           'setup_kwargs': {'add_instruction': ['Using '
-                                                                                                'the '
-                                                                                                'provided '
-                                                                                                'image, '
-                                                                                                'obtain '
-                                                                                                'documents '
-                                                                                                'that '
-                                                                                                'address '
-                                                                                                'the '
-                                                                                                'subsequent '
-                                                                                                'question: ',
-                                                                                                'Retrieve '
-                                                                                                'documents '
-                                                                                                'that '
-                                                                                                'provide '
-                                                                                                'an '
-                                                                                                'answer '
-                                                                                                'to '
-                                                                                                'the '
-                                                                                                'question '
-                                                                                                'alongside '
-                                                                                                'the '
-                                                                                                'image: ',
-                                                                                                'Extract '
-                                                                                                'documents '
-                                                                                                'linked '
-                                                                                                'to '
-                                                                                                'the '
-                                                                                                'question '
-                                                                                                'provided '
-                                                                                                'in '
-                                                                                                'conjunction '
-                                                                                                'with '
-                                                                                                'the '
-                                                                                                'image: ',
-                                                                                                'Utilizing '
-                                                                                                'the '
-                                                                                                'given '
-                                                                                                'image, '
-                                                                                                'obtain '
-                                                                                                'documents '
-                                                                                                'that '
-                                                                                                'respond '
-                                                                                                'to '
-                                                                                                'the '
-                                                                                                'following '
-                                                                                                'question: ',
-                                                                                                'Using '
-                                                                                                'the '
-                                                                                                'given '
-                                                                                                'image, '
-                                                                                                'access '
-                                                                                                'documents '
-                                                                                                'that '
-                                                                                                'provide '
-                                                                                                'insights '
-                                                                                                'into '
-                                                                                                'the '
-                                                                                                'following '
-                                                                                                'question: ',
-                                                                                                'Obtain '
-                                                                                                'documents '
-                                                                                                'that '
-                                                                                                'correspond '
-                                                                                                'to '
-                                                                                                'the '
-                                                                                                'inquiry '
-                                                                                                'alongside '
-                                                                                                'the '
-                                                                                                'provided '
-                                                                                                'image: ',
-                                                                                                'With '
-                                                                                                'the '
-                                                                                                'provided '
-                                                                                                'image, '
-                                                                                                'gather '
-                                                                                                'documents '
-                                                                                                'that '
-                                                                                                'offer '
-                                                                                                'a '
-                                                                                                'solution '
-                                                                                                'to '
-                                                                                                'the '
-                                                                                                'question: ',
-                                                                                                'Utilizing '
-                                                                                                'the '
-                                                                                                'given '
-                                                                                                'image, '
-                                                                                                'obtain '
-                                                                                                'documents '
-                                                                                                'that '
-                                                                                                'respond '
-                                                                                                'to '
-                                                                                                'the '
-                                                                                                'following '
-                                                                                                'question: '],
-                                                                            'data_path': 'BByrneLab/multi_task_multi_modal_knowledge_retrieval_benchmark_M2KR///EVQA_data',
-                                                                            'image_root_folder': '/home/fz288/rds/rds-cvnlp-hirYTW1FQIw/shared_space/vqa_data/KBVQA_data/EVQA/images',
-                                                                            'passage_path': 'BByrneLab/multi_task_multi_modal_knowledge_retrieval_benchmark_M2KR///EVQA_passages'},
-                                                           'transform_name': 'LoadPreprocessedData_v2'},
-                                  'process:WrapOutputIntoKeys': {'cache': True,
-                                                                 'input_node': ['process:LoadEVQAData'],
-                                                                 'regenerate': True,
-                                                                 'setup_kwargs': {'output_keys': ['evqa_data']},
-                                                                 'transform_name': 'WrapOutputIntoKeys'}}},
- 'eval': {'eval_op_name': 'Your eval op name'},
- 'executor': {'ExecutorClass': 'RerankerBaseExecutor',
-              'init_kwargs': {'index_splits': ['train', 'valid', 'test'],
-                              'use_data_node': 'output:PrepareDataloaders',
-                              'validation_indexing_source': ['evqa_passages']}},
- 'experiment_name': 'TEST_EVQA_Decoder_Head_Rerank_ckpt_model_step_2000',
- 'from_experiment': '',
- 'log_prediction_tables': False,
- 'meta': {'DATA_FOLDER': 'data',
-          'EXPERIMENT_FOLDER': 'experiments',
-          'TENSORBOARD_FOLDER': 'tensorboards',
-          'WANDB': {'CACHE_DIR': 'cache/wandb_cache/',
-                    'entity': 'byrne-lab',
-                    'project': 'PreFLMR MLMI',
-                    'tags': ['EVQA_Decoder_Head_Rerank', 'test']},
-          'default_cache_dir': 'cache/',
-          'logger_enable': ['tensorboard', 'wandb'],
-          'platform_type': 'pytorch',
-          'seed': 2022,
-          'use_versioning': False},
- 'metrics': [{'name': 'compute_rerank_DPR_scores'},
-             {'name': 'compute_rerank_DPR_scores_with_pos_ids'}],
- 'mode': 'test',
- 'model_config': {'Ks': [5, 10, 20, 50, 100],
-                  'decoder_input_modules': {'module_list': [{'option': 'default',
-                                                             'separation_tokens': {'end': '',
-                                                                                   'start': ''},
-                                                             'type': 'KnowledgeInput'}],
-                                            'postprocess_module_list': [{'option': 'default',
-                                                                         'type': 'PostProcessFLMRItemInputTokenization'}]},
-                  'docs_to_rerank': 100,
-                  'fusion_multiplier': 1,
-                  'index_files': {'embedding_path': '',
-                                  'index_path': '',
-                                  'static_results': ['/home/fz288/rds/hpc-work/PreFLMR/search_index/EVQA/PreFLMR-B/_test_EVQADatasetForDPR.test_predictions_rank_0.pkl']},
-                  'input_modules': {'module_list': [{'option': 'from_file',
-                                                     'type': 'VisionInput'},
-                                                    {'option': 'default',
-                                                     'separation_tokens': {'end': '',
-                                                                           'start': ''},
-                                                     'type': 'InstructionInput'}],
-                                    'postprocess_module_list': [{'option': 'default',
-                                                                 'type': 'PostProcessVisionInputProcessing'},
-                                                                {'option': 'default',
-                                                                 'type': 'PostProcessFLMRQuestionInputTokenization'}]},
-                  'max_decoder_source_length': 512,
-                  'max_source_length': 32,
-                  'modules': ['separate_query_and_item_encoders',
-                              'decoder_reranker'],
-                  'nbits': 8,
-                  'num_negative_samples': 4,
-                  'output_modules': {'module_list': [{'option': 'default',
-                                                      'type': 'SimilarityOutput'}],
-                                     'postprocess_module_list': [{'option': 'default',
-                                                                  'type': 'PostProcessConcatenateLabels'}]},
-                  'prepend_tokens': {'item_encoder': '', 'query_encoder': ''},
-                  'pretrained': 1,
-                  'reranker_config': {'GeneratorConfigClass': 'Blip2Config',
-                                      'GeneratorModelClass': 'Blip2ForConditionalGeneration',
-                                      'GeneratorModelVersion': 'Salesforce/blip2-opt-2.7b',
-                                      'RerankerClass': 'DecoderHeadRerankModel',
-                                      'loss_fn': 'BCE',
-                                      'max_decoder_source_length': 512,
-                                      'max_query_length': 32},
-                  'retriever_config': {'ConfigClass': 'FLMRConfig',
-                                       'ModelClass': 'FLMRModelForRetrieval',
-                                       'ModelVersion': 'LinWeizheDragon/PreFLMR_ViT-B',
-                                       'base_model': 'FLMR'}},
- 'override': False,
- 'reset': False,
- 'test': {'batch_size': 16,
-          'checkpoint_name': '',
-          'load_best_model': False,
-          'load_model_path': '',
-          'num_dataloader_workers': 0,
-          'trainer_paras': {'accelerator': 'auto',
-                            'devices': 'auto',
-                            'limit_test_batches': 65,
-                            'precision': 'bf16',
-                            'strategy': 'ddp_find_unused_parameters_true'}},
- 'test_suffix': '',
- 'train': {'batch_size': 2,
-           'early_stopping_callback_paras': {'mode': 'min',
-                                             'patience': 3,
-                                             'verbose': True},
-           'load_model_path': '/home/fz288/rds/hpc-work/PreFLMR/experiments/EVQA_Decoder_Head_Rerank/train/saved_models/model_step_2000.ckpt',
-           'model_checkpoint_callback_paras': {'auto_insert_metric_name': False,
-                                               'filename': 'model_step_{step}',
-                                               'mode': 'min',
-                                               'monitor': 'valid/EVQADatasetForDPR.test/loss',
-                                               'save_last': True,
-                                               'save_on_train_epoch_end': False,
-                                               'save_top_k': 5,
-                                               'verbose': True},
-           'num_dataloader_workers': 4,
-           'optimizer_config': {'optimizer_name': 'AdamW',
-                                'optimizer_params': {'eps': 1e-08,
-                                                     'lr': 0.0001},
-                                'scheduler': 'none',
-                                'scheduler_params': {'num_warmup_steps': 0}},
-           'trainer_paras': {'accelerator': 'auto',
-                             'accumulate_grad_batches': 16,
-                             'check_val_every_n_epoch': None,
-                             'devices': 'auto',
-                             'limit_val_batches': 3,
-                             'log_every_n_steps': 10,
-                             'max_epochs': -1,
-                             'precision': 'bf16',
-                             'strategy': 'ddp_find_unused_parameters_true',
-                             'val_check_interval': 1000}},
- 'use_dummy_data': False,
- 'valid': {'batch_size': 16, 'num_dataloader_workers': 0}}
-User modules imported
-Runway Testing...
-All seeds have been set to 2022
-test-directory: experiments/TEST_EVQA_Decoder_Head_Rerank_ckpt_model_step_2000/test
-Using loggers: ['tensorboard', 'wandb']
-[<pytorch_lightning.loggers.tensorboard.TensorBoardLogger object at 0x14d15ee9f8b0>, <pytorch_lightning.loggers.wandb.WandbLogger object at 0x14d04ba0b940>]
-Saving testing results to: experiments/TEST_EVQA_Decoder_Head_Rerank_ckpt_model_step_2000/test/test_case.txt
-======================================================================================================================================================
-                                                                     MODEL CONFIG                                                                     
-{'Ks': [5, 10, 20, 50, 100], 'decoder_input_modules': {'module_list': [{'option': 'default', 'separation_tokens': {'end': '', 'start': ''}, 'type': 'KnowledgeInput'}], 'postprocess_module_list': [{'option': 'default', 'type': 'PostProcessFLMRItemInputTokenization'}]}, 'docs_to_rerank': 100, 'fusion_multiplier': 1, 'index_files': {'embedding_path': '', 'index_path': '', 'static_results': ['/home/fz288/rds/hpc-work/PreFLMR/search_index/EVQA/PreFLMR-B/_test_EVQADatasetForDPR.test_predictions_rank_0.pkl']}, 'input_modules': {'module_list': [{'option': 'from_file', 'type': 'VisionInput'}, {'option': 'default', 'separation_tokens': {'end': '', 'start': ''}, 'type': 'InstructionInput'}], 'postprocess_module_list': [{'option': 'default', 'type': 'PostProcessVisionInputProcessing'}, {'option': 'default', 'type': 'PostProcessFLMRQuestionInputTokenization'}]}, 'max_decoder_source_length': 512, 'max_source_length': 32, 'modules': ['separate_query_and_item_encoders', 'decoder_reranker'], 'nbits': 8, 'num_negative_samples': 4, 'output_modules': {'module_list': [{'option': 'default', 'type': 'SimilarityOutput'}], 'postprocess_module_list': [{'option': 'default', 'type': 'PostProcessConcatenateLabels'}]}, 'prepend_tokens': {'item_encoder': '', 'query_encoder': ''}, 'pretrained': 1, 'reranker_config': {'GeneratorConfigClass': 'Blip2Config', 'GeneratorModelClass': 'Blip2ForConditionalGeneration', 'GeneratorModelVersion': 'Salesforce/blip2-opt-2.7b', 'RerankerClass': 'DecoderHeadRerankModel', 'loss_fn': 'BCE', 'max_decoder_source_length': 512, 'max_query_length': 32}, 'retriever_config': {'ConfigClass': 'FLMRConfig', 'ModelClass': 'FLMRModelForRetrieval', 'ModelVersion': 'LinWeizheDragon/PreFLMR_ViT-B', 'base_model': 'FLMR'}}
-======================================================================================================================================================
-                                                                   OPTIMIZER CONFIG                                                                   
-None
-======================================================================================================================================================
-                                                                   TRAINING CONFIG                                                                    
-{}
-======================================================================================================================================================
-                                                                     TEST CONFIG                                                                      
-{'batch_size': 16, 'checkpoint_name': '', 'load_best_model': False, 'load_model_path': '', 'num_dataloader_workers': 0, 'trainer_paras': {'accelerator': 'auto', 'devices': 'auto', 'limit_test_batches': 65, 'precision': 'bf16', 'strategy': 'ddp_find_unused_parameters_true'}}
-======================================================================================================================================================
-PrepareDataloaders
-{'cache': True, 'input_node': ['process:ConcatenatePassageDatasets', 'process:WrapOutputIntoKeys'], 'regenerate': True, 'setup_kwargs': {'datasets_config': {'test': [{'dataset_type': 'EVQADatasetForDPR', 'split': 'test', 'use_column': 'evqa_data'}], 'train': [{'dataset_type': 'EVQADatasetForDPR', 'split': 'train', 'use_column': 'evqa_data'}], 'valid': [{'dataset_type': 'EVQADatasetForDPR', 'split': 'test', 'use_column': 'evqa_data'}]}, 'extra_columns': {'passages': 'train_passages', 'valid_passages': 'valid_passages'}, 'feature_extractor_config': {}, 'image_processor_config': {'vit_image_processor': {'ImageProcessorClass': 'AutoImageProcessor', 'ImageProcessorModelVersion': 'laion/CLIP-ViT-bigG-14-laion2B-39B-b160k'}}, 'pass_columns': {'test_passages': 'test_passages', 'train_passages': 'train_passages', 'valid_passages': 'valid_passages', 'vqa_data_with_dpr_output': 'evqa_data'}, 'tokenizer_config': {'decoder_tokenizer': {'SPECIAL_TOKENS': {'additional_special_tokens': []}, 'TokenizerClass': 'FLMRContextEncoderTokenizer', 'TokenizerModelVersion': 'LinWeizheDragon/PreFLMR_ViT-B'}, 'tokenizer': {'SPECIAL_TOKENS': {'additional_special_tokens': []}, 'TokenizerClass': 'FLMRQueryEncoderTokenizer', 'TokenizerModelVersion': 'LinWeizheDragon/PreFLMR_ViT-B'}}}, 'transform_name': 'PrepareDataloaders'}
-dict_keys([])
-attempting to check cache exist: cache/process:ConcatenatePassageDatasets-bd9c6ae8873ea64743c1e31ba0071d99.hf --> True
-attempting to check cache exist: cache/process:LoadEVQAData-f6877cb022b5d72f4e008a4a2b57eabb.hf --> True
-Load process:ConcatenatePassageDatasets-bd9c6ae8873ea64743c1e31ba0071d99 from disk cache
-Data loaded from cache/process:ConcatenatePassageDatasets-bd9c6ae8873ea64743c1e31ba0071d99.hf
-WrapOutputIntoKeys
-{'cache': True, 'input_node': ['process:LoadEVQAData'], 'regenerate': True, 'setup_kwargs': {'output_keys': ['evqa_data']}, 'transform_name': 'WrapOutputIntoKeys'}
-dict_keys([])
-Load process:LoadEVQAData-f6877cb022b5d72f4e008a4a2b57eabb from disk cache
-Data loaded from cache/process:LoadEVQAData-f6877cb022b5d72f4e008a4a2b57eabb.hf
-Node: process:WrapOutputIntoKeys 
-Execute Transform: WrapOutputIntoKeys
-wrapped columns: dict_keys(['evqa_data'])
-Data saved to cache/process:WrapOutputIntoKeys-d8118c91f883abfb9dd992a45451ad3d.pkl
-Node: output:PrepareDataloaders 
-Execute Transform: PrepareDataloaders
-Received data columns: dict_keys(['test_passages', 'train_passages', 'valid_passages', 'evqa_data'])
-test_passages: Dataset({
-    features: ['language', 'passage_id', 'passage_content', 'source_name'],
-    num_rows: 51472
-})
-train_passages: Dataset({
-    features: ['language', 'passage_id', 'passage_content', 'source_name'],
-    num_rows: 50205
-})
-valid_passages: Dataset({
-    features: ['language', 'passage_id', 'passage_content', 'source_name'],
-    num_rows: 50753
-})
-evqa_data: {'train': Dataset({
-    features: ['pos_item_ids', 'pos_item_contents', 'img_id', 'img_path', 'image_id', 'question_id', 'question', 'answers', 'gold_answer', 'question_type', 'instruction'],
-    num_rows: 167369
-}), 'valid': Dataset({
-    features: ['pos_item_ids', 'pos_item_contents', 'img_id', 'img_path', 'image_id', 'question_id', 'question', 'answers', 'gold_answer', 'question_type', 'instruction'],
-    num_rows: 9852
-}), 'test': Dataset({
-    features: ['pos_item_ids', 'pos_item_contents', 'img_id', 'img_path', 'image_id', 'question_id', 'question', 'answers', 'gold_answer', 'question_type', 'instruction'],
-    num_rows: 3750
-}), 'train_passages': Dataset({
-    features: ['language', 'passage_id', 'passage_content'],
-    num_rows: 50205
-}), 'valid_passages': Dataset({
-    features: ['language', 'passage_id', 'passage_content'],
-    num_rows: 50753
-}), 'test_passages': Dataset({
-    features: ['language', 'passage_id', 'passage_content'],
-    num_rows: 51472
-})}
-'Dataset' object has no attribute 'keys'
-'Dataset' object has no attribute 'keys'
-'Dataset' object has no attribute 'keys'
-First 5 image paths in dataset 'evqa_data[train]' of length 167369 are valid.
-First 5 image paths in dataset 'evqa_data[valid]' of length 9852 are valid.
-First 5 image paths in dataset 'evqa_data[test]' of length 3750 are valid.
-'img_path'
-extra_column passages extra_column_from train_passages
-extra_column valid_passages extra_column_from valid_passages
-Using valid_passages instead for test...
-{'test_passages': 'test_passages', 'train_passages': 'train_passages', 'valid_passages': 'valid_passages', 'vqa_data_with_dpr_output': 'evqa_data'}
-Data saved to cache/output:PrepareDataloaders-cbb5c62a8c8da791768c552a451368c5.pkl
-Loading checkpoint shards:   0%|          | 0/2 [00:00<?, ?it/s]Loading checkpoint shards:  50%|█████     | 1/2 [01:07<01:07, 67.82s/it]Loading checkpoint shards: 100%|██████████| 2/2 [01:30<00:00, 41.16s/it]Loading checkpoint shards: 100%|██████████| 2/2 [01:30<00:00, 45.16s/it]
-[38;20m[INFO] - root : Train with LoRA = False[0m
-[38;20m[INFO] - src.executors.Reranker_base_executor : Loading static retrieval results from /home/fz288/rds/hpc-work/PreFLMR/search_index/EVQA/PreFLMR-B/_test_EVQADatasetForDPR.test_predictions_rank_0.pkl[0m
-[38;20m[INFO] - src.executors.Reranker_base_executor : Loaded 3750 static retrieval results.[0m
-/home/fz288/rds/hpc-work/PreFLMR/VQA/lib/python3.8/site-packages/lightning_fabric/connector.py:563: `precision=bf16` is supported for historical reasons but its usage is discouraged. Please set your precision to bf16-mixed instead!
-Using bfloat16 Automatic Mixed Precision (AMP)
-GPU available: True (cuda), used: True
-TPU available: False, using: 0 TPU cores
-IPU available: False, using: 0 IPUs
-HPU available: False, using: 0 HPUs
-[38;20m[INFO] - runway_for_ml.experiment : additional arguments passed to trainer: {'accelerator': 'auto', 'devices': 'auto', 'limit_test_batches': 65, 'precision': 'bf16', 'strategy': 'ddp_find_unused_parameters_true', 'default_root_dir': PosixPath('experiments/TEST_EVQA_Decoder_Head_Rerank_ckpt_model_step_2000/test'), 'logger': [<pytorch_lightning.loggers.tensorboard.TensorBoardLogger object at 0x14d15ee9f8b0>, <pytorch_lightning.loggers.wandb.WandbLogger object at 0x14d04ba0b940>]}[0m
-[31;20m[ERROR] - runway_for_ml.experiment : No checkpoints are specified.[0m
-[31;20m[ERROR] - runway_for_ml.experiment : No checkpoint found. Please check your config file.[0m
-[31;20m[ERROR] - runway_for_ml.experiment : !!! Testing continues with untrained checkpoints (also useful when applying pre-trained checkpoints directly)[0m
-You are using a CUDA device ('NVIDIA A100-SXM4-80GB') that has Tensor Cores. To properly utilize them, you should set `torch.set_float32_matmul_precision('medium' | 'high')` which will trade-off precision for performance. For more details, read https://pytorch.org/docs/stable/generated/torch.set_float32_matmul_precision.html#torch.set_float32_matmul_precision
-[rank: 0] Seed set to 2022
-Initializing distributed: GLOBAL_RANK: 0, MEMBER: 1/1
-----------------------------------------------------------------------------------------------------
-distributed_backend=nccl
-All distributed processes registered. Starting with 1 processes
-----------------------------------------------------------------------------------------------------
-
-Missing logger folder: experiments/TEST_EVQA_Decoder_Head_Rerank_ckpt_model_step_2000/test/lightning_logs
-wandb: Currently logged in as: fz288 (byrne-lab). Use `wandb login --relogin` to force relogin
-wandb: wandb version 0.17.2 is available!  To upgrade, please run:
-wandb:  $ pip install wandb --upgrade
-wandb: Tracking run with wandb version 0.16.6
-wandb: Run data is saved locally in ./wandb/run-20240622_100754-afv521q9
-wandb: Run `wandb offline` to turn off syncing.
-wandb: Syncing run TEST_EVQA_Decoder_Head_Rerank_ckpt_model_step_2000
-wandb: ⭐️ View project at https://wandb.ai/byrne-lab/PreFLMR%20MLMI
-wandb: 🚀 View run at https://wandb.ai/byrne-lab/PreFLMR%20MLMI/runs/afv521q9
-[38;20m[INFO] - src.executors.Reranker_base_executor : Preparing 51472 passage data in id2doc...[0m
-trainable params: 4,378,624 || all params: 3,749,058,560 || trainable%: 0.11679262753367074
-Load output:PrepareDataloaders-cbb5c62a8c8da791768c552a451368c5 from program cache
-Load output:PrepareDataloaders-cbb5c62a8c8da791768c552a451368c5 from program cache
-0
-Loading lookup table...
-Rank 0 Done loading lookup table.
-formatting the test passages:   0%|          | 0/51472 [00:00<?, ?it/s]formatting the test passages:   4%|▎         | 1897/51472 [00:00<00:02, 18966.90it/s]formatting the test passages:   8%|▊         | 3876/51472 [00:00<00:02, 19449.14it/s]formatting the test passages:  11%|█▏        | 5847/51472 [00:00<00:02, 19567.02it/s]formatting the test passages:  15%|█▌        | 7831/51472 [00:00<00:02, 19674.10it/s]formatting the test passages:  19%|█▉        | 9828/51472 [00:00<00:02, 19776.94it/s]formatting the test passages:  23%|██▎       | 11833/51472 [00:00<00:01, 19868.21it/s]formatting the test passages:  27%|██▋       | 13849/51472 [00:00<00:01, 19960.47it/s]formatting the test passages:  31%|███       | 15866/51472 [00:00<00:01, 20025.89it/s]formatting the test passages:  35%|███▍      | 17894/51472 [00:00<00:01, 20103.71it/s]formatting the test passages:  39%|███▊      | 19913/51472 [00:01<00:01, 20129.67it/s]formatting the test passages:  43%|████▎     | 21926/51472 [00:01<00:01, 20061.41it/s]formatting the test passages:  47%|████▋     | 23935/51472 [00:01<00:01, 20069.31it/s]formatting the test passages:  50%|█████     | 25965/51472 [00:01<00:01, 20136.06it/s]formatting the test passages:  54%|█████▍    | 27979/51472 [00:01<00:01, 20135.70it/s]formatting the test passages:  58%|█████▊    | 29993/51472 [00:01<00:01, 20101.99it/s]formatting the test passages:  62%|██████▏   | 32020/51472 [00:01<00:00, 20149.83it/s]formatting the test passages:  66%|██████▌   | 34046/51472 [00:01<00:00, 20181.79it/s]formatting the test passages:  70%|███████   | 36070/51472 [00:01<00:00, 20196.54it/s]formatting the test passages:  74%|███████▍  | 38101/51472 [00:01<00:00, 20230.30it/s]formatting the test passages:  78%|███████▊  | 40126/51472 [00:02<00:00, 20235.99it/s]formatting the test passages:  82%|████████▏ | 42150/51472 [00:02<00:00, 20195.40it/s]formatting the test passages:  86%|████████▌ | 44170/51472 [00:02<00:00, 20110.18it/s]formatting the test passages:  90%|████████▉ | 46186/51472 [00:02<00:00, 20123.24it/s]formatting the test passages:  94%|█████████▎| 48202/51472 [00:02<00:00, 20133.09it/s]formatting the test passages:  98%|█████████▊| 50235/51472 [00:02<00:00, 20190.05it/s]formatting the test passages: 100%|██████████| 51472/51472 [00:02<00:00, 20064.73it/s]
-[38;20m[INFO] - src.executors.Reranker_base_executor : passages from the source evqa_passages has 51462[0m
-[38;20m[INFO] - src.executors.Reranker_base_executor : Passages prepared.[0m
-[38;20m[INFO] - src.executors.Reranker_base_executor : tokenizer lengths = 30522 and 30522[0m
-[38;20m[INFO] - src.executors.Reranker_base_executor : Loading from /home/fz288/rds/hpc-work/PreFLMR/experiments/EVQA_Decoder_Head_Rerank/train/saved_models/model_step_2000.ckpt[0m
-LOCAL_RANK: 0 - CUDA_VISIBLE_DEVICES: [0]
-SLURM auto-requeueing enabled. Setting signal handlers.
-/home/fz288/rds/hpc-work/PreFLMR/VQA/lib/python3.8/site-packages/pytorch_lightning/trainer/connectors/data_connector.py:441: The 'test_dataloader' does not have many workers which may be a bottleneck. Consider increasing the value of the `num_workers` argument` to `num_workers=31` in the `DataLoader` to improve performance.
-Testing: |          | 0/? [00:00<?, ?it/s]Testing:   0%|          | 0/65 [00:00<?, ?it/s]Testing DataLoader 0:   0%|          | 0/65 [00:00<?, ?it/s]Testing DataLoader 0:   2%|▏         | 1/65 [00:00<00:00, 1288.97it/s]Testing DataLoader 0:   3%|▎         | 2/65 [00:01<00:43,  1.46it/s]  Testing DataLoader 0:   5%|▍         | 3/65 [00:02<00:51,  1.21it/s]Testing DataLoader 0:   6%|▌         | 4/65 [00:03<00:55,  1.09it/s]Testing DataLoader 0:   8%|▊         | 5/65 [00:04<00:58,  1.02it/s]Testing DataLoader 0:   9%|▉         | 6/65 [00:06<00:59,  0.99it/s]Testing DataLoader 0:  11%|█         | 7/65 [00:07<01:00,  0.95it/s]Testing DataLoader 0:  12%|█▏        | 8/65 [00:08<01:01,  0.93it/s]Testing DataLoader 0:  14%|█▍        | 9/65 [00:09<01:01,  0.92it/s]Testing DataLoader 0:  15%|█▌        | 10/65 [00:10<01:00,  0.91it/s]Testing DataLoader 0:  17%|█▋        | 11/65 [00:12<01:00,  0.89it/s]Testing DataLoader 0:  18%|█▊        | 12/65 [00:13<00:59,  0.88it/s]Testing DataLoader 0:  20%|██        | 13/65 [00:14<00:58,  0.88it/s]Testing DataLoader 0:  22%|██▏       | 14/65 [00:15<00:58,  0.88it/s]Testing DataLoader 0:  23%|██▎       | 15/65 [00:17<00:56,  0.88it/s]Testing DataLoader 0:  25%|██▍       | 16/65 [00:18<00:55,  0.88it/s]Testing DataLoader 0:  26%|██▌       | 17/65 [00:19<00:54,  0.87it/s]Testing DataLoader 0:  28%|██▊       | 18/65 [00:20<00:53,  0.87it/s]Testing DataLoader 0:  29%|██▉       | 19/65 [00:21<00:52,  0.87it/s]Testing DataLoader 0:  31%|███       | 20/65 [00:23<00:52,  0.86it/s]Testing DataLoader 0:  32%|███▏      | 21/65 [00:24<00:51,  0.86it/s]Testing DataLoader 0:  34%|███▍      | 22/65 [00:25<00:50,  0.86it/s]Testing DataLoader 0:  35%|███▌      | 23/65 [00:26<00:49,  0.86it/s]Testing DataLoader 0:  37%|███▋      | 24/65 [00:28<00:48,  0.85it/s]Testing DataLoader 0:  38%|███▊      | 25/65 [00:29<00:47,  0.85it/s]Testing DataLoader 0:  40%|████      | 26/65 [00:30<00:45,  0.85it/s]Testing DataLoader 0:  42%|████▏     | 27/65 [00:31<00:44,  0.85it/s]Testing DataLoader 0:  43%|████▎     | 28/65 [00:32<00:43,  0.85it/s]Testing DataLoader 0:  45%|████▍     | 29/65 [00:34<00:42,  0.85it/s]Testing DataLoader 0:  46%|████▌     | 30/65 [00:35<00:41,  0.85it/s]Testing DataLoader 0:  48%|████▊     | 31/65 [00:36<00:39,  0.85it/s]Testing DataLoader 0:  49%|████▉     | 32/65 [00:37<00:38,  0.85it/s]Testing DataLoader 0:  51%|█████     | 33/65 [00:38<00:37,  0.85it/s]Testing DataLoader 0:  52%|█████▏    | 34/65 [00:40<00:36,  0.85it/s]Testing DataLoader 0:  54%|█████▍    | 35/65 [00:41<00:35,  0.85it/s]Testing DataLoader 0:  55%|█████▌    | 36/65 [00:42<00:34,  0.84it/s]Testing DataLoader 0:  57%|█████▋    | 37/65 [00:43<00:33,  0.84it/s]Testing DataLoader 0:  58%|█████▊    | 38/65 [00:45<00:32,  0.84it/s]Testing DataLoader 0:  60%|██████    | 39/65 [00:46<00:30,  0.84it/s]Testing DataLoader 0:  62%|██████▏   | 40/65 [00:47<00:29,  0.84it/s]Testing DataLoader 0:  63%|██████▎   | 41/65 [00:49<00:28,  0.83it/s]Testing DataLoader 0:  65%|██████▍   | 42/65 [00:50<00:27,  0.83it/s]Testing DataLoader 0:  66%|██████▌   | 43/65 [00:51<00:26,  0.83it/s]Testing DataLoader 0:  68%|██████▊   | 44/65 [00:52<00:25,  0.83it/s]Testing DataLoader 0:  69%|██████▉   | 45/65 [00:54<00:24,  0.83it/s]Testing DataLoader 0:  71%|███████   | 46/65 [00:55<00:22,  0.83it/s]Testing DataLoader 0:  72%|███████▏  | 47/65 [00:56<00:21,  0.83it/s]Testing DataLoader 0:  74%|███████▍  | 48/65 [00:57<00:20,  0.83it/s]Testing DataLoader 0:  75%|███████▌  | 49/65 [00:58<00:19,  0.83it/s]Testing DataLoader 0:  77%|███████▋  | 50/65 [01:00<00:18,  0.83it/s]Testing DataLoader 0:  78%|███████▊  | 51/65 [01:01<00:16,  0.83it/s]Testing DataLoader 0:  80%|████████  | 52/65 [01:02<00:15,  0.83it/s]Testing DataLoader 0:  82%|████████▏ | 53/65 [01:03<00:14,  0.83it/s]Testing DataLoader 0:  83%|████████▎ | 54/65 [01:04<00:13,  0.83it/s]Testing DataLoader 0:  85%|████████▍ | 55/65 [01:06<00:12,  0.83it/s]Testing DataLoader 0:  86%|████████▌ | 56/65 [01:07<00:10,  0.83it/s]Testing DataLoader 0:  88%|████████▊ | 57/65 [01:08<00:09,  0.83it/s]Testing DataLoader 0:  89%|████████▉ | 58/65 [01:09<00:08,  0.83it/s]Testing DataLoader 0:  91%|█████████ | 59/65 [01:10<00:07,  0.83it/s]Testing DataLoader 0:  92%|█████████▏| 60/65 [01:12<00:06,  0.83it/s]Testing DataLoader 0:  94%|█████████▍| 61/65 [01:13<00:04,  0.83it/s]Testing DataLoader 0:  95%|█████████▌| 62/65 [01:14<00:03,  0.83it/s]Testing DataLoader 0:  97%|█████████▋| 63/65 [01:15<00:02,  0.83it/s]Testing DataLoader 0:  98%|█████████▊| 64/65 [01:16<00:01,  0.83it/s]Testing DataLoader 0: 100%|██████████| 65/65 [01:18<00:00,  0.83it/s][38;20m[INFO] - src.executors.Reranker_base_executor : reading global step of the checkpoint...[0m
-Reranking the top retrieved documents...
-
-0it [00:00, ?it/s][A0it [00:21, ?it/s]
-Traceback (most recent call last):
-  File "src/main.py", line 222, in <module>
-    test_main(config_dict)
-  File "src/main.py", line 198, in test_main
-    rw_experiment.test()
-  File "/rds/user/fz288/hpc-work/PreFLMR/./runway_for_ml/experiment.py", line 414, in test
-    trainer.test(
-  File "/home/fz288/rds/hpc-work/PreFLMR/VQA/lib/python3.8/site-packages/pytorch_lightning/trainer/trainer.py", line 754, in test
-    return call._call_and_handle_interrupt(
-  File "/home/fz288/rds/hpc-work/PreFLMR/VQA/lib/python3.8/site-packages/pytorch_lightning/trainer/call.py", line 43, in _call_and_handle_interrupt
-    return trainer.strategy.launcher.launch(trainer_fn, *args, trainer=trainer, **kwargs)
-  File "/home/fz288/rds/hpc-work/PreFLMR/VQA/lib/python3.8/site-packages/pytorch_lightning/strategies/launchers/subprocess_script.py", line 105, in launch
-    return function(*args, **kwargs)
-  File "/home/fz288/rds/hpc-work/PreFLMR/VQA/lib/python3.8/site-packages/pytorch_lightning/trainer/trainer.py", line 794, in _test_impl
-    results = self._run(model, ckpt_path=ckpt_path)
-  File "/home/fz288/rds/hpc-work/PreFLMR/VQA/lib/python3.8/site-packages/pytorch_lightning/trainer/trainer.py", line 987, in _run
-    results = self._run_stage()
-  File "/home/fz288/rds/hpc-work/PreFLMR/VQA/lib/python3.8/site-packages/pytorch_lightning/trainer/trainer.py", line 1026, in _run_stage
-    return self._evaluation_loop.run()
-  File "/home/fz288/rds/hpc-work/PreFLMR/VQA/lib/python3.8/site-packages/pytorch_lightning/loops/utilities.py", line 182, in _decorator
-    return loop_run(self, *args, **kwargs)
-  File "/home/fz288/rds/hpc-work/PreFLMR/VQA/lib/python3.8/site-packages/pytorch_lightning/loops/evaluation_loop.py", line 142, in run
-    return self.on_run_end()
-  File "/home/fz288/rds/hpc-work/PreFLMR/VQA/lib/python3.8/site-packages/pytorch_lightning/loops/evaluation_loop.py", line 254, in on_run_end
-    self._on_evaluation_epoch_end()
-  File "/home/fz288/rds/hpc-work/PreFLMR/VQA/lib/python3.8/site-packages/pytorch_lightning/loops/evaluation_loop.py", line 334, in _on_evaluation_epoch_end
-    call._call_lightning_module_hook(trainer, hook_name)
-  File "/home/fz288/rds/hpc-work/PreFLMR/VQA/lib/python3.8/site-packages/pytorch_lightning/trainer/call.py", line 157, in _call_lightning_module_hook
-    output = fn(*args, **kwargs)
-  File "/rds/user/fz288/hpc-work/PreFLMR/src/executors/Reranker_base_executor.py", line 689, in on_test_epoch_end
-    log_dict = self.evaluate_outputs(test_step_output, test_batch)
-  File "/rds/user/fz288/hpc-work/PreFLMR/src/executors/Reranker_base_executor.py", line 891, in evaluate_outputs
-    outputs = self.reranker(
-  File "/home/fz288/rds/hpc-work/PreFLMR/VQA/lib/python3.8/site-packages/torch/nn/modules/module.py", line 1511, in _wrapped_call_impl
-    return self._call_impl(*args, **kwargs)
-  File "/home/fz288/rds/hpc-work/PreFLMR/VQA/lib/python3.8/site-packages/torch/nn/modules/module.py", line 1520, in _call_impl
-    return forward_call(*args, **kwargs)
-  File "/rds/user/fz288/hpc-work/PreFLMR/src/models/rerank/decoder_rerank_model.py", line 221, in forward
-    outputs = self.model(input_ids=input_ids,
-  File "/home/fz288/rds/hpc-work/PreFLMR/VQA/lib/python3.8/site-packages/torch/nn/modules/module.py", line 1511, in _wrapped_call_impl
-    return self._call_impl(*args, **kwargs)
-  File "/home/fz288/rds/hpc-work/PreFLMR/VQA/lib/python3.8/site-packages/torch/nn/modules/module.py", line 1520, in _call_impl
-    return forward_call(*args, **kwargs)
-  File "/rds/user/fz288/hpc-work/PreFLMR/src/models/custom_peft.py", line 83, in forward
-    return self.base_model(
-  File "/home/fz288/rds/hpc-work/PreFLMR/VQA/lib/python3.8/site-packages/torch/nn/modules/module.py", line 1511, in _wrapped_call_impl
-    return self._call_impl(*args, **kwargs)
-  File "/home/fz288/rds/hpc-work/PreFLMR/VQA/lib/python3.8/site-packages/torch/nn/modules/module.py", line 1520, in _call_impl
-    return forward_call(*args, **kwargs)
-  File "/home/fz288/rds/hpc-work/PreFLMR/VQA/lib/python3.8/site-packages/transformers/models/blip_2/modeling_blip_2.py", line 1726, in forward
-    outputs = self.language_model(
-  File "/home/fz288/rds/hpc-work/PreFLMR/VQA/lib/python3.8/site-packages/torch/nn/modules/module.py", line 1511, in _wrapped_call_impl
-    return self._call_impl(*args, **kwargs)
-  File "/home/fz288/rds/hpc-work/PreFLMR/VQA/lib/python3.8/site-packages/torch/nn/modules/module.py", line 1520, in _call_impl
-    return forward_call(*args, **kwargs)
-  File "/home/fz288/rds/hpc-work/PreFLMR/VQA/lib/python3.8/site-packages/transformers/models/opt/modeling_opt.py", line 1145, in forward
-    outputs = self.model.decoder(
-  File "/home/fz288/rds/hpc-work/PreFLMR/VQA/lib/python3.8/site-packages/torch/nn/modules/module.py", line 1511, in _wrapped_call_impl
-    return self._call_impl(*args, **kwargs)
-  File "/home/fz288/rds/hpc-work/PreFLMR/VQA/lib/python3.8/site-packages/torch/nn/modules/module.py", line 1520, in _call_impl
-    return forward_call(*args, **kwargs)
-  File "/home/fz288/rds/hpc-work/PreFLMR/VQA/lib/python3.8/site-packages/transformers/models/opt/modeling_opt.py", line 911, in forward
-    layer_outputs = decoder_layer(
-  File "/home/fz288/rds/hpc-work/PreFLMR/VQA/lib/python3.8/site-packages/torch/nn/modules/module.py", line 1511, in _wrapped_call_impl
-    return self._call_impl(*args, **kwargs)
-  File "/home/fz288/rds/hpc-work/PreFLMR/VQA/lib/python3.8/site-packages/torch/nn/modules/module.py", line 1520, in _call_impl
-    return forward_call(*args, **kwargs)
-  File "/home/fz288/rds/hpc-work/PreFLMR/VQA/lib/python3.8/site-packages/transformers/models/opt/modeling_opt.py", line 552, in forward
-    hidden_states, self_attn_weights, present_key_value = self.self_attn(
-  File "/home/fz288/rds/hpc-work/PreFLMR/VQA/lib/python3.8/site-packages/torch/nn/modules/module.py", line 1511, in _wrapped_call_impl
-    return self._call_impl(*args, **kwargs)
-  File "/home/fz288/rds/hpc-work/PreFLMR/VQA/lib/python3.8/site-packages/torch/nn/modules/module.py", line 1520, in _call_impl
-    return forward_call(*args, **kwargs)
-  File "/home/fz288/rds/hpc-work/PreFLMR/VQA/lib/python3.8/site-packages/transformers/models/opt/modeling_opt.py", line 232, in forward
-    attn_weights = attn_weights.view(bsz, self.num_heads, tgt_len, src_len) + attention_mask
-torch.cuda.OutOfMemoryError: CUDA out of memory. Tried to allocate 3.44 GiB. GPU 0 has a total capacity of 79.15 GiB of which 1018.44 MiB is free. Including non-PyTorch memory, this process has 78.15 GiB memory in use. Of the allocated memory 69.12 GiB is allocated by PyTorch, and 8.41 GiB is reserved by PyTorch but unallocated. If reserved but unallocated memory is large try setting PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True to avoid fragmentation.  See documentation for Memory Management  (https://pytorch.org/docs/stable/notes/cuda.html#environment-variables)
-[31;20m[ERROR] - runway_for_ml.experiment : Uncaught exception: <class 'torch.cuda.OutOfMemoryError'> --> CUDA out of memory. Tried to allocate 3.44 GiB. GPU 0 has a total capacity of 79.15 GiB of which 1018.44 MiB is free. Including non-PyTorch memory, this process has 78.15 GiB memory in use. Of the allocated memory 69.12 GiB is allocated by PyTorch, and 8.41 GiB is reserved by PyTorch but unallocated. If reserved but unallocated memory is large try setting PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True to avoid fragmentation.  See documentation for Memory Management  (https://pytorch.org/docs/stable/notes/cuda.html#environment-variables)[0m
-Traceback (most recent call last):
-  File "src/main.py", line 222, in <module>
-    test_main(config_dict)
-  File "src/main.py", line 198, in test_main
-    rw_experiment.test()
-  File "/rds/user/fz288/hpc-work/PreFLMR/./runway_for_ml/experiment.py", line 414, in test
-    trainer.test(
-  File "/home/fz288/rds/hpc-work/PreFLMR/VQA/lib/python3.8/site-packages/pytorch_lightning/trainer/trainer.py", line 754, in test
-    return call._call_and_handle_interrupt(
-  File "/home/fz288/rds/hpc-work/PreFLMR/VQA/lib/python3.8/site-packages/pytorch_lightning/trainer/call.py", line 43, in _call_and_handle_interrupt
-    return trainer.strategy.launcher.launch(trainer_fn, *args, trainer=trainer, **kwargs)
-  File "/home/fz288/rds/hpc-work/PreFLMR/VQA/lib/python3.8/site-packages/pytorch_lightning/strategies/launchers/subprocess_script.py", line 105, in launch
-    return function(*args, **kwargs)
-  File "/home/fz288/rds/hpc-work/PreFLMR/VQA/lib/python3.8/site-packages/pytorch_lightning/trainer/trainer.py", line 794, in _test_impl
-    results = self._run(model, ckpt_path=ckpt_path)
-  File "/home/fz288/rds/hpc-work/PreFLMR/VQA/lib/python3.8/site-packages/pytorch_lightning/trainer/trainer.py", line 987, in _run
-    results = self._run_stage()
-  File "/home/fz288/rds/hpc-work/PreFLMR/VQA/lib/python3.8/site-packages/pytorch_lightning/trainer/trainer.py", line 1026, in _run_stage
-    return self._evaluation_loop.run()
-  File "/home/fz288/rds/hpc-work/PreFLMR/VQA/lib/python3.8/site-packages/pytorch_lightning/loops/utilities.py", line 182, in _decorator
-    return loop_run(self, *args, **kwargs)
-  File "/home/fz288/rds/hpc-work/PreFLMR/VQA/lib/python3.8/site-packages/pytorch_lightning/loops/evaluation_loop.py", line 142, in run
-    return self.on_run_end()
-  File "/home/fz288/rds/hpc-work/PreFLMR/VQA/lib/python3.8/site-packages/pytorch_lightning/loops/evaluation_loop.py", line 254, in on_run_end
-    self._on_evaluation_epoch_end()
-  File "/home/fz288/rds/hpc-work/PreFLMR/VQA/lib/python3.8/site-packages/pytorch_lightning/loops/evaluation_loop.py", line 334, in _on_evaluation_epoch_end
-    call._call_lightning_module_hook(trainer, hook_name)
-  File "/home/fz288/rds/hpc-work/PreFLMR/VQA/lib/python3.8/site-packages/pytorch_lightning/trainer/call.py", line 157, in _call_lightning_module_hook
-    output = fn(*args, **kwargs)
-  File "/rds/user/fz288/hpc-work/PreFLMR/src/executors/Reranker_base_executor.py", line 689, in on_test_epoch_end
-    log_dict = self.evaluate_outputs(test_step_output, test_batch)
-  File "/rds/user/fz288/hpc-work/PreFLMR/src/executors/Reranker_base_executor.py", line 891, in evaluate_outputs
-    outputs = self.reranker(
-  File "/home/fz288/rds/hpc-work/PreFLMR/VQA/lib/python3.8/site-packages/torch/nn/modules/module.py", line 1511, in _wrapped_call_impl
-    return self._call_impl(*args, **kwargs)
-  File "/home/fz288/rds/hpc-work/PreFLMR/VQA/lib/python3.8/site-packages/torch/nn/modules/module.py", line 1520, in _call_impl
-    return forward_call(*args, **kwargs)
-  File "/rds/user/fz288/hpc-work/PreFLMR/src/models/rerank/decoder_rerank_model.py", line 221, in forward
-    outputs = self.model(input_ids=input_ids,
-  File "/home/fz288/rds/hpc-work/PreFLMR/VQA/lib/python3.8/site-packages/torch/nn/modules/module.py", line 1511, in _wrapped_call_impl
-    return self._call_impl(*args, **kwargs)
-  File "/home/fz288/rds/hpc-work/PreFLMR/VQA/lib/python3.8/site-packages/torch/nn/modules/module.py", line 1520, in _call_impl
-    return forward_call(*args, **kwargs)
-  File "/rds/user/fz288/hpc-work/PreFLMR/src/models/custom_peft.py", line 83, in forward
-    return self.base_model(
-  File "/home/fz288/rds/hpc-work/PreFLMR/VQA/lib/python3.8/site-packages/torch/nn/modules/module.py", line 1511, in _wrapped_call_impl
-    return self._call_impl(*args, **kwargs)
-  File "/home/fz288/rds/hpc-work/PreFLMR/VQA/lib/python3.8/site-packages/torch/nn/modules/module.py", line 1520, in _call_impl
-    return forward_call(*args, **kwargs)
-  File "/home/fz288/rds/hpc-work/PreFLMR/VQA/lib/python3.8/site-packages/transformers/models/blip_2/modeling_blip_2.py", line 1726, in forward
-    outputs = self.language_model(
-  File "/home/fz288/rds/hpc-work/PreFLMR/VQA/lib/python3.8/site-packages/torch/nn/modules/module.py", line 1511, in _wrapped_call_impl
-    return self._call_impl(*args, **kwargs)
-  File "/home/fz288/rds/hpc-work/PreFLMR/VQA/lib/python3.8/site-packages/torch/nn/modules/module.py", line 1520, in _call_impl
-    return forward_call(*args, **kwargs)
-  File "/home/fz288/rds/hpc-work/PreFLMR/VQA/lib/python3.8/site-packages/transformers/models/opt/modeling_opt.py", line 1145, in forward
-    outputs = self.model.decoder(
-  File "/home/fz288/rds/hpc-work/PreFLMR/VQA/lib/python3.8/site-packages/torch/nn/modules/module.py", line 1511, in _wrapped_call_impl
-    return self._call_impl(*args, **kwargs)
-  File "/home/fz288/rds/hpc-work/PreFLMR/VQA/lib/python3.8/site-packages/torch/nn/modules/module.py", line 1520, in _call_impl
-    return forward_call(*args, **kwargs)
-  File "/home/fz288/rds/hpc-work/PreFLMR/VQA/lib/python3.8/site-packages/transformers/models/opt/modeling_opt.py", line 911, in forward
-    layer_outputs = decoder_layer(
-  File "/home/fz288/rds/hpc-work/PreFLMR/VQA/lib/python3.8/site-packages/torch/nn/modules/module.py", line 1511, in _wrapped_call_impl
-    return self._call_impl(*args, **kwargs)
-  File "/home/fz288/rds/hpc-work/PreFLMR/VQA/lib/python3.8/site-packages/torch/nn/modules/module.py", line 1520, in _call_impl
-    return forward_call(*args, **kwargs)
-  File "/home/fz288/rds/hpc-work/PreFLMR/VQA/lib/python3.8/site-packages/transformers/models/opt/modeling_opt.py", line 552, in forward
-    hidden_states, self_attn_weights, present_key_value = self.self_attn(
-  File "/home/fz288/rds/hpc-work/PreFLMR/VQA/lib/python3.8/site-packages/torch/nn/modules/module.py", line 1511, in _wrapped_call_impl
-    return self._call_impl(*args, **kwargs)
-  File "/home/fz288/rds/hpc-work/PreFLMR/VQA/lib/python3.8/site-packages/torch/nn/modules/module.py", line 1520, in _call_impl
-    return forward_call(*args, **kwargs)
-  File "/home/fz288/rds/hpc-work/PreFLMR/VQA/lib/python3.8/site-packages/transformers/models/opt/modeling_opt.py", line 232, in forward
-    attn_weights = attn_weights.view(bsz, self.num_heads, tgt_len, src_len) + attention_mask
-torch.cuda.OutOfMemoryError: CUDA out of memory. Tried to allocate 3.44 GiB. GPU 0 has a total capacity of 79.15 GiB of which 1018.44 MiB is free. Including non-PyTorch memory, this process has 78.15 GiB memory in use. Of the allocated memory 69.12 GiB is allocated by PyTorch, and 8.41 GiB is reserved by PyTorch but unallocated. If reserved but unallocated memory is large try setting PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True to avoid fragmentation.  See documentation for Memory Management  (https://pytorch.org/docs/stable/notes/cuda.html#environment-variables)
-wandb: - 0.039 MB of 0.039 MB uploadedwandb: \ 0.039 MB of 0.039 MB uploadedwandb: | 0.039 MB of 0.039 MB uploadedwandb: / 0.039 MB of 0.039 MB uploadedwandb: - 0.239 MB of 0.288 MB uploaded (0.023 MB deduped)wandb: \ 0.288 MB of 0.288 MB uploaded (0.023 MB deduped)wandb: 🚀 View run TEST_EVQA_Decoder_Head_Rerank_ckpt_model_step_2000 at: https://wandb.ai/byrne-lab/PreFLMR%20MLMI/runs/afv521q9
-wandb: ⭐️ View project at: https://wandb.ai/byrne-lab/PreFLMR%20MLMI
-wandb: Synced 7 W&B file(s), 0 media file(s), 3 artifact file(s) and 1 other file(s)
-wandb: Find logs at: ./wandb/run-20240622_100754-afv521q9/logs

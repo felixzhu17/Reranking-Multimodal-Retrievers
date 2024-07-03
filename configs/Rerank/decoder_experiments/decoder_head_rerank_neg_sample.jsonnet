@@ -130,7 +130,7 @@ local data_pipeline = std.mergePatch(merge_data, data_loader);
         ],
         "index_files": index_files,
         "nbits": 8,
-        "docs_to_rerank": 50,
+        "docs_to_rerank": 100,
         "prepend_tokens": {
             "query_encoder": "",
             "item_encoder": "",

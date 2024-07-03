@@ -82,8 +82,8 @@ def main(config_name):
         opts = config.get("opts", "")
         model_path = config.get("ckpt_path")
         experiment_name = generate_experiment_name(base_experiment_name, opts, model_path)
-        if os.path.isdir(os.path.join('experiments', experiment_name)):
-            raise ValueError("Experiment directory already exists.")
+        # if os.path.isdir(os.path.join('experiments', experiment_name)):
+        #     raise ValueError("Experiment directory already exists.")
     
         assert config["config_file"], "Config file not specified."
         assert os.path.exists(config["config_file"]), f"Config file {config['config_file']} does not exist."

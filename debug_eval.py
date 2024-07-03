@@ -1,8 +1,8 @@
 import json
 
 # File paths
-RERANKER_RESULTS = "/home/fz288/rds/hpc-work/PreFLMR/experiments/TEST_EVQA_Decoder_Only_Rerank_ckpt_model_step_2500/test/_test_EVQADatasetForDPR.test_predictions_rank_0.json"
-RERANKER_2_RESULTS = "/home/fz288/rds/hpc-work/PreFLMR/experiments/TEST_EVQA_Decoder_Only_Rerank_ckpt_model_step_1500/test/_test_EVQADatasetForDPR.test_predictions_rank_0.json"
+RERANKER_RESULTS = "/home/fz288/rds/hpc-work/PreFLMR/experiments/TEST_EVQA_FLMRQuery_Full_Context_Rerank_B_Freeze_Vision_ckpt_model_step_2000/test/_test_EVQADatasetForDPR.test_predictions_rank_0.json"
+RERANKER_2_RESULTS = "/home/fz288/rds/hpc-work/PreFLMR/experiments/TEST_EVQA_Interaction_3_B_ckpt_model_step_13003/test/_test_EVQADatasetForDPR.test_predictions_rank_0.json"
 
 # Load the data from both files
 with open(RERANKER_RESULTS, "r") as f:

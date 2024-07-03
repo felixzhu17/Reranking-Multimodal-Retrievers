@@ -125,7 +125,8 @@ local data_pipeline = std.mergePatch(merge_data, data_loader);
         "modules": [
             "separate_query_and_item_encoders",
             // "full_validation",
-            "decoder_reranker"
+            "decoder_reranker",
+            "split_testing_batch"
         ],
         "index_files": index_files,
         "nbits": 8,

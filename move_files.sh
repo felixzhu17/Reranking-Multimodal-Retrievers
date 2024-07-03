@@ -2,18 +2,7 @@
 
 # List of folders to move
 folders=(
-    "/home/fz288/rds/hpc-work/PreFLMR/experiments/OKVQA_FLMRQuery_Full_Context_Rerank_No_Vision_ckpt_model_step_3021"
-    "/home/fz288/rds/hpc-work/PreFLMR/experiments/OKVQA_FLMRQuery_Full_Context_Rerank_No_Vision"
-    "/home/fz288/rds/hpc-work/PreFLMR/experiments/OKVQA_FLMRQuery_Full_Context_Rerank_L_Freeze_Vision_ckpt_model_step_6042"
-    "/home/fz288/rds/hpc-work/PreFLMR/experiments/OKVQA_FLMRQuery_Full_Context_Rerank_L_Freeze_Vision_ckpt_model_step_3021"
-    "/home/fz288/rds/hpc-work/PreFLMR/experiments/OKVQA_FLMRQuery_Full_Context_Rerank_L_Freeze_Vision_ckpt_model_step_1007"
-    "/home/fz288/rds/hpc-work/PreFLMR/experiments/OKVQA_FLMRQuery_Full_Context_Rerank_L_Freeze_Vision"
-    "/home/fz288/rds/hpc-work/PreFLMR/experiments/OKVQA_FLMRQuery_Full_Context_Rerank_B_Neg_Sample_Train_on_Retrieve_ckpt_model_step_7552"
-    "/home/fz288/rds/hpc-work/PreFLMR/experiments/OKVQA_FLMRQuery_Full_Context_Rerank_B_Neg_Sample_ckpt_model_step_7552"
-    "/home/fz288/rds/hpc-work/PreFLMR/experiments/OKVQA_FLMRQuery_Full_Context_Rerank_B_Neg_Sample_ckpt_model_step_6042"
-    "/home/fz288/rds/hpc-work/PreFLMR/experiments/OKVQA_FLMRQuery_Full_Context_Rerank_B_Freeze_Vision_cross_encoder_num_hidden_layers3"
-    "/home/fz288/rds/hpc-work/PreFLMR/experiments/OKVQA_FLMRQuery_Full_Context_Rerank_B_Freeze_Vision_ckpt_model_step_3021"
-    "/home/fz288/rds/hpc-work/PreFLMR/experiments/OKVQA_FLMRQuery_Full_Context_Rerank_B_Freeze_Vision"
+    "/home/fz288/rds/hpc-work/PreFLMR/experiments/OKVQA_Decoder_Head_Rerank_Retrieved_ckpt_model_step_2002"
 )
 
 # Target directory
