@@ -2,7 +2,6 @@
     {
         "config_file": "configs/Rerank/evqa_experiments/evqa_decoder.jsonnet",
         "time": "6:00:00",
-        "gpus": 1,
-        "ckpt_path": "/home/fz288/rds/hpc-work/PreFLMR/experiments/EVQA_Decoder_Rerank_ckpt_model_step_2250/train/saved_models/model_step_3250.ckpt"
+        "gpus": 1
     }
 ]

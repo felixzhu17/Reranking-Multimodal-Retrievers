@@ -1,11 +1,10 @@
 import pickle
 import json
 questionId2topPassages = {}
-RERANKER_RESULTS = "/home/fz288/rds/hpc-work/PreFLMR/experiments/TEST_EVQA_Decoder_Only_Rerank_ckpt_model_step_2500/test/_test_EVQADatasetForDPR.test_predictions_rank_0.json"
+RERANKER_RESULTS = "/home/fz288/rds/hpc-work/PreFLMR/experiments/TEST_OKVQA_Interaction_MORES_5_B_ckpt_model_step_5035/test/_test_OKVQADatasetForDPR.test_predictions_rank_0.json"
 with open(RERANKER_RESULTS, "rb") as f:
     data = json.load(f)['output']
 
-raise ValueError
 # Function to calculate correctness based on passage_id
 def calculate_correctness(passage_list, pos_item_ids):
     return sum(1 for passage in passage_list if passage['passage_id'] in pos_item_ids)
@@ -93,9 +92,9 @@ def print_details_for_index(data, index):
     print(f"Pseudo Improvement: {entry['pseudo_improvement']}")
     print(f"Improvement Difference: {entry['improvement_diff']}")
 
-# Example usage: print details for the first entry in the sorted data
-index = 2 # Change this to the desired index
-print_details_for_index(sorted_data, index)
+# # Example usage: print details for the first entry in the sorted data
+# index = 2 # Change this to the desired index
+# print_details_for_index(sorted_data, index)
 
 # Print the average improvements
 print(f"Average Improvement: {average_improvement}")

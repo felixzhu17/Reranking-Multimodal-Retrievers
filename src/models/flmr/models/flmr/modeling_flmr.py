@@ -1340,6 +1340,7 @@ class FLMRModelForRetrieval(FLMRPretrainedModelForRetrieval):
                 transformer_mapping_output_features = (
                     transformer_mapping_outputs.last_hidden_state
                 )
+                                
                 # Convert the dimension to FLMR dim
                 transformer_mapping_output_features = (
                     self.transformer_mapping_output_linear(
@@ -1350,6 +1351,9 @@ class FLMRModelForRetrieval(FLMRPretrainedModelForRetrieval):
                 vision_embeddings = torch.cat(
                     [vision_embeddings, transformer_mapping_output_features], dim=1
                 )
+                
+                
+                
 
         if concat_output_from_vision_encoder and concat_output_from_text_encoder:
             Q = torch.cat([text_embeddings, vision_embeddings], dim=1)

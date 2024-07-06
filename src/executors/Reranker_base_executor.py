@@ -915,8 +915,8 @@ class RerankerBaseExecutor(BaseExecutor, MetricsProcessor):
                 loss = (first_half_outputs.loss.detach().cpu().item() + second_half_outputs.loss.detach().cpu().item()) / 2
                 
                 # Concatenate logits
-                all_logits = torch.cat((first_half_outputs.logits, second_half_outputs.logits), dim=1).clone().detach()
-        
+                all_logits = torch.cat((first_half_outputs.logits, second_half_outputs.logits), dim=0 if len(first_half_outputs.logits.shape) == 2 else 1).clone().detach()
+ 
             else:
                 outputs = self.reranker(**batch_input)
                 loss, all_logits = outputs.loss.detach().cpu().item(), outputs.logits.clone().detach()

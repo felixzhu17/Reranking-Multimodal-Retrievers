@@ -117,7 +117,7 @@ local data_pipeline = std.mergePatch(merge_data, data_loader);
           "max_decoder_source_length": 512,
           "loss_fn": "BCE"
         },
-        "Ks": [5, 10, 20, 50],
+        "Ks": [5, 10, 20, 50, 100],
         "num_negative_samples": 4,
         "max_source_length": 32,
         "max_decoder_source_length": 512,
@@ -127,7 +127,8 @@ local data_pipeline = std.mergePatch(merge_data, data_loader);
             "separate_query_and_item_encoders",
             // "full_validation",
             "decoder_reranker",
-            "train_with_retrieved_docs"
+            "train_with_retrieved_docs",
+            "split_testing_batch"
         ],
         "index_files": index_files,
         "nbits": 8,

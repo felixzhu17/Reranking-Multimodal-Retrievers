@@ -143,7 +143,7 @@ class DecoderRerankModel(pl.LightningModule):
         inputs = {key: val.to(self.device) for key, val in inputs.items()}
         inputs['pixel_values'] = query_pixel_values.repeat_interleave(docs_per_query,0).to(self.device)
         labels = labels.to(self.device)
-        
+                
         outputs = self.model(**inputs, labels=labels)
         loss = outputs.loss
         logits = outputs.logits[:,0,:]
@@ -180,6 +180,8 @@ class DecoderHeadRerankModel(pl.LightningModule):
         )
         self.processor = Blip2Processor.from_pretrained(self.config.GeneratorModelVersion)
         self.processor.tokenizer.add_special_tokens({'additional_special_tokens': [GENERATION_TOKEN]})
+        self.decoder_start_token_id = self.model.language_model.config.decoder_start_token_id
+        
         self.gen_score_id = self.processor.tokenizer.convert_tokens_to_ids([GENERATION_TOKEN])[0]
         self.classifier1 = nn.Linear(generator_model_config.text_config.hidden_size, 1, bias=False).to(self.device)
         self.classifier2 = nn.Linear(generator_model_config.text_config.hidden_size, 1, bias=False).to(self.device)
@@ -213,19 +215,30 @@ class DecoderHeadRerankModel(pl.LightningModule):
             self.max_decoder_source_length, docs_per_query
         )
                 
-        input_ids = inputs.input_ids.to(self.device)
-        attention_mask = inputs.attention_mask.to(self.device)
-        pixel_values = query_pixel_values.repeat_interleave(docs_per_query,0).to(self.device)        
+        # input_ids = inputs.input_ids.to(self.device)
+        # attention_mask = inputs.attention_mask.to(self.device)
+        # pixel_values = query_pixel_values.repeat_interleave(docs_per_query,0).to(self.device)        
         
-        
-        outputs = self.model(input_ids=input_ids, 
-                             attention_mask=attention_mask, 
-                             pixel_values=pixel_values, 
+        inputs = {key: val.to(self.device) for key, val in inputs.items()}
+        inputs['pixel_values'] = query_pixel_values.repeat_interleave(docs_per_query,0).to(self.device)
+
+        if self.config.GeneratorModelVersion == "Salesforce/blip2-flan-t5-xl":
+            decoder_input_ids = torch.full(
+                (batch_size*docs_per_query, 1), 
+                self.decoder_start_token_id,
+                dtype=torch.long
+            ).to(self.device)
+            inputs['decoder_input_ids'] = decoder_input_ids
+
+        outputs = self.model(**inputs,
                              output_hidden_states = True)
-        
-        hidden_states = outputs.language_model_outputs.hidden_states[-1]
-        rel_position = (torch.eq(input_ids, self.gen_score_id).long().argmax(-1)).to(hidden_states.device)
-        rel_hidden_states = hidden_states[torch.arange(hidden_states.size()[0], device=hidden_states.device), rel_position]
+
+        if self.config.GeneratorModelVersion == "Salesforce/blip2-flan-t5-xl":
+            rel_hidden_states = outputs.language_model_outputs.decoder_hidden_states[-1].squeeze(1)
+        else:
+            hidden_states = outputs.language_model_outputs.hidden_states[-1]
+            rel_position = (torch.eq(inputs.input_ids, self.gen_score_id).long().argmax(-1)).to(hidden_states.device)
+            rel_hidden_states = hidden_states[torch.arange(hidden_states.size()[0], device=hidden_states.device), rel_position]
         logits, logits_secondary = self.classifier1(rel_hidden_states), self.classifier2(rel_hidden_states)
         logits, labels = prepare_logits_labels(self.config, logits, logits_secondary, batch_size, num_negative_examples, labels = labels)
 

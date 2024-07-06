@@ -456,6 +456,7 @@ class RerankModel(pl.LightningModule):
             transformer_mapping_output_features = (
                 transformer_mapping_outputs.last_hidden_state
             )
+            
             # Convert the dimension to FLMR dim
             transformer_mapping_output_features = (
                 self.transformer_mapping_output_linear(
