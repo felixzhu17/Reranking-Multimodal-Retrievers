@@ -237,7 +237,7 @@ class DecoderHeadRerankModel(pl.LightningModule):
             rel_hidden_states = outputs.language_model_outputs.decoder_hidden_states[-1].squeeze(1)
         else:
             hidden_states = outputs.language_model_outputs.hidden_states[-1]
-            rel_position = (torch.eq(inputs.input_ids, self.gen_score_id).long().argmax(-1)).to(hidden_states.device)
+            rel_position = (torch.eq(inputs['input_ids'], self.gen_score_id).long().argmax(-1)).to(hidden_states.device)
             rel_hidden_states = hidden_states[torch.arange(hidden_states.size()[0], device=hidden_states.device), rel_position]
         logits, logits_secondary = self.classifier1(rel_hidden_states), self.classifier2(rel_hidden_states)
         logits, labels = prepare_logits_labels(self.config, logits, logits_secondary, batch_size, num_negative_examples, labels = labels)

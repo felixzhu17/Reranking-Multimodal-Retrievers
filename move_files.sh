@@ -2,9 +2,7 @@
 
 # List of folders to move
 folders=(
-    "/home/fz288/rds/hpc-work/PreFLMR/experiments/EVQA_Decoder_Head_Rerank"
-    "/home/fz288/rds/hpc-work/PreFLMR/experiments/EVQA_Decoder_Head_Rerank_Neg_Sample_ckpt_model_step_2000"
-    "/home/fz288/rds/hpc-work/PreFLMR/experiments/EVQA_Decoder_Head_Rerank_Neg_Sample_Retrieved_ckpt_model_step_1000"
+    "/home/fz288/rds/hpc-work/PreFLMR/experiments/EVQA_Decoder_Head_Rerank_Neg_Sample_Retrieved_ckpt_model_step_2000"
 )
 
 # Target directory

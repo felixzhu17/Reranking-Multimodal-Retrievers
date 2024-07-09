@@ -811,7 +811,7 @@ class RerankerBaseExecutor(BaseExecutor, MetricsProcessor):
         assert (
             self.config.model_config.docs_to_rerank == max_K
         ), "The number of retrieved documents must be equal to the maximum K."
-
+        concat_dim = None
         print("Reranking the top retrieved documents...")
         batch_result = []
         for (
@@ -914,8 +914,18 @@ class RerankerBaseExecutor(BaseExecutor, MetricsProcessor):
                 # Calculate the average loss
                 loss = (first_half_outputs.loss.detach().cpu().item() + second_half_outputs.loss.detach().cpu().item()) / 2
                 
-                # Concatenate logits
-                all_logits = torch.cat((first_half_outputs.logits, second_half_outputs.logits), dim=0 if len(first_half_outputs.logits.shape) == 2 else 1).clone().detach()
+ 
+                # Find the dimension where both tensors have size 1
+                if not concat_dim:
+                    for dim in range(first_half_outputs.logits.dim()):
+                        if first_half_outputs.logits.size(dim) != 1 and second_half_outputs.logits.size(dim) != 1:
+                            concat_dim = dim
+                            break
+
+                if concat_dim is not None:
+                    all_logits = torch.cat((first_half_outputs.logits, second_half_outputs.logits), dim=concat_dim).clone().detach()
+                else:
+                    raise ValueError("No common dimension with size 1 found in both tensors.")
  
             else:
                 outputs = self.reranker(**batch_input)

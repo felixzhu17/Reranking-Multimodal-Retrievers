@@ -1,0 +1,7 @@
+[
+    {
+        "config_file": "configs/Rerank/evqa_experiments/evqa_full_context_rerank_B_no_freeze.jsonnet",
+        "time": "8:00:00",
+        "gpus": 2
+    }
+]

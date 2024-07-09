@@ -1,0 +1,20 @@
+[
+    {
+        "config_file": "configs/Rerank/interaction_experiments/okvqa_interaction_B_mores_5_retrieved.jsonnet",
+        "time": "1:00:00",
+        "gpus": 1,
+        "ckpt_path": "/home/fz288/rds/hpc-work/PreFLMR/experiments/OKVQA_Interaction_MORES_5_B_Train_on_Retrieve_ckpt_model_step_11077/train/saved_models/model_step_6042.ckpt"
+    },
+    {
+        "config_file": "configs/Rerank/interaction_experiments/okvqa_interaction_B_mores_5_retrieved.jsonnet",
+        "time": "1:00:00",
+        "gpus": 1,
+        "ckpt_path": "/home/fz288/rds/hpc-work/PreFLMR/experiments/OKVQA_Interaction_MORES_5_B_Train_on_Retrieve_ckpt_model_step_11077/train/saved_models/model_step_8056.ckpt"
+    },
+    {
+        "config_file": "configs/Rerank/interaction_experiments/okvqa_interaction_B_mores_5_retrieved.jsonnet",
+        "time": "1:00:00",
+        "gpus": 1,
+        "ckpt_path": "/home/fz288/rds/hpc-work/PreFLMR/experiments/OKVQA_Interaction_MORES_5_B_Train_on_Retrieve_ckpt_model_step_11077/train/saved_models/model_step_10070.ckpt"
+    }
+]
