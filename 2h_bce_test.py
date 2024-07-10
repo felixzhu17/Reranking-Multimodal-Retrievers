@@ -3,7 +3,7 @@
 import json
 from collections import defaultdict
 
-RERANKER_RESULTS = "/home/fz288/rds/hpc-work/PreFLMR/experiments/TEST_OKVQA_FLMRQuery_Full_Context_Rerank_ckpt_model_step_1007/test/_test_OKVQADatasetForDPR.test_predictions_rank_0.json"
+RERANKER_RESULTS = "/home/fz288/rds/hpc-work/PreFLMR/experiments/TEST_OKVQA_FLMRQuery_Full_Context_Retrieved_Rerank_ckpt_model_step_1000/test/_test_OKVQADatasetForDPR.test_predictions_rank_0.json"
 CORRECT_PASSAGE_IDS = "/home/fz288/rds/hpc-work/PreFLMR/experiments/TEST_OKVQA_Interaction_MORES_5_B_ckpt_model_step_3021/test/_test_OKVQADatasetForDPR.test_predictions_rank_0.json"
 
 # Load both JSON files

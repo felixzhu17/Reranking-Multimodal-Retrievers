@@ -1,0 +1,8 @@
+[
+    {
+        "config_file": "configs/Rerank/evqa_experiments/evqa_interaction_B_mores_5_retrieved.jsonnet",
+        "time": "5:00:00",
+        "gpus": 2,
+        "ckpt_path": "/home/fz288/rds/hpc-work/PreFLMR/experiments/EVQA_Interaction_MORES_5_B/train/saved_models/model_step_16004.ckpt"
+    }
+]
