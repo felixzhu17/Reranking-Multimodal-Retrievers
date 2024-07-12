@@ -1,8 +1,7 @@
 [
     {
         "config_file": "configs/Rerank/decoder_experiments/decoder_only_rerank.jsonnet",
-        "time": "6:00:00",
-        "gpus": 1,
-        "ckpt_path": "/home/fz288/rds/hpc-work/PreFLMR/experiments/OKVQA_Decoder_Only_Rerank_ckpt_model_step_2002/train/saved_models/model_step_3503.ckpt"
+        "time": "10:00:00",
+        "gpus": 1
     }
 ]

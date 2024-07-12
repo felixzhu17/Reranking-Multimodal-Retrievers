@@ -396,6 +396,16 @@ class RunwayExperiment:
         trainer = Trainer(**additional_args) 
         logger.info(f"additional arguments passed to trainer: {str(additional_args)}")
         
+        # Log the number of GPUs used
+        logger.info(f"Accelerator type: {trainer.accelerator}")
+        logger.info(f"Number of devices being used: {trainer.num_devices}")
+
+        # If you want to be more specific, you can also log the individual device ids
+        if trainer.num_devices > 1:
+            logger.info(f"Device IDs being used: {trainer.device_ids}")
+        else:
+            logger.info("Single device being used.")
+            
         # Auto-find checkpoints
         logger.debug(f"ckpt_dir: {self.ckpt_dir}")
         logger.debug(f"checkpoint name:{test_config.get('checkpoint_name', '')}")

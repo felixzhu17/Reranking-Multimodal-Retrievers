@@ -179,6 +179,8 @@ class RerankerBaseExecutor(BaseExecutor, MetricsProcessor):
             # Default case if no modules in the dictionary are found
             assert RerankerClass == RerankModel, "Only RerankModel"
             
+        if "neg_sample_retrieved" in self.model_config.modules:
+            print("Sampling Negative")
         # if "full_context_reranker" in self.model_config.modules:
         #     assert self.training_config.batch_size == 1, "FullContextReranker requires 1 batch size"
 
@@ -574,7 +576,7 @@ class RerankerBaseExecutor(BaseExecutor, MetricsProcessor):
         train_batch = self.get_model_inputs(sample_batched)
 
         if "train_with_retrieved_docs" in self.model_config.modules:
-            if self.model_config.reranker_config.loss_fn == "negative_sampling":
+            if self.model_config.reranker_config.loss_fn == "negative_sampling" or "neg_sample_retrieved" in self.model_config.modules:
                 train_batch, labels = self.negative_sample_model_inputs(sample_batched, train_batch)
             else:
                 train_batch, labels = self.sample_model_inputs(sample_batched, train_batch)
@@ -652,21 +654,20 @@ class RerankerBaseExecutor(BaseExecutor, MetricsProcessor):
         return None
 
     def test_step(self, sample_batched, batch_idx, dataloader_idx=0):
+        print(f"Running test_step on GPU {torch.cuda.current_device()}")
+        print(f"Batch index: {batch_idx}, Dataloader index: {dataloader_idx}")
+
         pred, batch = self._dummy_loss(sample_batched, batch_idx, dataloader_idx)
-        # MODIFIED
-        # pred, batch = self._compute_loss(sample_batched, batch_idx, dataloader_idx, n_docs=5)
         self.test_step_outputs[dataloader_idx].append(pred)
         self.test_batch[dataloader_idx].append(batch)
         return pred
 
     def on_test_epoch_end(self):
         test_step_outputs = self.test_step_outputs
-        #MODIFIED
-        # with open('test_losses.pkl', 'wb') as f:
-        #     pickle.dump(test_step_outputs, f)
-        # raise ValueError
-        
         test_batches = self.test_batch
+
+        print(f"GPU {torch.cuda.current_device()} - Test Step Outputs:", len(test_step_outputs))
+        print(f"GPU {torch.cuda.current_device()} - Test Batches:", len(test_batches))
 
         logger.info("reading global step of the checkpoint...")
         if self.trainer.ckpt_path is not None:
@@ -905,6 +906,7 @@ class RerankerBaseExecutor(BaseExecutor, MetricsProcessor):
                     
                 batch_input["labels"] = labels
 
+            start_time = time.time()
 
             if "split_testing_batch" in self.model_config.modules:
                 # Run the reranker on both halves and concatenate results
@@ -943,6 +945,10 @@ class RerankerBaseExecutor(BaseExecutor, MetricsProcessor):
             doc_logits_pairs = list(zip(retrieved_docs, logits_list))
             sorted_docs = sorted(doc_logits_pairs, key=lambda x: x[1], reverse=True)
 
+            end_time = time.time()
+            elapsed_time = end_time - start_time
+            print(f"Rerank time: {elapsed_time} seconds")
+            
             raw_top_ranking_passages = [
                 {
                     "passage_id": doc["passage_id"],

@@ -3,6 +3,7 @@ local data = import '../../data/okvqa_data.libsonnet';
 local merge_data = data.merge_data_pipeline;
 
 local pretrained_ckpt_path = "LinWeizheDragon/PreFLMR_ViT-B";
+local reranker_pretrained_ckpt_path = "LinWeizheDragon/PreFLMR_ViT-B";
 local image_processor_name = "laion/CLIP-ViT-bigG-14-laion2B-39B-b160k";
 
 local tokenizer_config = {
@@ -96,7 +97,7 @@ local validation_indexing_source = ["okvqa_passages"];
 local data_pipeline = std.mergePatch(merge_data, data_loader);
 
 {
-    experiment_name: 'OKVQA_Interaction_Reranker',
+    experiment_name: 'OKVQA_Decoder_Head_Reranker',
     test_suffix: 'default_test',
     meta: meta.default_meta,
     data_pipeline: data_pipeline,
@@ -108,15 +109,13 @@ local data_pipeline = std.mergePatch(merge_data, data_loader);
           "ModelVersion": pretrained_ckpt_path,
         },
         "reranker_config":{
-          "base_model": "FLMR",
-          "pretrain_config_class": "FLMRConfig",
-          "RerankerClass": "InteractionRerankModel",
-          "cross_encoder_config_base": "bert-base-uncased",
-          "cross_encoder_num_hidden_layers": 5,
-          "cross_encoder_max_position_embeddings": 750,
-          "loss_fn": "BCE",
-          "interaction_type": "MORES"
-
+          "RerankerClass":"DecoderHeadRerankModel",
+          "GeneratorModelClass": "Blip2ForConditionalGeneration", 
+          "GeneratorConfigClass": "Blip2Config",
+          "GeneratorModelVersion": "Salesforce/blip2-opt-2.7b",
+          "max_query_length": 32,
+          "max_decoder_source_length": 512,
+          "loss_fn": "BCE"
         },
         "Ks": [5, 10, 20, 50, 100],
         "num_negative_samples": 4,
@@ -126,7 +125,11 @@ local data_pipeline = std.mergePatch(merge_data, data_loader);
         "pretrained": 1,
         "modules": [
             "separate_query_and_item_encoders",
-            "interaction_reranker"
+            // "full_validation",
+            "decoder_reranker",
+            "train_with_retrieved_docs",
+            "split_testing_batch",
+            "neg_sample_retrieved"
         ],
         "index_files": index_files,
         "nbits": 8,
@@ -173,7 +176,7 @@ local data_pipeline = std.mergePatch(merge_data, data_loader);
         },
     },
     train: {
-        batch_size: 8,
+        batch_size: 2,
         num_dataloader_workers: 4,
         trainer_paras: {
             accelerator: 'auto',
@@ -181,15 +184,16 @@ local data_pipeline = std.mergePatch(merge_data, data_loader);
             strategy: 'ddp_find_unused_parameters_true',
             precision: 'bf16',
             max_epochs: -1,
-            accumulate_grad_batches: 8,
+            accumulate_grad_batches: 16,
             check_val_every_n_epoch: null,
-            val_check_interval: 1000,
+            val_check_interval: 500,
             log_every_n_steps: 10,
-            limit_val_batches: 50,
+            // limit_train_batches: 2,
+            limit_val_batches: 3,
         },
         model_checkpoint_callback_paras: {
             monitor: 'valid/OKVQADatasetForDPR.test/loss',
-            save_top_k: 10,
+            save_top_k: 5,
             mode: "min",
             filename: 'model_step_{step}',
             save_last: true,
@@ -205,7 +209,7 @@ local data_pipeline = std.mergePatch(merge_data, data_loader);
         optimizer_config: {
             optimizer_name: "AdamW",
             optimizer_params: {
-                lr: 0.0001,
+                lr: 1e-4,
                 eps: 1e-08,
             },
             scheduler: "none",

@@ -20,7 +20,7 @@ import numpy as np
 # for i in [3021, 5035, 7049, 9063, 11077, 13091, 15105, 17119]:
 #     print(f"Results for {i}")
 #     RERANKER_RESULTS = f"/home/fz288/rds/hpc-work/PreFLMR/experiments/TEST_OKVQA_Interaction_MORES_5_B_ckpt_model_step_{i}/test/_test_OKVQADatasetForDPR.test_predictions_rank_0.json"
-RERANKER_RESULTS = f"/home/fz288/rds/hpc-work/PreFLMR/experiments/TEST_OKVQA_FLMRQuery_Full_Context_Retrieved_Rerank_ckpt_model_step_1000/test/_test_OKVQADatasetForDPR.test_predictions_rank_0.json"
+RERANKER_RESULTS = f"/home/fz288/rds/hpc-work/PreFLMR/experiments/TEST_OKVQA_Decoder_Head_Rerank_Neg_Sample_ckpt_model_step_2002/test/_test_OKVQADatasetForDPR.test_predictions_rank_0.json"
 
 with open(RERANKER_RESULTS, "rb") as f:
     data = json.load(f)['output']
