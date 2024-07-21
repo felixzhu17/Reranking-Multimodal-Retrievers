@@ -139,3 +139,4 @@ VQA
 *.pkl
 search_index
 best_models
+offline_data
