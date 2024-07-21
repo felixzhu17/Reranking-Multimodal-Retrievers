@@ -1,10 +1,10 @@
 #!/bin/bash
-#SBATCH -J TEST_EVQA_Decoder_Rerank_ckpt_model_step_1250
+#SBATCH -J TEST_OKVQA_Interaction_MORES_5_B_Start_ckpt_model_step_1007
 #SBATCH -A MLMI-fz288-SL2-GPU
 #SBATCH --nodes=1
 #SBATCH --ntasks=1
 #SBATCH --gres=gpu:1
-#SBATCH --time=10:00:00
+#SBATCH --time=1:00:00
 #SBATCH --mail-type=NONE
 #SBATCH -p ampere
 
@@ -38,4 +38,4 @@ echo "Running on master node: `hostname`"
 echo "Current directory: `pwd`"
 
 echo -e "\nnumtasks=$numtasks, numnodes=$numnodes, mpi_tasks_per_node=$mpi_tasks_per_node (OMP_NUM_THREADS=$OMP_NUM_THREADS)"
-python src/main.py --config configs/Rerank/evqa_experiments/evqa_decoder.jsonnet --mode test --experiment_name TEST_EVQA_Decoder_Rerank_ckpt_model_step_1250 --tags "EVQA_Decoder_Rerank" "test" --opts train.load_model_path="/home/fz288/rds/hpc-work/PreFLMR/experiments/EVQA_Decoder_Reranker/train/saved_models/model_step_1250.ckpt" > log_TEST_EVQA_Decoder_Rerank_ckpt_model_step_1250 2>&1
+python src/main.py --config configs/Rerank/interaction_experiments/okvqa_interaction_B_mores_5.jsonnet --mode test --experiment_name TEST_OKVQA_Interaction_MORES_5_B_Start_ckpt_model_step_1007 --tags "OKVQA_Interaction_MORES_5_B_Start" "test" --opts train.load_model_path="/home/fz288/rds/hpc-work/PreFLMR/experiments/OKVQA_Interaction_MORES_5_B_Start/train/saved_models/model_step_1007.ckpt" > log_TEST_OKVQA_Interaction_MORES_5_B_Start_ckpt_model_step_1007 2>&1

@@ -1,8 +1,9 @@
 local meta = import '../../meta_configs/hpc_meta_config.libsonnet';
-local data = import '../../data/okvqa_data.libsonnet';
+local data = import '../../data/evqa_data.libsonnet';
 local merge_data = data.merge_data_pipeline;
 
 local pretrained_ckpt_path = "LinWeizheDragon/PreFLMR_ViT-B";
+local reranker_pretrained_ckpt_path = "LinWeizheDragon/PreFLMR_ViT-B";
 local image_processor_name = "laion/CLIP-ViT-bigG-14-laion2B-39B-b160k";
 
 local tokenizer_config = {
@@ -30,14 +31,25 @@ local image_processor_config = {
   },
 };
 
+// local index_files = {
+//   "index_path": "",
+//   "embedding_path": "",
+//   "static_results": [
+//     "/home/fz288/rds/hpc-work/PreFLMR/search_index/EVQA/PreFLMR-B/_test_EVQADatasetForDPR.test_predictions_rank_0.pkl",
+//     "/home/fz288/rds/hpc-work/PreFLMR/search_index/EVQA/PreFLMR-B/EVQA_EVQA_PreFLMR_ViT-B_train.pkl",
+//     "/home/fz288/rds/hpc-work/PreFLMR/search_index/EVQA/PreFLMR-B/EVQA_EVQA_PreFLMR_ViT-B_valid.pkl"
+//   ],
+// };
+
+
 local index_files = {
   "index_path": "",
   "embedding_path": "",
   "static_results": [
-    "/home/fz288/rds/hpc-work/PreFLMR/search_index/OKVQA/PreFLMR-B/_test_OKVQADatasetForDPR.test_predictions_rank_0.pkl",
-    "/home/fz288/rds/hpc-work/PreFLMR/search_index/OKVQA/PreFLMR-B/_test_OKVQADatasetForDPR.train_predictions_rank_0.pkl",
+    "/home/fz288/rds/hpc-work/PreFLMR/search_index/EVQA/PreFLMR-B/_test_EVQADatasetForDPR.test_predictions_rank_0.pkl"
   ],
 };
+
 
 local data_loader = {
   transforms: {
@@ -58,28 +70,28 @@ local data_loader = {
           "train_passages": "train_passages",
           "valid_passages": "valid_passages",
           "test_passages": "test_passages",
-          "vqa_data_with_dpr_output": "okvqa_data",
+          "vqa_data_with_dpr_output": "evqa_data",
         },
         datasets_config: {
           train: [
             {
-              dataset_type: 'OKVQADatasetForDPR',
+              dataset_type: 'EVQADatasetForDPR',
               split: 'train',
-              use_column: 'okvqa_data',
+              use_column: 'evqa_data',
             },
           ],
           valid: [
             {
-              dataset_type: 'OKVQADatasetForDPR',
+              dataset_type: 'EVQADatasetForDPR',
               split: 'test',
-              use_column: 'okvqa_data',
+              use_column: 'evqa_data',
             },
           ],
           test: [
             {
-              dataset_type: 'OKVQADatasetForDPR',
+              dataset_type: 'EVQADatasetForDPR',
               split: 'test',
-              use_column: 'okvqa_data',
+              use_column: 'evqa_data',
             },
           ],
         },
@@ -91,12 +103,12 @@ local data_loader = {
   },
 };
 
-local validation_indexing_source = ["okvqa_passages"];
+local validation_indexing_source = ["evqa_passages"];
 
 local data_pipeline = std.mergePatch(merge_data, data_loader);
 
 {
-    experiment_name: 'OKVQA_Interaction_Reranker',
+    experiment_name: 'EVQA_FLMRInteractionOutput_BERT(1Layer)_SingleHead_BCE',
     test_suffix: 'default_test',
     meta: meta.default_meta,
     data_pipeline: data_pipeline,
@@ -112,10 +124,10 @@ local data_pipeline = std.mergePatch(merge_data, data_loader);
           "pretrain_config_class": "FLMRConfig",
           "RerankerClass": "InteractionRerankModel",
           "cross_encoder_config_base": "bert-base-uncased",
-          "cross_encoder_num_hidden_layers": 5,
+          "cross_encoder_num_hidden_layers": 3,
           "cross_encoder_max_position_embeddings": 750,
-          "loss_fn": "BCE",
-          "interaction_type": "MORES"
+          "loss_fn": "negative_sampling",
+          "interaction_type": "NORMAL"
 
         },
         "Ks": [5, 10, 20, 50, 100],
@@ -126,7 +138,8 @@ local data_pipeline = std.mergePatch(merge_data, data_loader);
         "pretrained": 1,
         "modules": [
             "separate_query_and_item_encoders",
-            "interaction_reranker"
+            "interaction_reranker",
+            "train_with_retrieved_docs"
         ],
         "index_files": index_files,
         "nbits": 8,
@@ -188,7 +201,7 @@ local data_pipeline = std.mergePatch(merge_data, data_loader);
             limit_val_batches: 50,
         },
         model_checkpoint_callback_paras: {
-            monitor: 'valid/OKVQADatasetForDPR.test/loss',
+            monitor: 'valid/EVQADatasetForDPR.test/loss',
             save_top_k: 10,
             mode: "min",
             filename: 'model_step_{step}',

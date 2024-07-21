@@ -3,6 +3,6 @@
         "config_file": "configs/Rerank/decoder_experiments/decoder_head_rerank.jsonnet",
         "time": "10:00:00",
         "gpus": 1,
-        "ckpt_path": "experiments/OKVQA_Decoder_Head_Reranker_low_lr/train/saved_models/model_step_2002.ckpt"
+        "ckpt_path": "/home/fz288/rds/hpc-work/PreFLMR/experiments/OKVQA_Decoder_Head_Reranker_low_lr/train/saved_models/model_step_1001.ckpt"
     }
 ]

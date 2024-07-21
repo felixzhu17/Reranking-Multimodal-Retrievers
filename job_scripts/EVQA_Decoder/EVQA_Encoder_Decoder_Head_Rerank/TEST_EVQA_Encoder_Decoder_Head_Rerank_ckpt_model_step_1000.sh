@@ -1,5 +1,5 @@
 #!/bin/bash
-#SBATCH -J TEST_EVQA_Decoder_Rerank_ckpt_model_step_1250
+#SBATCH -J TEST_EVQA_Encoder_Decoder_Head_Rerank_ckpt_model_step_1000
 #SBATCH -A MLMI-fz288-SL2-GPU
 #SBATCH --nodes=1
 #SBATCH --ntasks=1
@@ -38,4 +38,4 @@ echo "Running on master node: `hostname`"
 echo "Current directory: `pwd`"
 
 echo -e "\nnumtasks=$numtasks, numnodes=$numnodes, mpi_tasks_per_node=$mpi_tasks_per_node (OMP_NUM_THREADS=$OMP_NUM_THREADS)"
-python src/main.py --config configs/Rerank/evqa_experiments/evqa_decoder.jsonnet --mode test --experiment_name TEST_EVQA_Decoder_Rerank_ckpt_model_step_1250 --tags "EVQA_Decoder_Rerank" "test" --opts train.load_model_path="/home/fz288/rds/hpc-work/PreFLMR/experiments/EVQA_Decoder_Reranker/train/saved_models/model_step_1250.ckpt" > log_TEST_EVQA_Decoder_Rerank_ckpt_model_step_1250 2>&1
+python src/main.py --config configs/Rerank/evqa_experiments/evqa_encoder_decoder_head.jsonnet --mode test --experiment_name TEST_EVQA_Encoder_Decoder_Head_Rerank_ckpt_model_step_1000 --tags "EVQA_Encoder_Decoder_Head_Rerank" "test" --opts train.load_model_path="/home/fz288/rds/hpc-work/PreFLMR/experiments/EVQA_Encoder_Decoder_Head_Rerank/train/saved_models/model_step_1000.ckpt" > log_TEST_EVQA_Encoder_Decoder_Head_Rerank_ckpt_model_step_1000 2>&1
