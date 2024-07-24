@@ -596,7 +596,7 @@ class RerankerBaseExecutor(BaseExecutor, MetricsProcessor):
             train_batch["preflmr_scores"] = retrieval_results.scores_raw if retrieval_results is not None else self.retriever(**train_batch).scores_raw
             train_batch["fusion_multiplier"] = self.model_config.fusion_multiplier
             
-        if "train_with_retrieved_docs" in self.model_config.modules and self.model_config.reranker_config.loss_fn != "negative_sampling":
+        if "train_with_retrieved_docs" in self.model_config.modules and self.model_config.reranker_config.loss_fn != "negative_sampling" and "neg_sample_retrieved" not in self.model_config.modules:
             assert labels is not None
             train_batch["labels"] = labels
         else:

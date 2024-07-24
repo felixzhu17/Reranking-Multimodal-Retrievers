@@ -168,7 +168,7 @@ local okvqa_data_pipeline = std.mergePatch(okvqa_data, data_loader);
         },
         model_checkpoint_callback_paras: {
             monitor: 'valid/OKVQADataset.test/accuracy_overall',
-            save_top_k: 5,
+            save_top_k: 10,
             mode: "max",
             filename: 'model_step_{step}',
             save_last: true,

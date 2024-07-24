@@ -171,7 +171,7 @@ local data_pipeline = std.mergePatch(vg_data, data_loader);
         },
         model_checkpoint_callback_paras: {
             monitor: 'valid/VisualGenomeDatasetForDPR.valid/recall_at_1000',
-            save_top_k: 5,
+            save_top_k: 10,
             mode: "max",
             filename: 'model_step_{step}',
             save_last: true,
