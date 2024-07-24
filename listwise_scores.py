@@ -33,6 +33,7 @@ def calculate_recall(grouped_data):
 def sample_passages_and_calculate_loss(data, num_negs, num_samples=500):
     total_losses_correct = []
     total_losses_incorrect = []
+    total_losses_overall = []
     queries_with_pos_passage = 0
     queries_without_pos_passage = 0
     all_scores_correct = []
@@ -73,6 +74,8 @@ def sample_passages_and_calculate_loss(data, num_negs, num_samples=500):
                 correctness = calculate_correctness(top_ranking_passages[:5], pos_item_ids)
                 item['correctness'] = correctness
 
+                total_losses_overall.append(average_loss)
+
                 if correctness == 1:
                     total_losses_correct.append(average_loss)
                 else:
@@ -83,12 +86,13 @@ def sample_passages_and_calculate_loss(data, num_negs, num_samples=500):
             queries_without_pos_passage += 1
             item['correctness'] = None
 
-    return total_losses_correct, total_losses_incorrect, data, queries_with_pos_passage, queries_without_pos_passage, all_scores_correct, all_scores_incorrect
+    return total_losses_correct, total_losses_incorrect, total_losses_overall, data, queries_with_pos_passage, queries_without_pos_passage, all_scores_correct, all_scores_incorrect
 
 # Calculate overall average loss and recall
-def calculate_overall_average_loss_and_recall(total_losses_correct, total_losses_incorrect, data):
+def calculate_overall_average_loss_and_recall(total_losses_correct, total_losses_incorrect, total_losses_overall, data):
     overall_top_average_loss_correct = np.mean(total_losses_correct) if total_losses_correct else 0
     overall_top_average_loss_incorrect = np.mean(total_losses_incorrect) if total_losses_incorrect else 0
+    overall_top_average_loss = np.mean(total_losses_overall) if total_losses_overall else 0
     grouped_data = defaultdict(list)
 
     for item in data:
@@ -96,7 +100,7 @@ def calculate_overall_average_loss_and_recall(total_losses_correct, total_losses
 
     correct_count, incorrect_count, recall = calculate_recall(grouped_data)
 
-    return overall_top_average_loss_correct, overall_top_average_loss_incorrect, recall
+    return overall_top_average_loss_correct, overall_top_average_loss_incorrect, overall_top_average_loss, recall
 
 # Plot and save the distribution of scores
 def plot_and_save_distribution(all_scores_correct, all_scores_incorrect, step, num_negs):
@@ -135,19 +139,20 @@ for num_negs in num_negs_list:
             data = json.load(f)['output']
 
         # Step 1: Sample passages and calculate loss
-        (total_losses_correct, total_losses_incorrect, modified_data, queries_with_pos_passage, 
-         queries_without_pos_passage, all_scores_correct, all_scores_incorrect) = sample_passages_and_calculate_loss(data, num_negs)
+        (total_losses_correct, total_losses_incorrect, total_losses_overall, modified_data, 
+         queries_with_pos_passage, queries_without_pos_passage, all_scores_correct, 
+         all_scores_incorrect) = sample_passages_and_calculate_loss(data, num_negs)
 
         # Step 2: Calculate overall average loss and recall across all items
-        overall_top_avg_loss_correct, overall_top_avg_loss_incorrect, recall = calculate_overall_average_loss_and_recall(total_losses_correct, total_losses_incorrect, modified_data)
+        overall_top_avg_loss_correct, overall_top_avg_loss_incorrect, overall_top_avg_loss, recall = calculate_overall_average_loss_and_recall(total_losses_correct, total_losses_incorrect, total_losses_overall, modified_data)
 
         # Print the overall average losses and recall
-        print(f"Overall average loss for step {step} with NUM_NEGS = {num_negs}: Correct = {overall_top_avg_loss_correct}, Incorrect = {overall_top_avg_loss_incorrect}, Recall: {recall}")
+        print(f"Overall average loss for step {step} with NUM_NEGS = {num_negs}: Correct = {overall_top_avg_loss_correct}, Incorrect = {overall_top_avg_loss_incorrect}, Overall = {overall_top_avg_loss}, Recall: {recall}")
         # print(f"Queries with at least one positive passage: {queries_with_pos_passage}, Queries without any positive passage: {queries_without_pos_passage}")
 
-        # Print statistics for correct and incorrect losses
-        print_statistics(total_losses_correct, "Correct Cross-Entropy Loss")
-        print_statistics(total_losses_incorrect, "Incorrect Cross-Entropy Loss")
+        # # Print statistics for correct and incorrect losses
+        # print_statistics(total_losses_correct, "Correct Cross-Entropy Loss")
+        # print_statistics(total_losses_incorrect, "Incorrect Cross-Entropy Loss")
 
         # Print statistics for correct and incorrect scores
         print_statistics(all_scores_correct, "Correct Scores")
