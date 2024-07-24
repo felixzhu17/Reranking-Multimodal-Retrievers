@@ -7,7 +7,8 @@ from collections import defaultdict
 
 # List of steps and number of negatives
 steps = [2014, 4028, 6042, 8056, 10070]
-num_negs_list = [4, 9, 19, 49]
+# num_negs_list = [4, 9, 19, 49]
+num_negs_list = [4]
 base_path = "/home/fz288/rds/hpc-work/PreFLMR/experiments/TEST_OKVQA_Interaction_MORES_5_B_Neg_Sample_ckpt_model_step_"
 
 # Function to calculate cross-entropy loss
