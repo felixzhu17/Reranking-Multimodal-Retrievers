@@ -282,7 +282,7 @@ class OKVQADatasetForDPR(DPRBaseDataset, ModuleParser):
         answers = [sample.answers for sample in batch]
         gold_answers = [sample.gold_answer for sample in batch]
         passage_ids = [sample.passage_id for sample in batch]
-        pos_item_ids = [sample.passage_id for sample in batch]
+        pos_item_ids = [sample.pos_item_ids for sample in batch]
         neg_item_ids = [sample.neg_passage_ids for sample in batch]
         all_pos_item_ids = [sample.pos_item_ids for sample in batch]
 

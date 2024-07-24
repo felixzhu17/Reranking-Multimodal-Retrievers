@@ -1,10 +1,10 @@
 #!/bin/bash
-#SBATCH -J TEST_OKVQA_FLMRQuery_Full_Context_Rerank_B_Neg_Sample_Train_on_Retrieve_ckpt_model_step_8055
+#SBATCH -J TEST_EVQA_monoBLIP_L_ckpt_model_step_2000
 #SBATCH -A MLMI-fz288-SL2-GPU
 #SBATCH --nodes=1
 #SBATCH --ntasks=1
 #SBATCH --gres=gpu:1
-#SBATCH --time=4:00:00
+#SBATCH --time=10:00:00
 #SBATCH --mail-type=NONE
 #SBATCH -p ampere
 
@@ -38,4 +38,4 @@ echo "Running on master node: `hostname`"
 echo "Current directory: `pwd`"
 
 echo -e "\nnumtasks=$numtasks, numnodes=$numnodes, mpi_tasks_per_node=$mpi_tasks_per_node (OMP_NUM_THREADS=$OMP_NUM_THREADS)"
-python src/main.py --config configs/Rerank/loss_function/okvqa_full_context_rerank_neg_sample_retrieved.jsonnet --mode test --experiment_name TEST_OKVQA_FLMRQuery_Full_Context_Rerank_B_Neg_Sample_Train_on_Retrieve_ckpt_model_step_8055 --tags "OKVQA_FLMRQuery_Full_Context_Rerank_B_Neg_Sample_Train_on_Retri" "test" --opts train.load_model_path="/home/fz288/rds/hpc-work/PreFLMR/experiments/OKVQA_FLMRQuery_Full_Context_Rerank_B_Neg_Sample_Train_on_Retrieve_ckpt_model_step_7552/train/saved_models/model_step_8055.ckpt" > log_TEST_OKVQA_FLMRQuery_Full_Context_Rerank_B_Neg_Sample_Train_on_Retrieve_ckpt_model_step_8055 2>&1
+python src/main.py --config configs/Rerank/evqa_experiments/evqa_encoder_decoder_head_vanilla_neg_sample_retrieved_L.jsonnet --mode test --experiment_name TEST_EVQA_monoBLIP_L_ckpt_model_step_2000 --tags "EVQA_monoBLIP_L" "test" --opts train.load_model_path="/home/fz288/rds/hpc-work/PreFLMR/experiments/EVQA_Encoder_Decoder_Head_Rerank_Vanilla_Neg_Sample_Retrieved_ckpt_model_step_2000/train/saved_models/model_step_2000.ckpt" > log_TEST_EVQA_monoBLIP_L_ckpt_model_step_2000 2>&1

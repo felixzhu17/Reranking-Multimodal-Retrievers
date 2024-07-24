@@ -193,7 +193,7 @@ local data_pipeline = std.mergePatch(merge_data, data_loader);
         },
         model_checkpoint_callback_paras: {
             monitor: 'valid/OKVQADatasetForDPR.test/loss',
-            save_top_k: 5,
+            save_top_k: 10,
             mode: "min",
             filename: 'model_step_{step}',
             save_last: true,

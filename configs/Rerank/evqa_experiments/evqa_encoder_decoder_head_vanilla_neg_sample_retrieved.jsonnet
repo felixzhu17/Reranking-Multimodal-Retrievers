@@ -31,24 +31,24 @@ local image_processor_config = {
   },
 };
 
-local index_files = {
-  "index_path": "",
-  "embedding_path": "",
-  "static_results": [
-    "/home/fz288/rds/hpc-work/PreFLMR/search_index/EVQA/PreFLMR-B/_test_EVQADatasetForDPR.test_predictions_rank_0.pkl",
-    "/home/fz288/rds/hpc-work/PreFLMR/search_index/EVQA/PreFLMR-B/EVQA_EVQA_PreFLMR_ViT-B_train.pkl",
-    "/home/fz288/rds/hpc-work/PreFLMR/search_index/EVQA/PreFLMR-B/EVQA_EVQA_PreFLMR_ViT-B_valid.pkl"
-  ],
-};
-
-
 // local index_files = {
 //   "index_path": "",
 //   "embedding_path": "",
 //   "static_results": [
-//     "/home/fz288/rds/hpc-work/PreFLMR/search_index/EVQA/PreFLMR-B/_test_EVQADatasetForDPR.test_predictions_rank_0.pkl"
+//     "/home/fz288/rds/hpc-work/PreFLMR/search_index/EVQA/PreFLMR-B/_test_EVQADatasetForDPR.test_predictions_rank_0.pkl",
+//     "/home/fz288/rds/hpc-work/PreFLMR/search_index/EVQA/PreFLMR-B/EVQA_EVQA_PreFLMR_ViT-B_train.pkl",
+//     "/home/fz288/rds/hpc-work/PreFLMR/search_index/EVQA/PreFLMR-B/EVQA_EVQA_PreFLMR_ViT-B_valid.pkl"
 //   ],
 // };
+
+
+local index_files = {
+  "index_path": "",
+  "embedding_path": "",
+  "static_results": [
+    "/home/fz288/rds/hpc-work/PreFLMR/search_index/EVQA/PreFLMR-B/_test_EVQADatasetForDPR.test_predictions_rank_0.pkl"
+  ],
+};
 
 local data_loader = {
   transforms: {
@@ -202,7 +202,7 @@ local data_pipeline = std.mergePatch(merge_data, data_loader);
         },
         model_checkpoint_callback_paras: {
             monitor: 'valid/EVQADatasetForDPR.test/loss',
-            save_top_k: 5,
+            save_top_k: 10,
             mode: "min",
             filename: 'model_step_{step}',
             save_last: true,

@@ -31,23 +31,23 @@ local image_processor_config = {
   },
 };
 
-local index_files = {
-  "index_path": "",
-  "embedding_path": "",
-  "static_results": [
-    "/home/fz288/rds/hpc-work/PreFLMR/search_index/EVQA/PreFLMR-B/_test_EVQADatasetForDPR.test_predictions_rank_0.pkl",
-    "/home/fz288/rds/hpc-work/PreFLMR/search_index/EVQA/PreFLMR-B/EVQA_EVQA_PreFLMR_ViT-B_train.pkl",
-    "/home/fz288/rds/hpc-work/PreFLMR/search_index/EVQA/PreFLMR-B/EVQA_EVQA_PreFLMR_ViT-B_valid.pkl"
-  ],
-};
-
 // local index_files = {
 //   "index_path": "",
 //   "embedding_path": "",
 //   "static_results": [
-//     "/home/fz288/rds/hpc-work/PreFLMR/search_index/EVQA/PreFLMR-B/_test_EVQADatasetForDPR.test_predictions_rank_0.pkl"
+//     "/home/fz288/rds/hpc-work/PreFLMR/search_index/EVQA/PreFLMR-B/_test_EVQADatasetForDPR.test_predictions_rank_0.pkl",
+//     "/home/fz288/rds/hpc-work/PreFLMR/search_index/EVQA/PreFLMR-B/EVQA_EVQA_PreFLMR_ViT-B_train.pkl",
+//     "/home/fz288/rds/hpc-work/PreFLMR/search_index/EVQA/PreFLMR-B/EVQA_EVQA_PreFLMR_ViT-B_valid.pkl"
 //   ],
 // };
+
+local index_files = {
+  "index_path": "",
+  "embedding_path": "",
+  "static_results": [
+    "/home/fz288/rds/hpc-work/PreFLMR/search_index/EVQA/PreFLMR-B/_test_EVQADatasetForDPR.test_predictions_rank_0.pkl"
+  ],
+};
 
 local data_loader = {
   transforms: {
@@ -136,7 +136,8 @@ local data_pipeline = std.mergePatch(merge_data, data_loader);
             "separate_query_and_item_encoders",
             // "full_validation",
             "decoder_reranker",
-            "split_testing_batch"
+            "split_testing_batch",
+            "train_with_retrieved_docs"
         ],
         "index_files": index_files,
         "nbits": 8,

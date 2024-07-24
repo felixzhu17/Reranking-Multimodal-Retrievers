@@ -188,7 +188,7 @@ local infoseek_data_pipeline_merged = std.mergePatch(infoseek_data_pipeline, dat
         },
         model_checkpoint_callback_paras: {
             monitor: 'valid/InfoseekDatasetForDPR.val/recall_at_5',
-            save_top_k: 5,
+            save_top_k: 10,
             mode: "max",
             filename: 'model_step_{step}',
             save_last: true,
