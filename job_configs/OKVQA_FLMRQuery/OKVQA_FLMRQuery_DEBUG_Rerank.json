@@ -1,8 +1,0 @@
-[
-    {
-        "config_file": "configs/Rerank/initial_experiments/okvqa_full_context_retrieve_rerank.jsonnet",
-        "time": "2:00:00",
-        "gpus": 2 ,
-        "ckpt_path": "/home/fz288/rds/hpc-work/PreFLMR/experiments/OKVQA_FLMRQuery_DEBUG_Rerank/train/saved_models/model_step_500.ckpt"   
-    }
-]

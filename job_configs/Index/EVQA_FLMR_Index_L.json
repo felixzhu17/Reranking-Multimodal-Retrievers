@@ -1,7 +1,0 @@
-[
-    {
-        "config_file": "configs/FLMR/evqa_FLMR_L.jsonnet",
-        "time": "5:00:00",
-        "gpus": 1
-    }
-]

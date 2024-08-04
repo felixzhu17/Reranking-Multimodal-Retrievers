@@ -1,7 +1,0 @@
-[
-    {
-        "config_file": "configs/Rerank/initial_experiments/okvqa_full_context_rerank_L_freeze_vision.jsonnet",
-        "time": "2:00:00",
-        "gpus": 1
-    }
-]

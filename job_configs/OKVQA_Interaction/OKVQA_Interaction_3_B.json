@@ -1,7 +1,0 @@
-[
-    {
-        "config_file": "configs/Rerank/interaction_experiments/okvqa_interaction_B_3.jsonnet",
-        "time": "1:00:00",
-        "gpus": 1
-    }
-]
