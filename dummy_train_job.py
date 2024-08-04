@@ -2,6 +2,8 @@ import os
 import json
 import argparse
 
+CONFIG_DIR = "job_configs"
+
 def load_configs(config_file):
     with open(config_file, 'r') as file:
         return json.load(file)
@@ -36,7 +38,7 @@ python src/main.py --config {config_file} --mode train --experiment_name DEBUGDU
 """
 
 def main(config_name):
-    config_file = os.path.join('job_configs', f"{config_name}.json")
+    config_file = os.path.join(CONFIG_DIR, f"{config_name}.json")
     configs = load_configs(config_file)
     base_experiment_name = get_base_experiment_name(config_file)
 
