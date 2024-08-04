@@ -181,8 +181,6 @@ class RerankerBaseExecutor(BaseExecutor, MetricsProcessor):
             
         if "neg_sample_retrieved" in self.model_config.modules:
             print("Sampling Negative")
-        # if "full_context_reranker" in self.model_config.modules:
-        #     assert self.training_config.batch_size == 1, "FullContextReranker requires 1 batch size"
 
     def _init_model(self, model_config):
         """Initialize self.model
@@ -297,8 +295,7 @@ class RerankerBaseExecutor(BaseExecutor, MetricsProcessor):
                 print(f"Rank {dist.get_rank()} Done loading lookup table.")
             else:
                 print("Lookup table loaded without distributed setup.")
-        # if isinstance(self.prepared_data.train_passages, datasets.Dataset):
-        # ds = self.prepared_data.train_passages
+
         test_ds = (
             self.prepared_data.valid_passages
             if self.split_to_retrieve_in_validation == "valid"
@@ -376,9 +373,7 @@ class RerankerBaseExecutor(BaseExecutor, MetricsProcessor):
                 }
             else:
                 pretrained_dict = {k: v for k, v in state_dict_from_ckpt.items()}
-            # logger.info(f"Load the following parameters from the given checkpoint: {pretrained_dict.keys()}")
-            # logger.info(f"Loading the following parameters into the current model: {pretrained_dict.keys()}")
-
+ 
             # 2. overwrite entries in the existing state dict
             model_dict.update(pretrained_dict)
 
@@ -760,7 +755,6 @@ class RerankerBaseExecutor(BaseExecutor, MetricsProcessor):
         if "text_only" in self.model_config.modules:
             test_batch["query_pixel_values"] = None
             
-        #MODIFIED
         batch_loss = self.reranker(**test_batch).loss
 
         # logs metrics for each training_step,
@@ -768,11 +762,6 @@ class RerankerBaseExecutor(BaseExecutor, MetricsProcessor):
         self.log("valid/loss", batch_loss, on_step=True, logger=True, sync_dist=True)
 
         data_to_return = {
-            # "btach_idx": batch_idx,
-            # "question_ids": sample_batched["question_ids"],
-            # "questions": sample_batched["questions"],
-            # "pos_item_ids": sample_batched["all_pos_item_ids"],
-            # "neg_item_ids": sample_batched["neg_item_ids"],
             "loss": batch_loss.detach().cpu(),
 
         }
@@ -970,7 +959,6 @@ class RerankerBaseExecutor(BaseExecutor, MetricsProcessor):
             query_item = self.prepared_data.vqa_data_with_dpr_output.lookup[
                 str(question_id)
             ]
-            # pos_item_contents = [self.prepared_data.passages.id2doc[pos_id] for pos_id in pos_ids]
             batched_data = {
                 "question_id": question_id,
                 "top_ranking_passages": top_ranking_passages,
@@ -1008,24 +996,12 @@ class RerankerBaseExecutor(BaseExecutor, MetricsProcessor):
             knowledge_item = self.prepared_data.vqa_data_with_dpr_output.lookup[
                 str(question_id)
             ]
-
-            # pos_item_contents = [self.prepared_data.passages.id2doc[pos_id] for pos_id in pos_ids]
             table_entry = [
                 knowledge_item.get("img_id", knowledge_item.get("img_key_full")),
                 knowledge_item["img_path"],
                 knowledge_item["img_path"],
                 str(knowledge_item["pos_item_ids"]),
-                # pos_item_contents,
             ]
-
-            # if self.config.args.log_prediction_tables_with_images:
-            #     # Replace image keys with real images
-            #     input_image_file_name = knowledge_item['img_file_name']
-            #     input_image = artifact.get(input_image_file_name)
-            #     if input_image is None:
-            #         input_image = artifact.get(input_image_file_name)
-
-            #     table_entry[1] = input_image
 
             table_entry += [p["content"] for p in re["top_ranking_passages"]]
             test_table.add_data(*table_entry)
