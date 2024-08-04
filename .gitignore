@@ -142,3 +142,6 @@ best_models
 offline_data
 
 archive
+
+job_configs
+job_scripts
