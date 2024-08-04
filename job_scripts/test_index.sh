@@ -1,1 +1,0 @@
-python src/main.py --config configs/FLMR/okvqa_FLMR.jsonnet --mode test --test_suffix index --experiment_name OKVQA_PreFLMR
