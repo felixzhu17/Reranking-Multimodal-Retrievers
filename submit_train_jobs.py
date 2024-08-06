@@ -2,6 +2,9 @@ import os
 import json
 import argparse
 
+CONFIG_DIR = "job_configs"
+SCRIPT_DIR = "job_scripts"
+
 def load_configs(config_file):
     with open(config_file, 'r') as file:
         return json.load(file)
@@ -75,7 +78,7 @@ python src/main.py --config {config_file} --mode train --experiment_name {experi
 """
 
 def main(config_name):
-    config_file = os.path.join('job_configs', f"{config_name}.json")
+    config_file = os.path.join(CONFIG_DIR, f"{config_name}.json")
     configs = load_configs(config_file)
     base_experiment_name = get_base_experiment_name(config_file)
     tags = [base_experiment_name[:63], 'train']
@@ -114,7 +117,7 @@ def main(config_name):
         
         
         
-        script_name = os.path.join('job_scripts', config_name, f"{experiment_name}.sh")
+        script_name = os.path.join(SCRIPT_DIR, config_name, f"{experiment_name}.sh")
         os.makedirs(os.path.dirname(script_name), exist_ok=True)
         with open(script_name, "w") as f:
             f.write(job_script)

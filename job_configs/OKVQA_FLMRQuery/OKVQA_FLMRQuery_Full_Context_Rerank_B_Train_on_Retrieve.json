@@ -1,8 +1,0 @@
-[
-    {
-        "config_file": "configs/Rerank/loss_function/okvqa_full_context_rerank_retrieved.jsonnet",
-        "time": "8:00:00",
-        "gpus": 2,
-        "ckpt_path": "/home/fz288/rds/hpc-work/PreFLMR/experiments/OKVQA_FLMRQuery_Full_Context_Rerank_B_Train_on_Retrieve_ckpt_model_step_6042/train/saved_models/model_step_1007.ckpt"
-    }
-]
