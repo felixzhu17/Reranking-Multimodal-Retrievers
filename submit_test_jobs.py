@@ -71,7 +71,7 @@ echo "Running on master node: `hostname`"
 echo "Current directory: `pwd`"
 
 echo -e "\\nnumtasks=$numtasks, numnodes=$numnodes, mpi_tasks_per_node=$mpi_tasks_per_node (OMP_NUM_THREADS=$OMP_NUM_THREADS)"
-python src/main.py --config {config_file} --mode test --experiment_name {experiment_name} --tags {tags} {opts_str} > log_{experiment_name} 2>&1
+torchrun --nproc_per_node={gpus} src/main.py --config {config_file} --mode test --experiment_name {experiment_name} --tags {tags} {opts_str} > log_{experiment_name} 2>&1
 """
 
 def main(config_name):
